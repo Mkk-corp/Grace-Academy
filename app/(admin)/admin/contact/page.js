@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 
 export default function AdminContactPage() {
   const [messages, setMessages] = useState([])
+  const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
 
-  useEffect(() => { fetch('/api/contact').then(r => r.json()).then(msgs => setMessages(msgs.reverse())) }, [])
+  useEffect(() => { fetch('/api/contact').then(r => r.json()).then(msgs => { setMessages(msgs.reverse()); setLoading(false) }) }, [])
 
   async function markRead(id) {
     await fetch('/api/contact', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
@@ -30,21 +32,24 @@ export default function AdminContactPage() {
           <table className="admin-table">
             <thead><tr><th>From</th><th>Date</th><th>Status</th></tr></thead>
             <tbody>
-              {messages.map(msg => (
-                <tr key={msg.id} onClick={() => { setSelected(msg); if (!msg.read) markRead(msg.id) }} style={{ cursor: 'pointer' }}>
-                  <td>
-                    {!msg.read && <span className="badge-unread" style={{ marginRight: '8px' }}>NEW</span>}
-                    {msg.name}
-                  </td>
-                  <td style={{ fontSize: '.8rem', color: 'var(--text-60)' }}>{new Date(msg.submittedAt).toLocaleDateString()}</td>
-                  <td>
-                    <button className="admin-btn admin-btn--danger" onClick={e => { e.stopPropagation(); remove(msg.id) }} style={{ display:'flex', alignItems:'center', justifyContent:'center', padding:'4px 8px' }}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {messages.length === 0 && (
+              {loading
+                ? <AdminTableSkeleton cols={3} rows={5} />
+                : messages.map(msg => (
+                  <tr key={msg.id} onClick={() => { setSelected(msg); if (!msg.read) markRead(msg.id) }} style={{ cursor: 'pointer' }}>
+                    <td>
+                      {!msg.read && <span className="badge-unread" style={{ marginRight: '8px' }}>NEW</span>}
+                      {msg.name}
+                    </td>
+                    <td style={{ fontSize: '.8rem', color: 'var(--text-60)' }}>{new Date(msg.submittedAt).toLocaleDateString()}</td>
+                    <td>
+                      <button className="admin-btn admin-btn--danger" onClick={e => { e.stopPropagation(); remove(msg.id) }} style={{ display:'flex', alignItems:'center', justifyContent:'center', padding:'4px 8px' }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              }
+              {!loading && messages.length === 0 && (
                 <tr><td colSpan={3} style={{ color: 'var(--text-40)', textAlign: 'center', padding: '24px' }}>No messages</td></tr>
               )}
             </tbody>

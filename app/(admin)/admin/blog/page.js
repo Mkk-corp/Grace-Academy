@@ -1,13 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 
 export default function AdminBlogPage() {
   const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null)
 
   useEffect(() => {
-    fetch('/api/blog').then(r => r.json()).then(setItems)
+    fetch('/api/blog').then(r => r.json()).then(d => { setItems(d); setLoading(false) })
   }, [])
 
   async function save(item) {
@@ -33,8 +35,10 @@ export default function AdminBlogPage() {
       <table className="admin-table">
         <thead><tr><th>Title (EN)</th><th>Category</th><th>Published</th><th>Actions</th></tr></thead>
         <tbody>
-          {items.map(item => (
-            <tr key={item.id}>
+          {loading
+            ? <AdminTableSkeleton cols={4} rows={6} />
+            : items.map(item => (
+              <tr key={item.id}>
               <td>{item.title.en}</td>
               <td>{item.category.en}</td>
               <td>

@@ -930,6 +930,9 @@ video {
 .visible {
   visibility: visible;
 }
+.block {
+  display: block;
+}
 .flex {
   display: flex;
 }
@@ -1564,6 +1567,21 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 @keyframes glowPulse { 0%, 100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.25); opacity: 0.45; } }
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes progressGlow { 0%, 100% { box-shadow: 0 0 8px rgba(201,147,44,0.6); } 50% { box-shadow: 0 0 18px rgba(201,147,44,0.9); } }
+@keyframes loaderSpin { to { transform: rotate(360deg); } }
+@keyframes logoPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.55; transform: scale(0.94); } }
+@keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+
+/* ─── Page Loader ─── */
+.page-loader { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 28px; }
+.page-loader__logo { width: 72px; height: 72px; -o-object-fit: contain; object-fit: contain; animation: logoPulse 1.6s ease-in-out infinite; }
+.page-loader__ring { width: 36px; height: 36px; border: 2.5px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: loaderSpin 0.75s linear infinite; }
+
+/* ─── Skeleton ─── */
+.skeleton { background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%); background-size: 400px 100%; animation: shimmer 1.4s ease infinite; border-radius: var(--r); display: inline-block; }
+.skeleton-row td { padding: 14px 16px; }
+.skeleton-field { height: 14px; border-radius: var(--r); }
+.skeleton-text--lg { height: 18px; }
+.skeleton-text--sm { height: 12px; }
 
 /* ═══ ADMIN ═══ */
 .admin-layout { display: flex; min-height: 100vh; background: var(--bg); }

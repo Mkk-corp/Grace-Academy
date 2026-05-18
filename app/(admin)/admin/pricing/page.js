@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 
 export default function AdminPricingPage() {
   const [plans, setPlans] = useState([])
+  const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null)
 
-  useEffect(() => { fetch('/api/pricing').then(r => r.json()).then(setPlans) }, [])
+  useEffect(() => { fetch('/api/pricing').then(r => r.json()).then(d => { setPlans(d); setLoading(false) }) }, [])
 
   async function save(plan) {
     await fetch('/api/pricing', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(plan) })
@@ -21,7 +23,9 @@ export default function AdminPricingPage() {
       <table className="admin-table">
         <thead><tr><th>Plan (EN)</th><th>Price</th><th>Popular</th><th>Actions</th></tr></thead>
         <tbody>
-          {plans.map(plan => (
+          {loading
+            ? <AdminTableSkeleton cols={4} rows={3} />
+            : plans.map(plan => (
             <tr key={plan.id}>
               <td>{plan.name.en}</td>
               <td>{plan.price} {plan.currency}</td>

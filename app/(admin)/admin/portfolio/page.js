@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 
 export default function AdminPortfolioPage() {
   const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null)
 
-  useEffect(() => { fetch('/api/portfolio').then(r => r.json()).then(setItems) }, [])
+  useEffect(() => { fetch('/api/portfolio').then(r => r.json()).then(d => { setItems(d); setLoading(false) }) }, [])
 
   async function save(item) {
     const method = item.id.startsWith('new') ? 'POST' : 'PUT'
@@ -33,16 +35,19 @@ export default function AdminPortfolioPage() {
       <table className="admin-table">
         <thead><tr><th>Title (EN)</th><th>Category</th><th>Actions</th></tr></thead>
         <tbody>
-          {items.map(item => (
-            <tr key={item.id}>
-              <td>{item.title.en}</td>
-              <td>{item.category.en}</td>
-              <td style={{ display: 'flex', gap: '8px' }}>
-                <button className="admin-btn" onClick={() => setEditing({ ...item })}>Edit</button>
-                <button className="admin-btn admin-btn--danger" onClick={() => remove(item.id)}>Delete</button>
-              </td>
-            </tr>
-          ))}
+          {loading
+            ? <AdminTableSkeleton cols={3} rows={6} />
+            : items.map(item => (
+              <tr key={item.id}>
+                <td>{item.title.en}</td>
+                <td>{item.category.en}</td>
+                <td style={{ display: 'flex', gap: '8px' }}>
+                  <button className="admin-btn" onClick={() => setEditing({ ...item })}>Edit</button>
+                  <button className="admin-btn admin-btn--danger" onClick={() => remove(item.id)}>Delete</button>
+                </td>
+              </tr>
+            ))
+          }
         </tbody>
       </table>
       {editing && <PortfolioModal item={editing} onSave={save} onClose={() => setEditing(null)} />}

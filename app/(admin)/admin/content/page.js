@@ -19,8 +19,6 @@ export default function AdminContentPage() {
     setTimeout(() => setSaved(false), 2000)
   }
 
-  if (!content) return <p style={{ color: 'var(--text-60)' }}>Loading…</p>
-
   const fields = [
     ['Hero Subtitle EN', 'heroSubtitle.en'], ['Hero Subtitle AR', 'heroSubtitle.ar'],
     ['Manifesto EN', 'manifesto.en'], ['Manifesto AR', 'manifesto.ar'],
@@ -35,6 +33,20 @@ export default function AdminContentPage() {
     ['Instagram', 'socialLinks.instagram'], ['Twitter', 'socialLinks.twitter'],
     ['LinkedIn', 'socialLinks.linkedin'], ['YouTube', 'socialLinks.youtube'],
   ]
+
+  if (!content) return (
+    <>
+      <div className="admin-header"><h1>Site Content</h1></div>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '28px' }}>
+        {fields.map(([label]) => (
+          <div key={label} className="admin-field">
+            <span className="skeleton skeleton-text--sm" style={{ width: '120px', display: 'block', marginBottom: '8px' }} />
+            <span className="skeleton skeleton-field" style={{ width: '100%', display: 'block', height: '38px' }} />
+          </div>
+        ))}
+      </div>
+    </>
+  )
 
   return (
     <>

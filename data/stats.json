@@ -1,18 +1,18 @@
 {
   "reviews": {
-    "value": 1200,
+    "value": 6,
     "suffix": "+"
   },
   "students": {
-    "value": 5000,
+    "value": 5,
     "suffix": "+"
   },
   "courses": {
-    "value": 35,
+    "value": 10,
     "suffix": "+"
   },
   "instructors": {
-    "value": 48,
+    "value": 6,
     "suffix": "+"
   }
 }

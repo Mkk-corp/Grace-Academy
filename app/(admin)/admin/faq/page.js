@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 
 export default function AdminFaqPage() {
   const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null)
 
-  useEffect(() => { fetch('/api/faq').then(r => r.json()).then(setItems) }, [])
+  useEffect(() => { fetch('/api/faq').then(r => r.json()).then(d => { setItems(d); setLoading(false) }) }, [])
 
   async function save(item) {
     const method = item.id.startsWith('new') ? 'POST' : 'PUT'
@@ -31,15 +33,18 @@ export default function AdminFaqPage() {
       <table className="admin-table">
         <thead><tr><th>Question (EN)</th><th>Actions</th></tr></thead>
         <tbody>
-          {items.map(item => (
-            <tr key={item.id}>
-              <td>{item.question.en}</td>
-              <td style={{ display: 'flex', gap: '8px' }}>
-                <button className="admin-btn" onClick={() => setEditing({ ...item })}>Edit</button>
-                <button className="admin-btn admin-btn--danger" onClick={() => remove(item.id)}>Delete</button>
-              </td>
-            </tr>
-          ))}
+          {loading
+            ? <AdminTableSkeleton cols={2} rows={8} />
+            : items.map(item => (
+              <tr key={item.id}>
+                <td>{item.question.en}</td>
+                <td style={{ display: 'flex', gap: '8px' }}>
+                  <button className="admin-btn" onClick={() => setEditing({ ...item })}>Edit</button>
+                  <button className="admin-btn admin-btn--danger" onClick={() => remove(item.id)}>Delete</button>
+                </td>
+              </tr>
+            ))
+          }
         </tbody>
       </table>
       {editing && (
