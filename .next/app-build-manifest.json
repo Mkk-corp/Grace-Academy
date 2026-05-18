@@ -130,6 +130,11 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/blog/route.js"
+    ],
+    "/(public)/blog/[slug]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(public)/blog/[slug]/page.js"
     ]
   }
 }

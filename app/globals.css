@@ -584,12 +584,35 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .blog-card__readmore { display: inline-flex; align-items: center; gap: .4rem; font-size: .82rem; font-weight: 600; color: var(--gold); text-decoration: none; letter-spacing: .05em; text-transform: uppercase; font-family: var(--font); transition: gap .2s ease; }
 .blog-card__readmore:hover { gap: .7rem; }
 .blog-card__readmore svg { width: 14px; height: 14px; }
+.blog-card__cover { display: block; aspect-ratio: 16/9; flex-shrink: 0; overflow: hidden; text-decoration: none; }
+.blog-card__cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.blog-card__cover-gradient { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .75rem; }
+.blog-card__cover-icon { width: 2.4rem; height: 2.4rem; opacity: .65; }
+.blog-card__cover-icon svg { width: 100%; height: 100%; stroke: rgba(201,147,44,.85); }
+.blog-card__cover-cat { font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: rgba(201,147,44,.7); font-weight: 600; font-family: var(--font); }
+
+/* ═══ POST PAGE ═══ */
+.post-cover { position: relative; height: 420px; overflow: hidden; }
+.post-cover__img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.post-cover__gradient { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.post-cover__icon { width: 5rem; height: 5rem; opacity: .3; }
+.post-cover__icon svg { width: 100%; height: 100%; stroke: rgba(201,147,44,.8); }
+.post-cover__overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(16,34,43,.95) 0%, rgba(16,34,43,.3) 60%, transparent 100%); display: flex; align-items: flex-end; }
+.post-cover__overlay .container { padding-bottom: 2.5rem; }
+.post-cover__category { font-size: .7rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: .6rem; font-family: var(--font); }
+.post-cover__title { font-size: clamp(1.4rem, 3vw, 2.2rem); font-weight: 800; color: #fff; line-height: 1.25; margin-bottom: .5rem; font-family: var(--font); }
+.post-cover__date { font-size: .8rem; color: rgba(255,255,255,.55); font-family: var(--font); }
+.post-body { padding: 3rem 0 5rem; }
+.post-back { display: inline-flex; align-items: center; gap: .5rem; font-size: .82rem; font-weight: 600; color: var(--gold); text-decoration: none; letter-spacing: .05em; margin-bottom: 2.5rem; transition: gap .2s ease; font-family: var(--font); }
+.post-back:hover { gap: .8rem; }
+.post-content p { font-size: 1rem; line-height: 1.9; color: var(--text-80); margin-bottom: 1.4rem; font-family: var(--font); }
 
 /* ═══ RTL OVERRIDES ═══ */
 [dir="rtl"] .service-card::before { left: auto; right: 0; border-radius: 2px 0 0 2px; }
 [dir="rtl"] .mv-card::after { left: auto; right: 0; border-radius: 2px 0 0 2px; }
 [dir="rtl"] .process-steps::before { left: calc(12.5% + 8px); right: calc(12.5% + 8px); background: linear-gradient(270deg, var(--gold), rgba(201,147,44,.2)); }
 [dir="rtl"] .blog-card__readmore svg { transform: scaleX(-1); }
+[dir="rtl"] .post-back svg { transform: scaleX(-1); }
 
 /* ═══ STAGGER DELAYS ═══ */
 .courses__grid  [data-reveal]:nth-child(2), .audience__grid [data-reveal]:nth-child(2) { transition-delay: 80ms; }

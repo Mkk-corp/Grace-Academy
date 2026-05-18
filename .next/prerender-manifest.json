@@ -1,11 +1,1 @@
-{
-  "version": 4,
-  "routes": {},
-  "dynamicRoutes": {},
-  "notFoundRoutes": [],
-  "preview": {
-    "previewModeId": "52502000d88c34c6daf1645e4c8a4163",
-    "previewModeSigningKey": "a735223a5d6dc9e47763053e68ba6e62f3c1629fa3d0908e076e4ebc12aa84d9",
-    "previewModeEncryptionKey": "695332e6feca792d6dd4e1c0170507e05fe58ccde8e411166271929401dcaea9"
-  }
-}
+{"version":4,"routes":{"/blog/10-habits-fluent-english-speakers":{},"/blog/ielts-writing-task-2-guide-2025":{},"/blog/layla-b1-to-c2-in-one-year":{},"/blog/your-accent-is-an-asset":{},"/blog/500-words-cover-90-percent-english":{},"/blog/english-rich-home-environment":{}},"dynamicRoutes":{"/blog/[slug]":{"dataRoute":null,"dataRouteRegex":null,"fallback":null,"fallbackRevalidate":false,"fallbackSourceRoute":"/blog/[slug]","routeRegex":"^\\/blog\\/([^/]+?)(?:\\/)?$","allowHeader":[]}},"notFoundRoutes":[],"preview":{"previewModeId":"52502000d88c34c6daf1645e4c8a4163","previewModeSigningKey":"a735223a5d6dc9e47763053e68ba6e62f3c1629fa3d0908e076e4ebc12aa84d9","previewModeEncryptionKey":"695332e6feca792d6dd4e1c0170507e05fe58ccde8e411166271929401dcaea9"}}

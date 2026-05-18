@@ -1,13 +1,9 @@
 {
-  "/icon.png/route": "app/icon.png/route.js",
-  "/api/stats/route": "app/api/stats/route.js",
-  "/api/services/route": "app/api/services/route.js",
-  "/api/portfolio/route": "app/api/portfolio/route.js",
   "/api/blog/route": "app/api/blog/route.js",
+  "/icon.png/route": "app/icon.png/route.js",
   "/(public)/about/page": "app/(public)/about/page.js",
-  "/(admin)/admin/stats/page": "app/(admin)/admin/stats/page.js",
-  "/(admin)/admin/services/page": "app/(admin)/admin/services/page.js",
   "/(admin)/admin/portfolio/page": "app/(admin)/admin/portfolio/page.js",
   "/(admin)/admin/blog/page": "app/(admin)/admin/blog/page.js",
-  "/(public)/blog/page": "app/(public)/blog/page.js"
+  "/(public)/blog/page": "app/(public)/blog/page.js",
+  "/(public)/blog/[slug]/page": "app/(public)/blog/[slug]/page.js"
 }

@@ -30,7 +30,7 @@ export default function AdminBlogPage() {
     <>
       <div className="admin-header">
         <h1>Blog Posts</h1>
-        <button className="admin-btn admin-btn--primary" onClick={() => setEditing({ id: `new${Date.now()}`, title: { en: '', ar: '' }, excerpt: { en: '', ar: '' }, category: { en: '', ar: '' }, date: { en: '', ar: '' }, slug: '', published: false })}>+ Add</button>
+        <button className="admin-btn admin-btn--primary" onClick={() => setEditing({ id: `new${Date.now()}`, title: { en: '', ar: '' }, excerpt: { en: '', ar: '' }, body: { en: '', ar: '' }, category: { en: '', ar: '' }, date: { en: '', ar: '' }, slug: '', image: '', published: false })}>+ Add</button>
       </div>
       <table className="admin-table">
         <thead><tr><th>Title (EN)</th><th>Category</th><th>Published</th><th>Actions</th></tr></thead>
@@ -71,13 +71,13 @@ function BlogModal({ item, onSave, onClose }) {
     <div className="admin-modal">
       <div className="admin-modal__box">
         <h2 className="admin-modal__title">{item.id.startsWith('new') ? 'Add Post' : 'Edit Post'}</h2>
-        {[['Title EN', 'title.en'], ['Title AR', 'title.ar'], ['Excerpt EN', 'excerpt.en'], ['Excerpt AR', 'excerpt.ar'], ['Category EN', 'category.en'], ['Category AR', 'category.ar'], ['Date EN', 'date.en'], ['Date AR', 'date.ar'], ['Slug', 'slug']].map(([label, path]) => (
+        {[['Title EN', 'title.en'], ['Title AR', 'title.ar'], ['Excerpt EN', 'excerpt.en'], ['Excerpt AR', 'excerpt.ar'], ['Body EN', 'body.en'], ['Body AR', 'body.ar'], ['Category EN', 'category.en'], ['Category AR', 'category.ar'], ['Date EN', 'date.en'], ['Date AR', 'date.ar'], ['Slug', 'slug'], ['Image URL', 'image']].map(([label, path]) => (
           <div key={path} className="admin-field">
             <label>{label}</label>
-            {path.includes('excerpt') ? (
-              <textarea value={path.split('.').reduce((o, k) => o[k], form)} onChange={e => set(path, e.target.value)} />
+            {(path.includes('excerpt') || path.includes('body')) ? (
+              <textarea value={path.split('.').reduce((o, k) => o?.[k] ?? '', form)} onChange={e => set(path, e.target.value)} rows={path.includes('body') ? 5 : 3} />
             ) : (
-              <input value={path.split('.').reduce((o, k) => o[k], form)} onChange={e => set(path, e.target.value)} />
+              <input value={path.split('.').reduce((o, k) => o?.[k] ?? '', form)} onChange={e => set(path, e.target.value)} />
             )}
           </div>
         ))}
