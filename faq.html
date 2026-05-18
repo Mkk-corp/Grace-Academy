@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FAQ — Grace Academy</title>
+  <meta name="description" content="Frequently asked questions about Grace Academy — programmes, pricing, schedules, age groups, and more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="pages.css" />
+</head>
+<body>
+
+<div id="scrollProgress" class="scroll-progress"></div>
+
+<!-- ── Nav ──────────────────────────────────────────────────── -->
+<nav class="nav" id="navbar">
+  <div class="nav__container">
+    <a href="index.html" class="nav__logo">
+      <img src="Design system/logo removed bg.png" alt="Grace Academy" class="nav__logo-img" />
+    </a>
+    <ul class="nav__menu" id="navMenu">
+      <li><a href="index.html"    class="nav__link" data-i18n="navHome">Home</a></li>
+      <li><a href="about.html"    class="nav__link" data-i18n="navAbout">About</a></li>
+      <li><a href="services.html" class="nav__link" data-i18n="navServices">Services</a></li>
+      <li><a href="portfolio.html"class="nav__link" data-i18n="navPortfolio">Portfolio</a></li>
+      <li><a href="blog.html"     class="nav__link" data-i18n="navBlog">Blog</a></li>
+      <li><a href="faq.html"      class="nav__link" data-i18n="navFaq">FAQ</a></li>
+      <li><a href="pricing.html"  class="nav__link" data-i18n="navPricing">Pricing</a></li>
+      <li><a href="contact.html"  class="nav__link nav__link--cta" data-i18n="navContact">Get Started</a></li>
+    </ul>
+    <div class="nav__controls">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.75"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+        <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="lang-toggle" id="langToggle" aria-label="Toggle language">عربي</button>
+      <button class="nav__hamburger" id="burger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Page Hero ─────────────────────────────────────────────── -->
+<section class="page-hero">
+  <div class="page-hero__inner">
+    <nav class="page-hero__breadcrumb" aria-label="Breadcrumb">
+      <a href="index.html" data-i18n="aboutBreadHome">Home</a>
+      <span>/</span>
+      <span data-i18n="faqBreadCurrent">FAQ</span>
+    </nav>
+    <h1 class="page-hero__title" data-i18n="faqHeroTitle">Frequently Asked <span>Questions</span></h1>
+    <p class="page-hero__sub" data-i18n="faqHeroSub">Everything you need to know before you begin.</p>
+  </div>
+</section>
+
+<!-- ── FAQ Section ───────────────────────────────────────────── -->
+<section class="faq-section section">
+  <div class="container">
+    <header class="section-header section-header--center" data-reveal>
+      <span class="label" data-i18n="faqLabel">FAQ</span>
+      <h2 class="section-title section-title--center" data-i18n="faqTitle">Answers to common questions</h2>
+    </header>
+
+    <div class="faq-list">
+
+      <div class="faq-item">
+        <button class="faq-item__trigger" aria-expanded="false">
+          <span class="faq-item__question" data-i18n="faq1Q">What age groups do you teach?</span>
+          <span class="faq-item__chevron" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
+        <div class="faq-item__body" role="region">
+          <p class="faq-item__answer" data-i18n="faq1A">We teach everyone — from children as young as 5 to seniors in their 60s.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-item__trigger" aria-expanded="false">
+          <span class="faq-item__question" data-i18n="faq2Q">Do I need any prior English knowledge to join?</span>
+          <span class="faq-item__chevron" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
+        <div class="faq-item__body" role="region">
+          <p class="faq-item__answer" data-i18n="faq2A">Not at all. We have complete beginner programmes designed from zero.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-item__trigger" aria-expanded="false">
+          <span class="faq-item__question" data-i18n="faq3Q">Are classes online, in-person, or both?</span>
+          <span class="faq-item__chevron" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
+        <div class="faq-item__body" role="region">
+          <p class="faq-item__answer" data-i18n="faq3A">We offer fully online live sessions, in-centre classes in Riyadh, and hybrid options.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-item__trigger" aria-expanded="false">
+          <span class="faq-item__question" data-i18n="faq4Q">How long until I see real progress?</span>
+          <span class="faq-item__chevron" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
+        <div class="faq-item__body" role="region">
+          <p class="faq-item__answer" data-i18n="faq4A">Most students notice a meaningful improvement within 4–6 weeks of consistent study.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-item__trigger" aria-expanded="false">
+          <span class="faq-item__question" data-i18n="faq5Q">What exams do you prepare students for?</span>
+          <span class="faq-item__chevron" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
+        <div class="faq-item__body" role="region">
+          <p class="faq-item__answer" data-i18n="faq5A">IELTS (Academic &amp; General), TOEFL iBT, Cambridge B2 / C1, OET, and SAT English.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-item__trigger" aria-expanded="false">
+          <span class="faq-item__question" data-i18n="faq6Q">Can my company book corporate training?</span>
+          <span class="faq-item__chevron" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
+        <div class="faq-item__body" role="region">
+          <p class="faq-item__answer" data-i18n="faq6A">Yes. We offer bespoke on-site and online corporate programmes for teams of 5 to 500+.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-item__trigger" aria-expanded="false">
+          <span class="faq-item__question" data-i18n="faq7Q">What is the maximum class size?</span>
+          <span class="faq-item__chevron" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
+        <div class="faq-item__body" role="region">
+          <p class="faq-item__answer" data-i18n="faq7A">Group classes are capped at 8 students to ensure individual attention for every learner.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-item__trigger" aria-expanded="false">
+          <span class="faq-item__question" data-i18n="faq8Q">Is there a trial class available?</span>
+          <span class="faq-item__chevron" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
+        <div class="faq-item__body" role="region">
+          <p class="faq-item__answer" data-i18n="faq8A">Yes! Every new student is welcome to attend one free trial session before committing.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Stats ──────────────────────────────────────────────────── -->
+<section class="stats-section section" id="stats">
+  <div class="container">
+    <div class="stats-section__inner">
+      <header class="stats-section__header" data-reveal>
+        <span class="label" data-i18n="statsTitle">Grace Academy in Numbers</span>
+        <h2 class="section-title section-title--center" data-i18n="statsSub">Building impact one learner at a time</h2>
+      </header>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+          <div class="stat-card__value"><span class="stat-card__num" data-count="1200">0</span><span class="stat-card__plus">+</span></div>
+          <div class="stat-card__label" data-i18n="statsReviews">Happy Reviews</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+          <div class="stat-card__value"><span class="stat-card__num" data-count="5000">0</span><span class="stat-card__plus">+</span></div>
+          <div class="stat-card__label" data-i18n="statsStudents">Active Students</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></div>
+          <div class="stat-card__value"><span class="stat-card__num" data-count="35">0</span><span class="stat-card__plus">+</span></div>
+          <div class="stat-card__label" data-i18n="statsCourses">Available Courses</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg></div>
+          <div class="stat-card__value"><span class="stat-card__num" data-count="48">0</span><span class="stat-card__plus">+</span></div>
+          <div class="stat-card__label" data-i18n="statsInstructors">Expert Instructors</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ─────────────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <img src="Design system/logo removed bg.png" alt="Grace Academy" class="footer__logo">
+        <div>
+          <div class="footer__name">GRACE ACADEMY</div>
+          <div class="footer__motto" data-i18n="footerMotto">Long Live Learn</div>
+        </div>
+      </div>
+      <nav class="footer__nav" aria-label="Footer navigation">
+        <div class="footer__col">
+          <h4 data-i18n="footerCourses">Courses</h4>
+          <ul>
+            <li><a href="services.html" data-i18n="footerConvo">Conversational</a></li>
+            <li><a href="services.html" data-i18n="footerBusiness">Business</a></li>
+            <li><a href="services.html" data-i18n="footerTech">Technical</a></li>
+            <li><a href="services.html" data-i18n="footerAcademic">Academic</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4 data-i18n="footerCompany">Academy</h4>
+          <ul>
+            <li><a href="about.html"   data-i18n="footerAbout">About</a></li>
+            <li><a href="about.html"   data-i18n="footerWhoFor">Who We're For</a></li>
+            <li><a href="contact.html" data-i18n="footerContact">Contact</a></li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+    <div class="footer__bottom">
+      <p data-i18n="footerCopy">© 2025 Grace Academy. All rights reserved.</p>
+      <div class="footer__dev">
+        <span data-i18n="footerDev">Developed by</span>
+        <img src="Design system/mkk_corp_logo.png" alt="MKK Corp" class="footer__dev-logo">
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="pages.js"></script>
+</body>
+</html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio — Grace Academy</title>
+  <meta name="description" content="Real student success stories from Grace Academy — IELTS scores, career breakthroughs, and life-changing English journeys." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="pages.css" />
+</head>
+<body>
+
+<div id="scrollProgress" class="scroll-progress"></div>
+
+<!-- ── Nav ──────────────────────────────────────────────────── -->
+<nav class="nav" id="navbar">
+  <div class="nav__container">
+    <a href="index.html" class="nav__logo">
+      <img src="Design system/logo removed bg.png" alt="Grace Academy" class="nav__logo-img" />
+    </a>
+    <ul class="nav__menu" id="navMenu">
+      <li><a href="index.html"    class="nav__link" data-i18n="navHome">Home</a></li>
+      <li><a href="about.html"    class="nav__link" data-i18n="navAbout">About</a></li>
+      <li><a href="services.html" class="nav__link" data-i18n="navServices">Services</a></li>
+      <li><a href="portfolio.html"class="nav__link" data-i18n="navPortfolio">Portfolio</a></li>
+      <li><a href="blog.html"     class="nav__link" data-i18n="navBlog">Blog</a></li>
+      <li><a href="faq.html"      class="nav__link" data-i18n="navFaq">FAQ</a></li>
+      <li><a href="pricing.html"  class="nav__link" data-i18n="navPricing">Pricing</a></li>
+      <li><a href="contact.html"  class="nav__link nav__link--cta" data-i18n="navContact">Get Started</a></li>
+    </ul>
+    <div class="nav__controls">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.75"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+        <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="lang-toggle" id="langToggle" aria-label="Toggle language">عربي</button>
+      <button class="nav__hamburger" id="burger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Page Hero ─────────────────────────────────────────────── -->
+<section class="page-hero">
+  <div class="page-hero__inner">
+    <nav class="page-hero__breadcrumb" aria-label="Breadcrumb">
+      <a href="index.html" data-i18n="aboutBreadHome">Home</a>
+      <span>/</span>
+      <span data-i18n="portfolioBreadCurrent">Portfolio</span>
+    </nav>
+    <h1 class="page-hero__title" data-i18n="portfolioHeroTitle">Student <span>Success Stories</span></h1>
+    <p class="page-hero__sub" data-i18n="portfolioHeroSub">Real outcomes from real learners — every project represents a life transformed.</p>
+  </div>
+</section>
+
+<!-- ── Portfolio Grid ─────────────────────────────────────────── -->
+<section class="portfolio-section section">
+  <div class="container">
+    <header class="section-header section-header--center" data-reveal>
+      <span class="label" data-i18n="portfolioLabel">Case Studies</span>
+      <h2 class="section-title section-title--center" data-i18n="portfolioTitle">Learning that delivers results</h2>
+    </header>
+    <div class="portfolio-grid">
+
+      <div class="project-card">
+        <div class="project-card__thumb">8.0</div>
+        <div class="project-card__details">
+          <div class="project-card__category" data-i18n="proj1Cat">IELTS Preparation</div>
+          <h3 class="project-card__title" data-i18n="proj1Title">From Band 5 to Band 8 in 6 Months</h3>
+          <div class="project-detail">
+            <span class="project-detail__label" data-i18n="projProblem">Challenge:</span>
+            <span class="project-detail__value" data-i18n="proj1Problem">Student struggled with academic writing and reading comprehension.</span>
+          </div>
+          <div class="project-detail">
+            <span class="project-detail__label" data-i18n="projSolution">Approach:</span>
+            <span class="project-detail__value" data-i18n="proj1Solution">Intensive IELTS track with daily writing workshops and timed reading drills.</span>
+          </div>
+          <div class="project-detail">
+            <span class="project-detail__label" data-i18n="projResult">Outcome:</span>
+            <span class="project-detail__value" data-i18n="proj1Result">Achieved Band 8 overall — secured full scholarship to UK university.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-card__thumb">BIZ</div>
+        <div class="project-card__details">
+          <div class="project-card__category" data-i18n="proj2Cat">Business English</div>
+          <h3 class="project-card__title" data-i18n="proj2Title">Executive Communication Transformation</h3>
+          <div class="project-detail">
+            <span class="project-detail__label" data-i18n="projProblem">Challenge:</span>
+            <span class="project-detail__value" data-i18n="proj2Problem">Senior manager lacked confidence in English presentations and negotiations.</span>
+          </div>
+          <div class="project-detail">
+            <span class="project-detail__label" data-i18n="projSolution">Approach:</span>
+            <span class="project-detail__value" data-i18n="proj2Solution">12-week Business English programme with executive coaching sessions.</span>
+          </div>
+          <div class="project-detail">
+            <span class="project-detail__label" data-i18n="projResult">Outcome:</span>
+            <span class="project-detail__value" data-i18n="proj2Result">Promoted to regional director; leads international client calls weekly.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-card__thumb">KID</div>
+        <div class="project-card__details">
+          <div class="project-card__category" data-i18n="proj3Cat">Kids Programme</div>
+          <h3 class="project-card__title" data-i18n="proj3Title">Zero to Conversational at Age 9</h3>
+          <div class="project-detail">
+            <span class="project-detail__label" data-i18n="projProblem">Challenge:</span>
+            <span class="project-detail__value" data-i18n="proj3Problem">Child had zero English exposure and severe anxiety about speaking.</span>
+          </div>
+          <div class="project-detail">
+            <span class="project-detail__label" data-i18n="projSolution">Approach:</span>
+            <span class="project-detail__value" data-i18n="proj3Solution">Play-based immersion programme with weekly 1-on-1 coaching.</span>
+          </div>
+          <div class="project-detail">
+            <span class="project-detail__label" data-i18n="projResult">Outcome:</span>
+            <span class="project-detail__value" data-i18n="proj3Result">Confidently holds full conversations; top of class in school English.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-card__thumb">CORP</div>
+        <div class="project-card__details">
+          <div class="project-card__category" data-i18n="proj4Cat">Corporate Training</div>
+          <h3 class="project-card__title" data-i18n="proj4Title">Company-Wide English Upskilling</h3>
+          <div class="project-detail">
+            <span class="project-detail__label" data-i18n="projProblem">Challenge:</span>
+            <span class="project-detail__value" data-i18n="proj4Problem">Tech company needed employees to communicate with global clients.</span>
+          </div>
+          <div class="project-detail">
+            <span class="project-detail__label" data-i18n="projSolution">Approach:</span>
+            <span class="project-detail__value" data-i18n="proj4Solution">Bespoke 3-month corporate programme with department-specific modules.</span>
+          </div>
+          <div class="project-detail">
+            <span class="project-detail__label" data-i18n="projResult">Outcome:</span>
+            <span class="project-detail__value" data-i18n="proj4Result">94% of staff rated confident in English; client satisfaction up 40%.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-card__thumb">C2</div>
+        <div class="project-card__details">
+          <div class="project-card__category" data-i18n="proj5Cat">Conversational English</div>
+          <h3 class="project-card__title" data-i18n="proj5Title">University Graduate to Global Hire</h3>
+          <div class="project-detail">
+            <span class="project-detail__label" data-i18n="projProblem">Challenge:</span>
+            <span class="project-detail__value" data-i18n="proj5Problem">Graduate had strong grammar but froze in real conversations.</span>
+          </div>
+          <div class="project-detail">
+            <span class="project-detail__label" data-i18n="projSolution">Approach:</span>
+            <span class="project-detail__value" data-i18n="proj5Solution">Immersive speaking club with daily challenges and peer accountability.</span>
+          </div>
+          <div class="project-detail">
+            <span class="project-detail__label" data-i18n="projResult">Outcome:</span>
+            <span class="project-detail__value" data-i18n="proj5Result">Landed role at multinational — passed English interview on first attempt.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-card__thumb">115</div>
+        <div class="project-card__details">
+          <div class="project-card__category" data-i18n="proj6Cat">TOEFL Prep</div>
+          <h3 class="project-card__title" data-i18n="proj6Title">TOEFL 115 — Ivy League Admission</h3>
+          <div class="project-detail">
+            <span class="project-detail__label" data-i18n="projProblem">Challenge:</span>
+            <span class="project-detail__value" data-i18n="proj6Problem">Student needed 110+ TOEFL score for Ivy League graduate programme.</span>
+          </div>
+          <div class="project-detail">
+            <span class="project-detail__label" data-i18n="projSolution">Approach:</span>
+            <span class="project-detail__value" data-i18n="proj6Solution">Structured TOEFL bootcamp with three full mock exams and detailed review.</span>
+          </div>
+          <div class="project-detail">
+            <span class="project-detail__label" data-i18n="projResult">Outcome:</span>
+            <span class="project-detail__value" data-i18n="proj6Result">Scored 115; admitted to target programme with partial funding.</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Stats ──────────────────────────────────────────────────── -->
+<section class="stats-section section" id="stats">
+  <div class="container">
+    <div class="stats-section__inner">
+      <header class="stats-section__header" data-reveal>
+        <span class="label" data-i18n="statsTitle">Grace Academy in Numbers</span>
+        <h2 class="section-title section-title--center" data-i18n="statsSub">Building impact one learner at a time</h2>
+      </header>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+          <div class="stat-card__value"><span class="stat-card__num" data-count="1200">0</span><span class="stat-card__plus">+</span></div>
+          <div class="stat-card__label" data-i18n="statsReviews">Happy Reviews</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+          <div class="stat-card__value"><span class="stat-card__num" data-count="5000">0</span><span class="stat-card__plus">+</span></div>
+          <div class="stat-card__label" data-i18n="statsStudents">Active Students</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></div>
+          <div class="stat-card__value"><span class="stat-card__num" data-count="35">0</span><span class="stat-card__plus">+</span></div>
+          <div class="stat-card__label" data-i18n="statsCourses">Available Courses</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg></div>
+          <div class="stat-card__value"><span class="stat-card__num" data-count="48">0</span><span class="stat-card__plus">+</span></div>
+          <div class="stat-card__label" data-i18n="statsInstructors">Expert Instructors</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ─────────────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <img src="Design system/logo removed bg.png" alt="Grace Academy" class="footer__logo">
+        <div>
+          <div class="footer__name">GRACE ACADEMY</div>
+          <div class="footer__motto" data-i18n="footerMotto">Long Live Learn</div>
+        </div>
+      </div>
+      <nav class="footer__nav" aria-label="Footer navigation">
+        <div class="footer__col">
+          <h4 data-i18n="footerCourses">Courses</h4>
+          <ul>
+            <li><a href="services.html" data-i18n="footerConvo">Conversational</a></li>
+            <li><a href="services.html" data-i18n="footerBusiness">Business</a></li>
+            <li><a href="services.html" data-i18n="footerTech">Technical</a></li>
+            <li><a href="services.html" data-i18n="footerAcademic">Academic</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4 data-i18n="footerCompany">Academy</h4>
+          <ul>
+            <li><a href="about.html"   data-i18n="footerAbout">About</a></li>
+            <li><a href="about.html"   data-i18n="footerWhoFor">Who We're For</a></li>
+            <li><a href="contact.html" data-i18n="footerContact">Contact</a></li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+    <div class="footer__bottom">
+      <p data-i18n="footerCopy">© 2025 Grace Academy. All rights reserved.</p>
+      <div class="footer__dev">
+        <span data-i18n="footerDev">Developed by</span>
+        <img src="Design system/mkk_corp_logo.png" alt="MKK Corp" class="footer__dev-logo">
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="pages.js"></script>
+</body>
+</html>

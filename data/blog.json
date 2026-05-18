@@ -1,0 +1,44 @@
+[
+  {
+    "id": "blog1", "order": 1, "iconSlug": "book-open", "published": true, "slug": "10-habits-fluent-english-speakers",
+    "category": { "en": "Learning Tips", "ar": "نصائح التعلم" },
+    "date": { "en": "April 2025", "ar": "أبريل ٢٠٢٥" },
+    "title": { "en": "10 Habits of Highly Fluent English Speakers", "ar": "١٠ عادات للمتحدثين المتقنين للإنجليزية" },
+    "excerpt": { "en": "Fluency isn't a destination — it's a daily practice. Discover the ten habits our most successful students share.", "ar": "الطلاقة ليست وجهة — إنها ممارسة يومية. اكتشف العادات العشر المشتركة بين أكثر طلابنا نجاحاً." }
+  },
+  {
+    "id": "blog2", "order": 2, "iconSlug": "file-text", "published": true, "slug": "ielts-writing-task-2-guide-2025",
+    "category": { "en": "Exam Prep", "ar": "التحضير للاختبارات" },
+    "date": { "en": "March 2025", "ar": "مارس ٢٠٢٥" },
+    "title": { "en": "IELTS Writing Task 2: The Complete 2025 Guide", "ar": "مهمة الكتابة الثانية في IELTS: الدليل الكامل 2025" },
+    "excerpt": { "en": "Everything you need to know about structuring a band-9-worthy academic essay from introduction to conclusion.", "ar": "كل ما تحتاج معرفته عن بناء مقالة أكاديمية تستحق Band 9 من المقدمة إلى الخاتمة." }
+  },
+  {
+    "id": "blog3", "order": 3, "iconSlug": "user", "published": true, "slug": "layla-b1-to-c2-in-one-year",
+    "category": { "en": "Success Story", "ar": "قصة نجاح" },
+    "date": { "en": "March 2025", "ar": "مارس ٢٠٢٥" },
+    "title": { "en": "How Layla Went from B1 to C2 in Under a Year", "ar": "كيف انتقلت ليلى من B1 إلى C2 في أقل من عام" },
+    "excerpt": { "en": "A candid interview with one of our standout students about the mindset shifts that made all the difference.", "ar": "مقابلة صريحة مع إحدى طالباتنا المتميزات عن تحولات التفكير التي أحدثت الفارق." }
+  },
+  {
+    "id": "blog4", "order": 4, "iconSlug": "mic", "published": true, "slug": "your-accent-is-an-asset",
+    "category": { "en": "Pronunciation", "ar": "النطق" },
+    "date": { "en": "February 2025", "ar": "فبراير ٢٠٢٥" },
+    "title": { "en": "Why Your Accent Is an Asset, Not a Barrier", "ar": "لماذا لهجتك ميزة وليست عائقاً" },
+    "excerpt": { "en": "Native-like pronunciation is rarely necessary for global communication. Here's what actually matters — and how to improve it.", "ar": "نطق شبيه بالناطق الأصلي نادراً ما يكون ضرورياً للتواصل العالمي. إليك ما يهم حقاً وكيف تطوِّره." }
+  },
+  {
+    "id": "blog5", "order": 5, "iconSlug": "list", "published": true, "slug": "500-words-cover-90-percent-english",
+    "category": { "en": "Vocabulary", "ar": "المفردات" },
+    "date": { "en": "February 2025", "ar": "فبراير ٢٠٢٥" },
+    "title": { "en": "The 500 Words That Cover 90 % of Everyday English", "ar": "الـ٥٠٠ كلمة التي تغطي ٩٠٪ من الإنجليزية اليومية" },
+    "excerpt": { "en": "Building a high-frequency core vocabulary is the fastest path to functional fluency. We break down the research.", "ar": "بناء مفردات عالية التردد هو أسرع طريق للطلاقة الوظيفية. نستعرض الأبحاث." }
+  },
+  {
+    "id": "blog6", "order": 6, "iconSlug": "home", "published": true, "slug": "english-rich-home-environment",
+    "category": { "en": "Kids & Parents", "ar": "الأطفال والآباء" },
+    "date": { "en": "January 2025", "ar": "يناير ٢٠٢٥" },
+    "title": { "en": "How to Build an English-Rich Home Environment", "ar": "كيف تبني بيئة منزلية غنية بالإنجليزية" },
+    "excerpt": { "en": "Parents are the most powerful teachers. Practical ideas for weaving English naturally into your family's daily life.", "ar": "الآباء هم أقوى المعلمين. أفكار عملية لنسج الإنجليزية بشكل طبيعي في الحياة اليومية لأسرتك." }
+  }
+]

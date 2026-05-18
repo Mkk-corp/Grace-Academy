@@ -1,0 +1,30 @@
+{
+  "heroSubtitle": {
+    "en": "A complete English learning ecosystem built for every age — conversational, business, technical, and beyond.",
+    "ar": "منظومة تعليمية متكاملة للغة الإنجليزية مبنية لكل الأعمار — تحادثية، وأعمال، وتقنية، وأكثر."
+  },
+  "manifesto": {
+    "en": "We did not come to teach the English language — we came to build a world where learning never stops.",
+    "ar": "لم نأتِ لتعليم اللغة الإنجليزية فحسب — جئنا لبناء عالمٍ لا يتوقف فيه التعلم."
+  },
+  "aboutLead": {
+    "en": "We are a team dedicated to creating not only a course or language training — but a complete environment aiming to build a lifestyle.",
+    "ar": "نحن فريق متفانٍ ليس فقط لإنشاء دورات أو تدريب لغوي — بل لخلق بيئة متكاملة تهدف إلى بناء أسلوب حياة."
+  },
+  "aboutBody": {
+    "en": "We introduce a different idea of living the learning experience. Not just education — an entire system created only for consecutive growth 24/7, not just 1 or 2 hours of learning.",
+    "ar": "نقدم فكرة مختلفة لمعيشة تجربة التعلم. ليس مجرد تعليم — بل نظام متكامل تم إنشاؤه فقط للنمو المتواصل على مدار الساعة، وليس مجرد ساعة أو ساعتين من التعلم."
+  },
+  "ctaTitle": { "en": "Begin Your Journey", "ar": "ابدأ رحلتك" },
+  "ctaSubtitle": { "en": "Join the Grace Academy ecosystem. Let English become your lifestyle.", "ar": "انضم إلى منظومة أكاديمية جريس. دع الإنجليزية تصبح أسلوب حياتك." },
+  "contactAddress": "Riyadh, Saudi Arabia",
+  "contactEmail": "hello@graceacademy.sa",
+  "contactPhone": "+966 11 234 5678",
+  "contactHours": { "en": "Sun – Thu, 8 am – 9 pm", "ar": "الأحد – الخميس، ٨ص – ٩م" },
+  "socialLinks": {
+    "instagram": "#",
+    "twitter": "#",
+    "linkedin": "#",
+    "youtube": "#"
+  }
+}

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Services — Grace Academy</title>
+  <meta name="description" content="Explore Grace Academy's full range of English language programmes — conversational, business, exam prep, kids, corporate, and more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="pages.css" />
+</head>
+<body>
+
+<div id="scrollProgress" class="scroll-progress"></div>
+
+<!-- ── Nav ──────────────────────────────────────────────────── -->
+<nav class="nav" id="navbar">
+  <div class="nav__container">
+    <a href="index.html" class="nav__logo">
+      <img src="Design system/logo removed bg.png" alt="Grace Academy" class="nav__logo-img" />
+    </a>
+    <ul class="nav__menu" id="navMenu">
+      <li><a href="index.html"    class="nav__link" data-i18n="navHome">Home</a></li>
+      <li><a href="about.html"    class="nav__link" data-i18n="navAbout">About</a></li>
+      <li><a href="services.html" class="nav__link" data-i18n="navServices">Services</a></li>
+      <li><a href="portfolio.html"class="nav__link" data-i18n="navPortfolio">Portfolio</a></li>
+      <li><a href="blog.html"     class="nav__link" data-i18n="navBlog">Blog</a></li>
+      <li><a href="faq.html"      class="nav__link" data-i18n="navFaq">FAQ</a></li>
+      <li><a href="pricing.html"  class="nav__link" data-i18n="navPricing">Pricing</a></li>
+      <li><a href="contact.html"  class="nav__link nav__link--cta" data-i18n="navContact">Get Started</a></li>
+    </ul>
+    <div class="nav__controls">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.75"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+        <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="lang-toggle" id="langToggle" aria-label="Toggle language">عربي</button>
+      <button class="nav__hamburger" id="burger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Page Hero ─────────────────────────────────────────────── -->
+<section class="page-hero">
+  <div class="page-hero__inner">
+    <nav class="page-hero__breadcrumb" aria-label="Breadcrumb">
+      <a href="index.html" data-i18n="aboutBreadHome">Home</a>
+      <span>/</span>
+      <span data-i18n="servicesBreadCurrent">Services</span>
+    </nav>
+    <h1 class="page-hero__title" data-i18n="servicesHeroTitle">Our <span>Programmes</span></h1>
+    <p class="page-hero__sub" data-i18n="servicesHeroSub">A complete suite of English learning programmes for every goal and every stage of life.</p>
+  </div>
+</section>
+
+<!-- ── Services Grid ─────────────────────────────────────────── -->
+<section class="services-section section">
+  <div class="container">
+    <header class="section-header section-header--center" data-reveal>
+      <span class="label" data-i18n="servicesLabel">What We Offer</span>
+      <h2 class="section-title section-title--center" data-i18n="servicesTitle">English for every purpose</h2>
+    </header>
+    <div class="services-grid">
+
+      <div class="service-card">
+        <div class="service-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        </div>
+        <h3 class="service-card__title" data-i18n="svc1Title">Conversational English</h3>
+        <p class="service-card__body" data-i18n="svc1Body">Break the fear of speaking. Build real-world fluency through guided conversations and live discussions.</p>
+        <span class="service-card__tag" data-i18n="svc1Tag">All Levels</span>
+      </div>
+
+      <div class="service-card">
+        <div class="service-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+        </div>
+        <h3 class="service-card__title" data-i18n="svc2Title">Business English</h3>
+        <p class="service-card__body" data-i18n="svc2Body">Professional vocabulary, email writing, presentations, negotiations, and workplace communication.</p>
+        <span class="service-card__tag" data-i18n="svc2Tag">Intermediate+</span>
+      </div>
+
+      <div class="service-card">
+        <div class="service-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+        </div>
+        <h3 class="service-card__title" data-i18n="svc3Title">Academic &amp; Exam Prep</h3>
+        <p class="service-card__body" data-i18n="svc3Body">Targeted preparation for IELTS, TOEFL, Cambridge, and SAT with mock exams and expert feedback.</p>
+        <span class="service-card__tag" data-i18n="svc3Tag">IELTS / TOEFL</span>
+      </div>
+
+      <div class="service-card">
+        <div class="service-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <h3 class="service-card__title" data-i18n="svc4Title">Kids &amp; Young Learners</h3>
+        <p class="service-card__body" data-i18n="svc4Body">Age-appropriate, play-based English learning that builds vocabulary, reading, and confidence.</p>
+        <span class="service-card__tag" data-i18n="svc4Tag">Ages 5 – 15</span>
+      </div>
+
+      <div class="service-card">
+        <div class="service-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </div>
+        <h3 class="service-card__title" data-i18n="svc5Title">Technical English</h3>
+        <p class="service-card__body" data-i18n="svc5Body">Specialised language for engineering, IT, medicine, and law — field-specific vocabulary and writing.</p>
+        <span class="service-card__tag" data-i18n="svc5Tag">Professionals</span>
+      </div>
+
+      <div class="service-card">
+        <div class="service-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <h3 class="service-card__title" data-i18n="svc6Title">Corporate Training</h3>
+        <p class="service-card__body" data-i18n="svc6Body">Bespoke in-company programmes that upskill entire teams — from on-site workshops to live online.</p>
+        <span class="service-card__tag" data-i18n="svc6Tag">Organisations</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Process ────────────────────────────────────────────────── -->
+<section class="process-section section">
+  <div class="container">
+    <header class="section-header section-header--center" data-reveal>
+      <span class="label" data-i18n="processLabel">How It Works</span>
+      <h2 class="section-title section-title--center" data-i18n="processTitle">Your journey from enrolment to fluency</h2>
+    </header>
+    <div class="process-steps">
+      <div class="process-step">
+        <div class="process-step__num">1</div>
+        <h3 class="process-step__title" data-i18n="step1Title">Placement Assessment</h3>
+        <p class="process-step__body" data-i18n="step1Body">A quick diagnostic test accurately places you in the right level from day one.</p>
+      </div>
+      <div class="process-step">
+        <div class="process-step__num">2</div>
+        <h3 class="process-step__title" data-i18n="step2Title">Personalised Plan</h3>
+        <p class="process-step__body" data-i18n="step2Body">Your dedicated advisor builds a learning path tailored to your goals and schedule.</p>
+      </div>
+      <div class="process-step">
+        <div class="process-step__num">3</div>
+        <h3 class="process-step__title" data-i18n="step3Title">Live Learning</h3>
+        <p class="process-step__body" data-i18n="step3Body">Attend interactive live sessions with expert instructors and fellow learners worldwide.</p>
+      </div>
+      <div class="process-step">
+        <div class="process-step__num">4</div>
+        <h3 class="process-step__title" data-i18n="step4Title">Track &amp; Progress</h3>
+        <p class="process-step__body" data-i18n="step4Body">Regular assessments and progress reports keep you motivated and on course.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Stats ──────────────────────────────────────────────────── -->
+<section class="stats-section section" id="stats">
+  <div class="container">
+    <div class="stats-section__inner">
+      <header class="stats-section__header" data-reveal>
+        <span class="label" data-i18n="statsTitle">Grace Academy in Numbers</span>
+        <h2 class="section-title section-title--center" data-i18n="statsSub">Building impact one learner at a time</h2>
+      </header>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+          <div class="stat-card__value"><span class="stat-card__num" data-count="1200">0</span><span class="stat-card__plus">+</span></div>
+          <div class="stat-card__label" data-i18n="statsReviews">Happy Reviews</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+          <div class="stat-card__value"><span class="stat-card__num" data-count="5000">0</span><span class="stat-card__plus">+</span></div>
+          <div class="stat-card__label" data-i18n="statsStudents">Active Students</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></div>
+          <div class="stat-card__value"><span class="stat-card__num" data-count="35">0</span><span class="stat-card__plus">+</span></div>
+          <div class="stat-card__label" data-i18n="statsCourses">Available Courses</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg></div>
+          <div class="stat-card__value"><span class="stat-card__num" data-count="48">0</span><span class="stat-card__plus">+</span></div>
+          <div class="stat-card__label" data-i18n="statsInstructors">Expert Instructors</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ─────────────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <img src="Design system/logo removed bg.png" alt="Grace Academy" class="footer__logo">
+        <div>
+          <div class="footer__name">GRACE ACADEMY</div>
+          <div class="footer__motto" data-i18n="footerMotto">Long Live Learn</div>
+        </div>
+      </div>
+      <nav class="footer__nav" aria-label="Footer navigation">
+        <div class="footer__col">
+          <h4 data-i18n="footerCourses">Courses</h4>
+          <ul>
+            <li><a href="services.html" data-i18n="footerConvo">Conversational</a></li>
+            <li><a href="services.html" data-i18n="footerBusiness">Business</a></li>
+            <li><a href="services.html" data-i18n="footerTech">Technical</a></li>
+            <li><a href="services.html" data-i18n="footerAcademic">Academic</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4 data-i18n="footerCompany">Academy</h4>
+          <ul>
+            <li><a href="about.html"   data-i18n="footerAbout">About</a></li>
+            <li><a href="about.html"   data-i18n="footerWhoFor">Who We're For</a></li>
+            <li><a href="contact.html" data-i18n="footerContact">Contact</a></li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+    <div class="footer__bottom">
+      <p data-i18n="footerCopy">© 2025 Grace Academy. All rights reserved.</p>
+      <div class="footer__dev">
+        <span data-i18n="footerDev">Developed by</span>
+        <img src="Design system/mkk_corp_logo.png" alt="MKK Corp" class="footer__dev-logo">
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="pages.js"></script>
+</body>
+</html>

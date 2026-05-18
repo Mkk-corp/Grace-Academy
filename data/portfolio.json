@@ -1,0 +1,50 @@
+[
+  {
+    "id": "proj1", "order": 1, "thumbLabel": "IELTS",
+    "category": { "en": "IELTS Preparation", "ar": "تحضير IELTS" },
+    "title": { "en": "From Band 5 to Band 8 in 6 Months", "ar": "من Band 5 إلى Band 8 في ٦ أشهر" },
+    "challenge": { "en": "Student struggled with academic writing and reading comprehension.", "ar": "كان الطالب يعاني في الكتابة الأكاديمية والفهم القرائي." },
+    "approach": { "en": "Intensive IELTS track with daily writing workshops and timed reading drills.", "ar": "مسار IELTS مكثَّف مع ورش كتابية يومية وتدريبات قراءة موقوتة." },
+    "outcome": { "en": "Achieved Band 8 overall — secured full scholarship to UK university.", "ar": "حقَّق Band 8 إجمالياً وحصل على منحة دراسية كاملة في جامعة بريطانية." }
+  },
+  {
+    "id": "proj2", "order": 2, "thumbLabel": "BIZ",
+    "category": { "en": "Business English", "ar": "الإنجليزية التجارية" },
+    "title": { "en": "Executive Communication Transformation", "ar": "تحوُّل في تواصل المدير التنفيذي" },
+    "challenge": { "en": "Senior manager lacked confidence in English presentations and negotiations.", "ar": "مدير أول يفتقر إلى الثقة في العروض والتفاوضات باللغة الإنجليزية." },
+    "approach": { "en": "12-week Business English programme with executive coaching sessions.", "ar": "برنامج الإنجليزية التجارية المدته ١٢ أسبوعاً مع جلسات تدريب تنفيذي." },
+    "outcome": { "en": "Promoted to regional director; leads international client calls weekly.", "ar": "ترقِّى إلى مدير إقليمي ويترأس مكالمات العملاء الدوليين أسبوعياً." }
+  },
+  {
+    "id": "proj3", "order": 3, "thumbLabel": "KIDS",
+    "category": { "en": "Kids Programme", "ar": "برنامج الأطفال" },
+    "title": { "en": "Zero to Conversational at Age 9", "ar": "من الصفر إلى التحادث في سن التاسعة" },
+    "challenge": { "en": "Child had zero English exposure and severe anxiety about speaking.", "ar": "لم يكن للطفل أي تعرُّض للإنجليزية وعانى من قلق شديد في الكلام." },
+    "approach": { "en": "Play-based immersion programme with weekly 1-on-1 coaching.", "ar": "برنامج انغماس قائم على اللعب مع تدريب فردي أسبوعي." },
+    "outcome": { "en": "Confidently holds full conversations; top of class in school English.", "ar": "يجري محادثات كاملة بثقة وأصبح الأول في إنجليزية المدرسة." }
+  },
+  {
+    "id": "proj4", "order": 4, "thumbLabel": "CORP",
+    "category": { "en": "Corporate Training", "ar": "التدريب المؤسسي" },
+    "title": { "en": "Company-Wide English Upskilling", "ar": "رفع كفاءة شركة بأكملها في الإنجليزية" },
+    "challenge": { "en": "Tech company needed employees to communicate with global clients.", "ar": "شركة تقنية تحتاج موظفيها للتواصل مع عملاء عالميين." },
+    "approach": { "en": "Bespoke 3-month corporate programme with department-specific modules.", "ar": "برنامج مؤسسي مخصص لمدة ٣ أشهر بوحدات خاصة لكل قسم." },
+    "outcome": { "en": "94% of staff rated confident in English; client satisfaction up 40%.", "ar": "٩٤٪ من الموظفين يشعرون بالثقة في الإنجليزية ورضا العملاء ارتفع ٤٠٪." }
+  },
+  {
+    "id": "proj5", "order": 5, "thumbLabel": "CONV",
+    "category": { "en": "Conversational English", "ar": "الإنجليزية التحادثية" },
+    "title": { "en": "University Graduate to Global Hire", "ar": "من خريج جامعي إلى موظف عالمي" },
+    "challenge": { "en": "Graduate had strong grammar but froze in real conversations.", "ar": "خريج ذو قواعد نحوية قوية لكنه يتجمَّد في المحادثات الحقيقية." },
+    "approach": { "en": "Immersive speaking club with daily challenges and peer accountability.", "ar": "نادي تحادث انغماسي مع تحديات يومية ومساءلة بين الأقران." },
+    "outcome": { "en": "Landed role at multinational — passed English interview on first attempt.", "ar": "حصل على منصب في شركة متعددة الجنسيات واجتاز مقابلة الإنجليزية من المحاولة الأولى." }
+  },
+  {
+    "id": "proj6", "order": 6, "thumbLabel": "TOEFL",
+    "category": { "en": "TOEFL Prep", "ar": "تحضير TOEFL" },
+    "title": { "en": "TOEFL 115 — Ivy League Admission", "ar": "TOEFL 115 — القبول في أيفي ليغ" },
+    "challenge": { "en": "Student needed 110+ TOEFL score for Ivy League graduate programme.", "ar": "كان الطالب يحتاج إلى ١١٠+ في TOEFL للقبول في برنامج دراسات عليا." },
+    "approach": { "en": "Structured TOEFL bootcamp with three full mock exams and detailed review.", "ar": "معسكر TOEFL المكثَّف مع ثلاثة امتحانات محاكاة كاملة ومراجعة تفصيلية." },
+    "outcome": { "en": "Scored 115; admitted to target programme with partial funding.", "ar": "حصل على ١١٥ وقُبِل في برنامجه المستهدف مع تمويل جزئي." }
+  }
+]

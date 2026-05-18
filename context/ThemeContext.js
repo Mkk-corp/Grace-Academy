@@ -1,0 +1,36 @@
+'use client'
+
+import { createContext, useContext, useState, useEffect } from 'react'
+
+const ThemeContext = createContext(null)
+
+export function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState('light')
+
+  useEffect(() => {
+    const stored = localStorage.getItem('ga-theme')
+    applyTheme(stored || 'light')
+  }, [])
+
+  function applyTheme(next) {
+    setTheme(next)
+    document.documentElement.setAttribute('data-theme', next)
+    localStorage.setItem('ga-theme', next)
+  }
+
+  function toggleTheme() {
+    applyTheme(theme === 'dark' ? 'light' : 'dark')
+  }
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  )
+}
+
+export function useTheme() {
+  const ctx = useContext(ThemeContext)
+  if (!ctx) throw new Error('useTheme must be used inside ThemeProvider')
+  return ctx
+}

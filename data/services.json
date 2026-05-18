@@ -1,0 +1,50 @@
+[
+  {
+    "id": "svc1",
+    "order": 1,
+    "iconSlug": "chat",
+    "tag": { "en": "All Levels", "ar": "جميع المستويات" },
+    "title": { "en": "Conversational English", "ar": "الإنجليزية التحادثية" },
+    "body": { "en": "Break the fear of speaking. Build real-world fluency through guided conversations, role-play, and live discussion sessions.", "ar": "تغلَّب على خوف الكلام. ابنِ طلاقة حقيقية عبر محادثات موجَّهة وتمثيل أدوار وجلسات نقاش حية." }
+  },
+  {
+    "id": "svc2",
+    "order": 2,
+    "iconSlug": "briefcase",
+    "tag": { "en": "Intermediate+", "ar": "متوسط فما فوق" },
+    "title": { "en": "Business English", "ar": "الإنجليزية التجارية" },
+    "body": { "en": "Professional vocabulary, email writing, presentations, negotiations, and workplace communication for career growth.", "ar": "مفردات مهنية وكتابة بريد إلكتروني وتقديم عروض وتفاوض وتواصل في بيئة العمل." }
+  },
+  {
+    "id": "svc3",
+    "order": 3,
+    "iconSlug": "award",
+    "tag": { "en": "IELTS / TOEFL", "ar": "IELTS / TOEFL" },
+    "title": { "en": "Academic & Exam Prep", "ar": "التحضير الأكاديمي والاختبارات" },
+    "body": { "en": "Targeted preparation for IELTS, TOEFL, Cambridge, and SAT with mock exams, expert feedback, and proven strategies.", "ar": "تحضير مكثَّف لـ IELTS وTOEFL وكامبريدج وSAT مع امتحانات محاكاة وتغذية راجعة متخصصة." }
+  },
+  {
+    "id": "svc4",
+    "order": 4,
+    "iconSlug": "star",
+    "tag": { "en": "Ages 5 – 15", "ar": "من ٥ إلى ١٥ سنة" },
+    "title": { "en": "Kids & Young Learners", "ar": "برنامج الأطفال وصغار المتعلمين" },
+    "body": { "en": "Age-appropriate, play-based English learning that builds vocabulary, reading, and confidence from an early age.", "ar": "تعلُّم قائم على اللعب ومناسب للعمر يبني المفردات والقراءة والثقة منذ سن مبكرة." }
+  },
+  {
+    "id": "svc5",
+    "order": 5,
+    "iconSlug": "code",
+    "tag": { "en": "Professionals", "ar": "المهنيون" },
+    "title": { "en": "Technical English", "ar": "الإنجليزية التقنية" },
+    "body": { "en": "Specialised language for engineering, IT, medicine, and law — field-specific vocabulary and professional writing.", "ar": "لغة متخصصة للهندسة وتقنية المعلومات والطب والقانون — مفردات حقلية وكتابة مهنية." }
+  },
+  {
+    "id": "svc6",
+    "order": 6,
+    "iconSlug": "users",
+    "tag": { "en": "Organisations", "ar": "المؤسسات" },
+    "title": { "en": "Corporate Training", "ar": "التدريب المؤسسي" },
+    "body": { "en": "Bespoke in-company programmes that upskill entire teams with flexible delivery, from on-site workshops to live online.", "ar": "برامج مؤسسية مخصصة لرفع كفاءة الفرق بالكامل بتقديم مرن من ورش عمل ميدانية إلى تدريب مباشر عبر الإنترنت." }
+  }
+]

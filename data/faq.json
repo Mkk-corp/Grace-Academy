@@ -1,0 +1,98 @@
+[
+  {
+    "id": "faq1",
+    "order": 1,
+    "question": {
+      "en": "What age groups do you teach?",
+      "ar": "ما الفئات العمرية التي تدرِّسونها؟"
+    },
+    "answer": {
+      "en": "We teach everyone — from children as young as 5 to seniors in their 60s. Each programme is tailored to its age group's learning style and vocabulary needs.",
+      "ar": "ندرِّس الجميع — من أطفال عمرهم ٥ سنوات إلى كبار في الستينيات. كل برنامج مصمَّم وفق أسلوب التعلم واحتياجات المفردات لكل فئة عمرية."
+    }
+  },
+  {
+    "id": "faq2",
+    "order": 2,
+    "question": {
+      "en": "Do I need any prior English knowledge to join?",
+      "ar": "هل أحتاج إلى معرفة مسبقة بالإنجليزية للانضمام؟"
+    },
+    "answer": {
+      "en": "Not at all. We have complete beginner programmes designed from zero. A placement test at enrolment ensures you start at exactly the right level.",
+      "ar": "لا على الإطلاق. لدينا برامج للمبتدئين تبدأ من الصفر. اختبار التحديد عند التسجيل يضمن بدءك من المستوى المناسب تماماً."
+    }
+  },
+  {
+    "id": "faq3",
+    "order": 3,
+    "question": {
+      "en": "Are classes online, in-person, or both?",
+      "ar": "هل الدروس أونلاين أم حضورية أم كلاهما؟"
+    },
+    "answer": {
+      "en": "We offer fully online live sessions, in-centre classes in Riyadh, and hybrid options. You choose the format that fits your lifestyle.",
+      "ar": "نقدم جلسات حية كاملة عبر الإنترنت وفصولاً حضورية في الرياض وخيارات هجينة. أنت تختار الصيغة التي تناسب حياتك."
+    }
+  },
+  {
+    "id": "faq4",
+    "order": 4,
+    "question": {
+      "en": "How long until I see real progress?",
+      "ar": "كم من الوقت حتى أرى تقدماً حقيقياً؟"
+    },
+    "answer": {
+      "en": "Most students notice a meaningful improvement in confidence and comprehension within 4–6 weeks of consistent study. Significant fluency gains typically appear at the 3–6 month mark.",
+      "ar": "يلاحظ معظم الطلاب تحسناً ملموساً في الثقة والاستيعاب خلال ٤–٦ أسابيع من الدراسة المنتظمة. مكاسب الطلاقة الجوهرية تظهر عادةً خلال ٣–٦ أشهر."
+    }
+  },
+  {
+    "id": "faq5",
+    "order": 5,
+    "question": {
+      "en": "What exams do you prepare students for?",
+      "ar": "ما الاختبارات التي تُحضِّرون الطلاب لها؟"
+    },
+    "answer": {
+      "en": "IELTS (Academic & General), TOEFL iBT, Cambridge B2 First / C1 Advanced, OET (medical), and SAT English. Our exam-prep track has a 92% pass rate.",
+      "ar": "IELTS الأكاديمي والعام، وTOEFL iBT، وكامبريدج B2 وC1، وOET (الطبي)، وSAT الإنجليزية. معدل نجاح مسار التحضير لدينا ٩٢٪."
+    }
+  },
+  {
+    "id": "faq6",
+    "order": 6,
+    "question": {
+      "en": "Can my company book corporate training?",
+      "ar": "هل يمكن لشركتي حجز تدريب مؤسسي؟"
+    },
+    "answer": {
+      "en": "Yes. We offer bespoke on-site and online corporate programmes for teams of 5 to 500+. Contact us for a free needs analysis and custom quote.",
+      "ar": "نعم. نقدم برامج مؤسسية مخصصة ميدانية وعبر الإنترنت للفرق من ٥ إلى أكثر من ٥٠٠. تواصل معنا للحصول على تحليل احتياجات مجاني وعرض سعر مخصص."
+    }
+  },
+  {
+    "id": "faq7",
+    "order": 7,
+    "question": {
+      "en": "What is the maximum class size?",
+      "ar": "ما الحد الأقصى لحجم الفصل الدراسي؟"
+    },
+    "answer": {
+      "en": "Group classes are capped at 8 students to ensure every learner gets individual attention. One-to-one and small-group (2–3) sessions are also available.",
+      "ar": "الفصول الجماعية محددة بـ ٨ طلاب لضمان حصول كل متعلم على اهتمام فردي. الجلسات الفردية والمجموعات الصغيرة (٢–٣) متاحة أيضاً."
+    }
+  },
+  {
+    "id": "faq8",
+    "order": 8,
+    "question": {
+      "en": "Is there a trial class available?",
+      "ar": "هل تتاح حصة تجريبية مجانية؟"
+    },
+    "answer": {
+      "en": "Yes! Every new student is welcome to attend one free trial session before committing. Book yours through the Contact page.",
+      "ar": "نعم! كل طالب جديد مرحَّب به لحضور حصة تجريبية مجانية واحدة قبل الالتزام. احجز حصتك من خلال صفحة التواصل."
+    }
+  }
+]

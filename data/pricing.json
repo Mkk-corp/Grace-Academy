@@ -1,0 +1,209 @@
+[
+  {
+    "id": "plan1",
+    "order": 1,
+    "popular": true,
+    "name": {
+      "en": "Starter",
+      "ar": "المبتدئ"
+    },
+    "price": "500",
+    "currency": "EGP",
+    "period": {
+      "en": "/ month",
+      "ar": "/ شهر"
+    },
+    "desc": {
+      "en": "Perfect for beginners and casual learners who want to build a solid foundation at their own pace.",
+      "ar": "مثالي للمبتدئين والمتعلمين غير المنتظمين الذين يريدون بناء أساس متين بوتيرتهم الخاصة."
+    },
+    "cta": {
+      "en": "Get Started",
+      "ar": "ابدأ الآن"
+    },
+    "badge": null,
+    "features": [
+      {
+        "text": {
+          "en": "4 group sessions / month",
+          "ar": "٤ جلسات جماعية شهرياً"
+        },
+        "included": true
+      },
+      {
+        "text": {
+          "en": "Self-paced e-learning access",
+          "ar": "وصول للتعلم الذاتي"
+        },
+        "included": true
+      },
+      {
+        "text": {
+          "en": "Progress tracking dashboard",
+          "ar": "لوحة متابعة التقدم"
+        },
+        "included": true
+      },
+      {
+        "text": {
+          "en": "Community forum access",
+          "ar": "منتدى المجتمع"
+        },
+        "included": true
+      },
+      {
+        "text": {
+          "en": "Exam preparation modules",
+          "ar": "وحدات التحضير للاختبارات"
+        },
+        "included": false
+      },
+      {
+        "text": {
+          "en": "One-to-one coaching",
+          "ar": "تدريب فردي"
+        },
+        "included": false
+      }
+    ]
+  },
+  {
+    "id": "plan2",
+    "order": 2,
+    "popular": true,
+    "name": {
+      "en": "Professional",
+      "ar": "المحترف"
+    },
+    "price": "129",
+    "currency": "SAR",
+    "period": {
+      "en": "/ month",
+      "ar": "/ شهر"
+    },
+    "desc": {
+      "en": "For motivated learners who want structured guidance, regular coaching, and measurable results.",
+      "ar": "للمتعلمين المتحمسين الذين يريدون توجيهاً منظَّماً وتدريباً منتظماً ونتائج قابلة للقياس."
+    },
+    "cta": {
+      "en": "Start Free Trial",
+      "ar": "ابدأ التجربة المجانية"
+    },
+    "badge": {
+      "en": "Most Popular",
+      "ar": "الأكثر شيوعاً"
+    },
+    "features": [
+      {
+        "text": {
+          "en": "12 group sessions / month",
+          "ar": "١٢ جلسة جماعية شهرياً"
+        },
+        "included": true
+      },
+      {
+        "text": {
+          "en": "Self-paced e-learning access",
+          "ar": "وصول للتعلم الذاتي"
+        },
+        "included": true
+      },
+      {
+        "text": {
+          "en": "Progress tracking dashboard",
+          "ar": "لوحة متابعة التقدم"
+        },
+        "included": true
+      },
+      {
+        "text": {
+          "en": "Community forum access",
+          "ar": "منتدى المجتمع"
+        },
+        "included": true
+      },
+      {
+        "text": {
+          "en": "Exam preparation modules",
+          "ar": "وحدات التحضير للاختبارات"
+        },
+        "included": true
+      },
+      {
+        "text": {
+          "en": "2 one-to-one sessions / month",
+          "ar": "جلستان فرديتان شهرياً"
+        },
+        "included": true
+      }
+    ]
+  },
+  {
+    "id": "plan3",
+    "order": 3,
+    "popular": true,
+    "name": {
+      "en": "Elite",
+      "ar": "النخبة"
+    },
+    "price": "249",
+    "currency": "EGY",
+    "period": {
+      "en": "/ month",
+      "ar": "/ شهر"
+    },
+    "desc": {
+      "en": "Maximum intensity for professionals, exam candidates, or anyone who wants the fastest possible progress.",
+      "ar": "أقصى كثافة للمهنيين والمرشحين للاختبارات أو لمن يريد أسرع تقدم ممكن."
+    },
+    "cta": {
+      "en": "Go Elite",
+      "ar": "اختر النخبة"
+    },
+    "badge": null,
+    "features": [
+      {
+        "text": {
+          "en": "Unlimited group sessions",
+          "ar": "جلسات جماعية غير محدودة"
+        },
+        "included": true
+      },
+      {
+        "text": {
+          "en": "Self-paced e-learning access",
+          "ar": "وصول للتعلم الذاتي"
+        },
+        "included": true
+      },
+      {
+        "text": {
+          "en": "Progress tracking dashboard",
+          "ar": "لوحة متابعة التقدم"
+        },
+        "included": true
+      },
+      {
+        "text": {
+          "en": "Priority community support",
+          "ar": "دعم مجتمع ذو أولوية"
+        },
+        "included": true
+      },
+      {
+        "text": {
+          "en": "Full exam preparation suite",
+          "ar": "مجموعة التحضير الكاملة للاختبارات"
+        },
+        "included": true
+      },
+      {
+        "text": {
+          "en": "8 one-to-one sessions / month",
+          "ar": "٨ جلسات فردية شهرياً"
+        },
+        "included": true
+      }
+    ]
+  }
+]

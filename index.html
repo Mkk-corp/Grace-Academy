@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Grace Academy — A complete English learning ecosystem for every age. Conversational, business, technical, academic and more. Long Live Learn.">
+    <title>Grace Academy — Long Live Learn</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,900;1,400&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="scrollProgress" class="scroll-progress" aria-hidden="true"></div>
+
+    <!-- ═══ NAVIGATION ═══ -->
+    <nav class="nav" id="navbar">
+        <div class="nav__container">
+            <a href="#home" class="nav__logo">
+                <img src="Design system/logo removed bg.png" alt="Grace Academy" class="nav__logo-img">
+                <span class="nav__brand" data-i18n="brandName">GRACE</span>
+            </a>
+
+            <ul class="nav__menu" id="navMenu">
+                <li><a href="index.html"    class="nav__link" data-i18n="navHome">Home</a></li>
+                <li><a href="about.html"    class="nav__link" data-i18n="navAbout">About</a></li>
+                <li><a href="services.html" class="nav__link" data-i18n="navServices">Services</a></li>
+                <li><a href="portfolio.html"class="nav__link" data-i18n="navPortfolio">Portfolio</a></li>
+                <li><a href="blog.html"     class="nav__link" data-i18n="navBlog">Blog</a></li>
+                <li><a href="faq.html"      class="nav__link" data-i18n="navFaq">FAQ</a></li>
+                <li><a href="pricing.html"  class="nav__link" data-i18n="navPricing">Pricing</a></li>
+                <li><a href="contact.html"  class="nav__link nav__link--cta" data-i18n="navContact">Get Started</a></li>
+            </ul>
+
+            <div class="nav__controls">
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                    <!-- Sun: shown in dark mode (click → go light) -->
+                    <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.75"/>
+                        <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                    </svg>
+                    <!-- Moon: shown in light mode (click → go dark) -->
+                    <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button class="lang-toggle" id="langToggle" aria-label="Toggle language">
+                    <span id="langLabel">العربية</span>
+                </button>
+                <button class="nav__hamburger" id="hamburger" aria-label="Open menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ═══ HERO ═══ -->
+    <section class="hero" id="home">
+        <div class="hero__glow hero__glow--1"></div>
+        <div class="hero__glow hero__glow--2"></div>
+        <div class="hero__grid-overlay"></div>
+
+        <div class="hero__content">
+            <div class="hero__logo-wrap">
+                <img src="Design system/Full logo removed bg.png" alt="Grace Academy — Long Live Learn" class="hero__logo">
+            </div>
+            <div class="hero__rule"></div>
+            <p class="hero__subtitle" data-i18n="heroSubtitle">
+                A complete English learning ecosystem built for every age — conversational, business, technical, and beyond.
+            </p>
+            <div class="hero__cta-group">
+                <a href="#courses" class="btn btn--primary" data-i18n="heroCta1">Explore Courses</a>
+                <a href="#about"   class="btn btn--ghost"   data-i18n="heroCta2">Our Vision</a>
+            </div>
+        </div>
+
+        <div class="hero__scroll">
+            <div class="hero__scroll-dot"></div>
+        </div>
+    </section>
+
+    <!-- ═══ TAGLINE STRIP ═══ -->
+    <div class="strip" aria-hidden="true">
+        <div class="strip__track">
+            <span data-i18n="stripText1">Not just education.</span>
+            <span class="strip__sep">◆</span>
+            <span data-i18n="stripText2">A lifestyle.</span>
+            <span class="strip__sep">◆</span>
+            <span data-i18n="stripText3">24/7 consecutive growth.</span>
+            <span class="strip__sep">◆</span>
+            <span data-i18n="stripText4">Long Live Learn.</span>
+            <span class="strip__sep">◆</span>
+            <span data-i18n="stripText1">Not just education.</span>
+            <span class="strip__sep">◆</span>
+            <span data-i18n="stripText2">A lifestyle.</span>
+            <span class="strip__sep">◆</span>
+            <span data-i18n="stripText3">24/7 consecutive growth.</span>
+            <span class="strip__sep">◆</span>
+            <span data-i18n="stripText4">Long Live Learn.</span>
+        </div>
+    </div>
+
+    <!-- ═══ ABOUT ═══ -->
+    <section class="about section" id="about">
+        <div class="container">
+            <div class="about__grid">
+                <div class="about__content" data-reveal="left">
+                    <span class="label" data-i18n="aboutLabel">About Grace Academy</span>
+                    <h2 class="section-title" data-i18n="aboutTitle">A Different Idea of Learning</h2>
+                    <p class="about__lead" data-i18n="aboutLead">
+                        We are a team dedicated to creating not only a course or language training — but a complete environment aiming to build a lifestyle.
+                    </p>
+                    <p class="about__body" data-i18n="aboutBody">
+                        We introduce a different idea of living the learning experience. Not just education — an entire system created only for consecutive growth 24/7, not just 1 or 2 hours of learning.
+                    </p>
+                    <div class="pillars">
+                        <div class="pillar">
+                            <div class="pillar__icon" aria-hidden="true">◈</div>
+                            <div>
+                                <h4 data-i18n="pillar1Title">Complete Environment</h4>
+                                <p data-i18n="pillar1Body">An immersive learning ecosystem beyond the classroom</p>
+                            </div>
+                        </div>
+                        <div class="pillar">
+                            <div class="pillar__icon" aria-hidden="true">◈</div>
+                            <div>
+                                <h4 data-i18n="pillar2Title">24/7 Growth System</h4>
+                                <p data-i18n="pillar2Body">Continuous progress, not scheduled sessions</p>
+                            </div>
+                        </div>
+                        <div class="pillar">
+                            <div class="pillar__icon" aria-hidden="true">◈</div>
+                            <div>
+                                <h4 data-i18n="pillar3Title">Lifestyle Approach</h4>
+                                <p data-i18n="pillar3Body">English as a way of life, not a subject to study</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="about__visual" data-reveal="right" data-reveal-delay="150">
+                    <div class="about__emblem">
+                        <img src="Design system/logo removed bg.png" alt="Grace Academy Emblem">
+                    </div>
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="stat__num" data-count="6">0</span><span class="stat__num stat__plus">+</span>
+                            <span class="stat__label" data-i18n="stat1">Course Types</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat__num stat__word" data-i18n="stat2word">All</span>
+                            <span class="stat__label" data-i18n="stat2">Age Groups</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat__num stat__word">24/7</span>
+                            <span class="stat__label" data-i18n="stat3">Learning System</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat__num" data-count="1">0</span>
+                            <span class="stat__label" data-i18n="stat4">Ecosystem</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ MANIFESTO BREAK ═══ -->
+    <div class="manifesto">
+        <div class="container">
+            <blockquote class="manifesto__quote" data-i18n="manifesto">
+                "We did not come to teach the English language — we came to build a world where learning never stops."
+            </blockquote>
+        </div>
+    </div>
+
+    <!-- ═══ COURSES ═══ -->
+    <section class="courses section" id="courses">
+        <div class="container">
+            <header class="section-header" data-reveal>
+                <span class="label" data-i18n="coursesLabel">What We Teach</span>
+                <h2 class="section-title" data-i18n="coursesTitle">Every Type of English</h2>
+                <p class="section-sub" data-i18n="coursesSubtitle">From your first word to your boardroom presentation — we have the path for you.</p>
+            </header>
+            <div class="courses__grid">
+
+                <article class="course-card" data-reveal>
+                    <div class="course-card__icon">
+                        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                            <path d="M18 28c-7.732 0-14-4.925-14-11s6.268-11 14-11 14 4.925 14 11c0 2.35-.81 4.539-2.2 6.4L31 30l-5-1.5A15.9 15.9 0 0118 28z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                            <path d="M34 20c5.523 0 10 3.582 10 8s-4.477 8-10 8a10.9 10.9 0 01-4.5-.966L25 37l3.5-4.5A7.93 7.93 0 0134 36c-.002 0 0-16 0-16z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3 class="course-card__title" data-i18n="course1Title">Conversational English</h3>
+                    <p class="course-card__body"  data-i18n="course1Body">Build fluency and confidence in real-world everyday communication.</p>
+                    <span class="tag" data-i18n="tagAllLevels">All Levels</span>
+                </article>
+
+                <article class="course-card" data-reveal>
+                    <div class="course-card__icon">
+                        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                            <rect x="6" y="10" width="36" height="28" rx="3" stroke="currentColor" stroke-width="2"/>
+                            <path d="M14 20h20M14 26h14M14 32h17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <h3 class="course-card__title" data-i18n="course2Title">Business English</h3>
+                    <p class="course-card__body"  data-i18n="course2Body">Professional communication for meetings, emails, negotiations, and leadership.</p>
+                    <span class="tag" data-i18n="tagProfessional">Professional</span>
+                </article>
+
+                <article class="course-card" data-reveal>
+                    <div class="course-card__icon">
+                        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                            <rect x="4" y="12" width="40" height="28" rx="3" stroke="currentColor" stroke-width="2"/>
+                            <path d="M16 34h16M24 40v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M14 22l5 5-5 5M22 32h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3 class="course-card__title" data-i18n="course3Title">Technical English</h3>
+                    <p class="course-card__body"  data-i18n="course3Body">Specialized vocabulary and communication for engineering, IT, and sciences.</p>
+                    <span class="tag" data-i18n="tagSpecialized">Specialized</span>
+                </article>
+
+                <article class="course-card" data-reveal>
+                    <div class="course-card__icon">
+                        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                            <path d="M24 6L8 14v14c0 9.941 7.163 16.572 16 19 8.837-2.428 16-9.059 16-19V14L24 6z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                            <path d="M17 24l5 5 10-10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3 class="course-card__title" data-i18n="course4Title">Academic English</h3>
+                    <p class="course-card__body"  data-i18n="course4Body">Research writing, critical thinking, and academic discourse for students.</p>
+                    <span class="tag" data-i18n="tagAcademic">Academic</span>
+                </article>
+
+                <article class="course-card" data-reveal>
+                    <div class="course-card__icon">
+                        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                            <circle cx="24" cy="18" r="10" stroke="currentColor" stroke-width="2"/>
+                            <path d="M10 42c0-7.732 6.268-12 14-12s14 4.268 14 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M20 26s1 3 4 3 4-3 4-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <h3 class="course-card__title" data-i18n="course5Title">Kids &amp; Young Learners</h3>
+                    <p class="course-card__body"  data-i18n="course5Body">Engaging, playful programs that build strong English foundations from an early age.</p>
+                    <span class="tag" data-i18n="tagKids">Ages 6–17</span>
+                </article>
+
+                <article class="course-card" data-reveal>
+                    <div class="course-card__icon">
+                        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                            <circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="2"/>
+                            <path d="M24 12v12l8 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3 class="course-card__title" data-i18n="course6Title">Exam Preparation</h3>
+                    <p class="course-card__body"  data-i18n="course6Body">Targeted training for IELTS, TOEFL, Cambridge, and other international certifications.</p>
+                    <span class="tag" data-i18n="tagExam">IELTS · TOEFL · Cambridge</span>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ AUDIENCE ═══ -->
+    <section class="audience section" id="audience">
+        <div class="container">
+            <header class="section-header" data-reveal>
+                <span class="label" data-i18n="audienceLabel">Built for Everyone</span>
+                <h2 class="section-title" data-i18n="audienceTitle">Every Age. Every Goal.</h2>
+            </header>
+            <div class="audience__grid">
+
+                <div class="audience-card" data-reveal>
+                    <div class="audience-card__range">6–12</div>
+                    <h3 data-i18n="aud1Title">Young Explorers</h3>
+                    <p data-i18n="aud1Body">Fun, story-based learning that sparks a love for English through games and creativity.</p>
+                </div>
+
+                <div class="audience-card" data-reveal>
+                    <div class="audience-card__range">13–17</div>
+                    <h3 data-i18n="aud2Title">Teens &amp; Students</h3>
+                    <p data-i18n="aud2Body">Academic skills, social fluency, and exam preparation for confident young learners.</p>
+                </div>
+
+                <div class="audience-card" data-reveal>
+                    <div class="audience-card__range">18–25</div>
+                    <h3 data-i18n="aud3Title">Young Adults</h3>
+                    <p data-i18n="aud3Body">University, career, and international life preparation for the next generation.</p>
+                </div>
+
+                <div class="audience-card" data-reveal>
+                    <div class="audience-card__range">25+</div>
+                    <h3 data-i18n="aud4Title">Professionals</h3>
+                    <p data-i18n="aud4Body">Business, technical, and leadership English for career growth and global communication.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ EXPERIENCE ═══ -->
+    <section class="experience section">
+        <div class="experience__bg-glow"></div>
+        <div class="container">
+            <div class="experience__inner" data-reveal>
+                <span class="label" data-i18n="expLabel">The Grace Experience</span>
+                <h2 class="section-title" data-i18n="expTitle">More Than a Classroom</h2>
+                <p class="experience__text" data-i18n="expText">
+                    At Grace Academy, we believe language learning is not an event — it's a transformation. Our ecosystem wraps around your life, making English a natural part of how you think, work, and grow every single day.
+                </p>
+                <div class="experience__features">
+                    <div class="exp-feat"><span class="exp-feat__dot" aria-hidden="true">◎</span><span data-i18n="expF1">Immersive Learning Paths</span></div>
+                    <div class="exp-feat"><span class="exp-feat__dot" aria-hidden="true">◎</span><span data-i18n="expF2">Community &amp; Practice Groups</span></div>
+                    <div class="exp-feat"><span class="exp-feat__dot" aria-hidden="true">◎</span><span data-i18n="expF3">Expert Native Instructors</span></div>
+                    <div class="exp-feat"><span class="exp-feat__dot" aria-hidden="true">◎</span><span data-i18n="expF4">Progress Tracking &amp; Goals</span></div>
+                    <div class="exp-feat"><span class="exp-feat__dot" aria-hidden="true">◎</span><span data-i18n="expF5">Flexible Schedules</span></div>
+                    <div class="exp-feat"><span class="exp-feat__dot" aria-hidden="true">◎</span><span data-i18n="expF6">Real-World Applications</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ CTA ═══ -->
+    <section class="cta section" id="contact">
+        <div class="container">
+            <div class="cta__inner" data-reveal>
+                <div class="cta__emblem" data-reveal="scale" aria-hidden="true">
+                    <img src="Design system/logo removed bg.png" alt="">
+                </div>
+                <h2 class="cta__title" data-i18n="ctaTitle">Begin Your Journey</h2>
+                <p class="cta__sub"   data-i18n="ctaSubtitle">Join the Grace Academy ecosystem. Let English become your lifestyle.</p>
+                <div class="cta__form">
+                    <input type="email" class="cta__input" data-i18n-placeholder="ctaPlaceholder" placeholder="Enter your email address" aria-label="Email address">
+                    <button type="button" class="btn btn--primary" data-i18n="ctaBtn">Get Started</button>
+                </div>
+                <p class="cta__motto">— <span data-i18n="ctaTagline">Long Live Learn</span> —</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__top">
+                <div class="footer__brand">
+                    <img src="Design system/logo removed bg.png" alt="Grace Academy" class="footer__logo">
+                    <div>
+                        <div class="footer__name">GRACE ACADEMY</div>
+                        <div class="footer__motto" data-i18n="footerMotto">Long Live Learn</div>
+                    </div>
+                </div>
+                <nav class="footer__nav" aria-label="Footer navigation">
+                    <div class="footer__col">
+                        <h4 data-i18n="footerCourses">Courses</h4>
+                        <ul>
+                            <li><a href="#courses" data-i18n="footerConvo">Conversational</a></li>
+                            <li><a href="#courses" data-i18n="footerBusiness">Business</a></li>
+                            <li><a href="#courses" data-i18n="footerTech">Technical</a></li>
+                            <li><a href="#courses" data-i18n="footerAcademic">Academic</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer__col">
+                        <h4 data-i18n="footerCompany">Academy</h4>
+                        <ul>
+                            <li><a href="#about"    data-i18n="footerAbout">About</a></li>
+                            <li><a href="#audience" data-i18n="footerWhoFor">Who We're For</a></li>
+                            <li><a href="#contact"  data-i18n="footerContact">Contact</a></li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <div class="footer__bottom">
+                <p data-i18n="footerCopy">© 2025 Grace Academy. All rights reserved.</p>
+                <div class="footer__dev">
+                    <span data-i18n="footerDev">Developed by</span>
+                    <img src="Design system/mkk_corp_logo.png" alt="MKK Corp" class="footer__dev-logo">
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
