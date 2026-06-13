@@ -44,6 +44,8 @@ export default function Footer() {
                 <li><Link href="/blog">{t('navBlog')}</Link></li>
                 <li><Link href="/faq">{t('navFaq')}</Link></li>
                 <li><Link href="/pricing">{t('navPricing')}</Link></li>
+                <li><Link href="/enroll">{t('footerEnroll') || 'Enroll'}</Link></li>
+                <li><Link href="/portal">{t('footerPortal') || 'Student Portal'}</Link></li>
               </ul>
             </div>
           </nav>

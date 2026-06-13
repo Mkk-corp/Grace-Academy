@@ -1,11 +1,119 @@
- ⨯ Failed to start server
-Error: listen EADDRINUSE: address already in use :::3000
-    at <unknown> (Error: listen EADDRINUSE: address already in use :::3000)
-    at new Promise (<anonymous>) {
-  code: 'EADDRINUSE',
-  errno: -4091,
-  syscall: 'listen',
-  address: '::',
-  port: 3000
-}
+   ▲ Next.js 15.5.15
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.100.8:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 4.8s
+ ○ Compiling / ...
+ ✓ Compiled / in 20.3s (695 modules)
+ GET / 200 in 9960ms
+ GET / 200 in 24605ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 5.5s (114 modules)
+ ○ Compiling /admin/login ...
+ ✓ Compiled /icon.png in 10.4s (709 modules)
+ GET /icon.png?f69bd604d5a38792 200 in 8614ms
+ GET /icon.png?f69bd604d5a38792 200 in 10216ms
+ GET /admin/login 200 in 13548ms
+ GET / 200 in 2894ms
+ GET / 200 in 2886ms
+ ○ Compiling /api/admin/login ...
+ ✓ Compiled /api/admin/login in 3.2s (776 modules)
+ POST /api/admin/login 200 in 3884ms
+ ○ Compiling /admin ...
+ ✓ Compiled /admin in 1453ms (778 modules)
+ GET /admin 200 in 2059ms
+ ○ Compiling /admin/services ...
+ ✓ Compiled /admin/services in 1908ms (787 modules)
+ ○ Compiling /admin/contact ...
+ GET /admin/services 200 in 2730ms
+ ✓ Compiled /admin/contact in 2.8s (794 modules)
+ GET /admin/contact 200 in 3676ms
+ ○ Compiling /api/contact ...
+ ✓ Compiled /contact in 7.4s (813 modules)
+ GET /api/contact 200 in 8367ms
+ GET /api/contact 200 in 512ms
+ GET /contact 200 in 6698ms
+ GET /admin 200 in 194ms
+ ○ Compiling /pricing ...
+ ✓ Compiled /pricing in 4.5s (711 modules)
+ GET /pricing 200 in 5597ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1378ms (707 modules)
+ GET /xyz-anything 404 in 1978ms
+ ○ Compiling /icon.png ...
+ ✓ Compiled /icon.png in 991ms (464 modules)
+ GET /icon.png?f69bd604d5a38792 200 in 1219ms
+ ✓ Compiled in 5s (720 modules)
+ GET /admin 200 in 732ms
+ ✓ Compiled in 2.2s (720 modules)
+ GET /pricing 200 in 2532ms
+ GET /admin 200 in 332ms
+ GET /pricing 200 in 79ms
+ ✓ Compiled in 1754ms (720 modules)
+ GET /pricing 200 in 244ms
+ GET /admin 200 in 221ms
+ ✓ Compiled in 1750ms (720 modules)
+ GET /admin 200 in 200ms
+ GET /pricing 200 in 200ms
+ ✓ Compiled in 2.2s (720 modules)
+ GET /pricing 200 in 168ms
+ GET /admin 200 in 96ms
+ ✓ Compiled in 1674ms (720 modules)
+ GET /pricing 200 in 239ms
+ GET /admin 200 in 203ms
+ ✓ Compiled in 1401ms (720 modules)
+ GET /pricing 200 in 262ms
+ GET /admin 200 in 229ms
+ ✓ Compiled in 1461ms (720 modules)
+ GET /admin 200 in 226ms
+ GET /pricing 200 in 218ms
+ ✓ Compiled in 980ms (720 modules)
+ GET /admin 200 in 278ms
+ GET /pricing 200 in 101ms
+ ✓ Compiled in 2.3s (720 modules)
+ GET /pricing 200 in 180ms
+ GET /admin 200 in 207ms
+ ✓ Compiled in 1288ms (720 modules)
+ GET /pricing 200 in 245ms
+ GET /admin 200 in 213ms
+ ✓ Compiled in 1563ms (720 modules)
+ GET /pricing 200 in 215ms
+ GET /admin 200 in 197ms
+ ✓ Compiled in 1819ms (720 modules)
+ GET /pricing 200 in 167ms
+ GET /admin 200 in 90ms
+ ✓ Compiled in 1778ms (720 modules)
+ GET /pricing 200 in 226ms
+ GET /admin 200 in 200ms
+ ✓ Compiled in 1317ms (720 modules)
+ GET /pricing 200 in 265ms
+ GET /admin 200 in 243ms
+ ✓ Compiled in 1112ms (720 modules)
+ GET /pricing 200 in 309ms
+ GET /admin 200 in 278ms
+ ✓ Compiled in 2.1s (720 modules)
+ GET /admin 200 in 199ms
+ GET /pricing 200 in 107ms
+ ✓ Compiled in 1811ms (720 modules)
+ GET /pricing 200 in 211ms
+ GET /admin 200 in 184ms
+ ✓ Compiled in 934ms (720 modules)
+ GET /pricing 200 in 333ms
+ GET /admin 200 in 322ms
+ ✓ Compiled in 1587ms (720 modules)
+ GET /pricing 200 in 220ms
+ GET /admin 200 in 183ms
+ ✓ Compiled in 1049ms (720 modules)
+ GET /pricing 200 in 245ms
+ GET /admin 200 in 89ms
+ ✓ Compiled in 1100ms (720 modules)
+ GET /pricing 200 in 388ms
+ GET /admin 200 in 364ms
+ GET /pricing 200 in 563ms
+ ○ Compiling /icon.png ...
+ ✓ Compiled /icon.png in 1245ms (463 modules)
+ GET /icon.png?f69bd604d5a38792 200 in 1619ms
+ GET / 200 in 215ms
 [?25h

@@ -7,7 +7,9 @@
       "Bash(dir /s /b)",
       "Bash(Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing -TimeoutSec 30)",
       "Bash(Select-Object -First 5)",
-      "PowerShell(Start-Sleep -Seconds 10; try { $r = Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing -TimeoutSec 20; \"Status: $\\($r.StatusCode\\)\" } catch { \"Error: $_\" })"
+      "PowerShell(Start-Sleep -Seconds 10; try { $r = Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing -TimeoutSec 20; \"Status: $\\($r.StatusCode\\)\" } catch { \"Error: $_\" })",
+      "Bash(npm run *)",
+      "PowerShell(@\\(3000, 3001, 3002\\) | ForEach-Object { $port = $_; $pids = netstat -ano | Select-String \":$port\\\\s\" | ForEach-Object { \\($_ -split '\\\\s+'\\)[-1] } | Sort-Object -Unique; foreach \\($p in $pids\\) { if \\($p -match '^\\\\d+$' -and $p -ne '0'\\) { try { Stop-Process -Id $p -Force -ErrorAction Stop; Write-Host \"Killed PID $p on port $port\" } catch { Write-Host \"Could not kill PID $p\" } } } })"
     ]
   }
 }

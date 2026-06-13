@@ -1,1 +1,11 @@
-{"version":4,"routes":{"/blog/10-habits-fluent-english-speakers":{},"/blog/ielts-writing-task-2-guide-2025":{},"/blog/layla-b1-to-c2-in-one-year":{},"/blog/your-accent-is-an-asset":{},"/blog/500-words-cover-90-percent-english":{},"/blog/english-rich-home-environment":{}},"dynamicRoutes":{"/blog/[slug]":{"dataRoute":null,"dataRouteRegex":null,"fallback":null,"fallbackRevalidate":false,"fallbackSourceRoute":"/blog/[slug]","routeRegex":"^\\/blog\\/([^/]+?)(?:\\/)?$","allowHeader":[]}},"notFoundRoutes":[],"preview":{"previewModeId":"52502000d88c34c6daf1645e4c8a4163","previewModeSigningKey":"a735223a5d6dc9e47763053e68ba6e62f3c1629fa3d0908e076e4ebc12aa84d9","previewModeEncryptionKey":"695332e6feca792d6dd4e1c0170507e05fe58ccde8e411166271929401dcaea9"}}
+{
+  "version": 4,
+  "routes": {},
+  "dynamicRoutes": {},
+  "notFoundRoutes": [],
+  "preview": {
+    "previewModeId": "1b25dbe67594d78ecc6ec45e97fd90e7",
+    "previewModeSigningKey": "4ffe5ca060a1975438acc003ae9985835d366a00b0e8ba23d3e34b39fb9c1528",
+    "previewModeEncryptionKey": "19aab7e36562c03aca2c26211dbda744439a068a6d4ecc95ef970164c2957b5c"
+  }
+}
