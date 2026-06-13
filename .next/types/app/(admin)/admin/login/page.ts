@@ -1,4 +1,4 @@
-// File: d:\Grace academy\app\(admin)\admin\login\page.js
+// File: D:\Grace academy\app\(admin)\admin\login\page.js
 import * as entry from '../../../../../../app/(admin)/admin/login/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

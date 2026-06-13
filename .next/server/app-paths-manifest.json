@@ -1,8 +1,7 @@
 {
   "/icon.png/route": "app/icon.png/route.js",
-  "/(public)/page": "app/(public)/page.js",
-  "/(admin)/admin/page": "app/(admin)/admin/page.js",
-  "/(admin)/admin/contact/page": "app/(admin)/admin/contact/page.js",
-  "/(public)/contact/page": "app/(public)/contact/page.js",
-  "/(public)/pricing/page": "app/(public)/pricing/page.js"
+  "/api/admin/login/route": "app/api/admin/login/route.js",
+  "/api/admin/logout/route": "app/api/admin/logout/route.js",
+  "/(admin)/admin/login/page": "app/(admin)/admin/login/page.js",
+  "/(admin)/admin/page": "app/(admin)/admin/page.js"
 }

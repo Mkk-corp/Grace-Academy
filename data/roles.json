@@ -1,0 +1,20 @@
+[
+  {
+    "id": "r_admin",
+    "name": "Administrator",
+    "description": "Full access to all features",
+    "permissions": ["manage_users", "manage_roles", "manage_content", "manage_blog", "manage_services", "manage_portfolio", "manage_faq", "manage_pricing", "manage_stats", "view_messages"]
+  },
+  {
+    "id": "r_editor",
+    "name": "Content Editor",
+    "description": "Can manage website content and media",
+    "permissions": ["manage_content", "manage_blog", "manage_services", "manage_portfolio", "manage_faq", "manage_pricing", "manage_stats"]
+  },
+  {
+    "id": "r_viewer",
+    "name": "Viewer",
+    "description": "Can view contact messages only",
+    "permissions": ["view_messages"]
+  }
+]

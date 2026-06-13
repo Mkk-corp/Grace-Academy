@@ -1,4 +1,4 @@
-// File: d:\Grace academy\app\api\admin\login\route.js
+// File: D:\Grace academy\app\api\admin\login\route.js
 import * as entry from '../../../../../../app/api/admin/login/route.js'
 import type { NextRequest } from 'next/server.js'
 

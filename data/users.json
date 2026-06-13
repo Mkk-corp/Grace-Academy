@@ -1,0 +1,13 @@
+[
+  {
+    "id": "9b164ca0-638e-4f25-823a-f5faa781c745",
+    "name": "Grace",
+    "username": "Admin",
+    "email": "graceisforyou9@gmail.com",
+    "phone": "01148459501",
+    "password": "1ae6a1353d6f2f4e8c3f84db32e281f0:ed1ecc6be134ce2d0b4a2a472965b15f645f618f2a72e21f522ca9c066d3c76417aa05d5ac6191474fb419293276beae12636015d18bb8ba54845c091120290b",
+    "roleId": "r_admin",
+    "source": "admin",
+    "createdAt": "2026-06-13T13:16:25.697Z"
+  }
+]
