@@ -14,6 +14,7 @@ const ALL_PERMISSIONS = [
   { id: 'manage_pricing',   label: 'Manage Pricing' },
   { id: 'manage_stats',     label: 'Manage Stats' },
   { id: 'view_messages',    label: 'View Messages' },
+  { id: 'access_student_portal', label: 'Access Student Portal' },
 ]
 
 export default function AdminRolesPage() {

@@ -14,7 +14,8 @@
       "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3000/admin/content/home\" -UseBasicParsing -TimeoutSec 15)",
       "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3000/admin/content/services\" -UseBasicParsing -TimeoutSec 10)",
       "Bash(copy \"design system\\\\logo.png\" \"public\\\\images\\\\logo.png\")",
-      "Bash(copy \"design system\\\\Full logo.png\" \"public\\\\images\\\\full-logo.png\")"
+      "Bash(copy \"design system\\\\Full logo.png\" \"public\\\\images\\\\full-logo.png\")",
+      "Bash(npm install *)"
     ]
   }
 }

@@ -4,25 +4,29 @@ import { readData, writeData } from '@/lib/db'
 import { hashPassword } from '@/lib/password'
 
 export async function POST(request) {
-  const { name, email, phone, password } = await request.json()
+  const { name, username, email, phone, password } = await request.json()
 
   if (!name || !email || !password) {
     return NextResponse.json({ error: 'Name, email and password are required' }, { status: 400 })
   }
 
   const users = readData('users.json')
-  if (users.find(u => u.email === email)) {
+
+  if (users.find(u => u.email?.toLowerCase() === email.toLowerCase())) {
     return NextResponse.json({ error: 'Email already registered' }, { status: 409 })
+  }
+  if (username && users.find(u => u.username?.toLowerCase() === username.toLowerCase())) {
+    return NextResponse.json({ error: 'Username already taken' }, { status: 409 })
   }
 
   const newUser = {
     id: crypto.randomUUID(),
     name,
-    username: '',
+    username: username || '',
     email,
     phone: phone || '',
     password: hashPassword(password),
-    roleId: null,
+    roleId: 'r_student',
     source: 'website',
     createdAt: new Date().toISOString(),
   }

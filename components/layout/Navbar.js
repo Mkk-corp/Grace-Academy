@@ -63,8 +63,8 @@ export default function Navbar() {
             </li>
           ))}
           <li>
-            <Link href="/contact" className="nav__link nav__link--cta" onClick={closeMenu}>
-              {t('navContact')}
+            <Link href="/login" className="nav__link nav__link--cta" onClick={closeMenu}>
+              {t('navLogin')}
             </Link>
           </li>
         </ul>

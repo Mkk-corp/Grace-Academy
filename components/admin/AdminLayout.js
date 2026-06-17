@@ -100,9 +100,18 @@ export default function AdminLayout({ children }) {
     if (isUserRelated) setUsersOpen(true)
   }, [pathname])
 
+  // Guard: logged-in users without admin access are redirected to the 401 page
+  useEffect(() => {
+    if (pathname === '/admin/login') return
+    fetch('/api/auth/me').then(r => r.json()).then(({ user }) => {
+      if (!user) { router.replace('/admin/login'); return }
+      if (!user.hasAdminAccess) router.replace('/unauthorized')
+    }).catch(() => router.replace('/admin/login'))
+  }, [pathname, router])
+
   async function logout() {
     await fetch('/api/admin/logout', { method: 'POST' })
-    router.push('/admin/login')
+    router.push('/login')
   }
 
   if (pathname === '/admin/login') {

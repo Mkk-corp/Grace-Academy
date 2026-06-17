@@ -3,7 +3,7 @@
     "id": "r_admin",
     "name": "Administrator",
     "description": "Full access to all features",
-    "permissions": ["manage_users", "manage_roles", "manage_content", "manage_blog", "manage_services", "manage_portfolio", "manage_faq", "manage_pricing", "manage_stats", "view_messages"]
+    "permissions": ["manage_users", "manage_roles", "manage_content", "manage_blog", "manage_services", "manage_portfolio", "manage_faq", "manage_pricing", "manage_stats", "view_messages", "access_student_portal"]
   },
   {
     "id": "r_editor",
@@ -16,5 +16,17 @@
     "name": "Viewer",
     "description": "Can view contact messages only",
     "permissions": ["view_messages"]
+  },
+  {
+    "id": "r_student",
+    "name": "Student",
+    "description": "Enrolled students with access to the student portal",
+    "permissions": ["access_student_portal"]
+  },
+  {
+    "id": "r_assessor",
+    "name": "Assessor",
+    "description": "Placement assessors who conduct and manage student assessments",
+    "permissions": ["access_assessor_portal"]
   }
 ]

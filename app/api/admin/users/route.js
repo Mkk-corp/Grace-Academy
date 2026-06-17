@@ -42,6 +42,7 @@ export async function POST(request) {
     password: hashPassword(password),
     roleId: roleId || null,
     source: 'admin',
+    forcePasswordReset: true,
     createdAt: new Date().toISOString(),
   }
 
@@ -66,7 +67,7 @@ export async function PUT(request) {
     ...(email !== undefined && { email }),
     ...(phone !== undefined && { phone }),
     ...(roleId !== undefined && { roleId }),
-    ...(password && { password: hashPassword(password) }),
+    ...(password && { password: hashPassword(password), forcePasswordReset: true }),
   }
 
   writeData('users.json', users)
