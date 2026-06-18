@@ -1,8 +1,10 @@
-const { PrismaClient } = require('../lib/generated/prisma')
+const { PrismaClient } = require('@prisma/client')
 const { readFileSync } = require('fs')
 const { join } = require('path')
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient({
+  datasourceUrl: process.env.DATABASE_URL,
+})
 
 function readJson(filename) {
   try {
@@ -30,7 +32,6 @@ async function main() {
   const users = readJson('users.json') || []
   for (const raw of users) {
     const { updatedAt, passwordHistory, createdAt, ...fields } = raw
-    // Ensure nullable fields are explicitly null if missing
     const data = {
       name: fields.name || '',
       username: fields.username || '',
@@ -53,7 +54,7 @@ async function main() {
   }
   console.log(`  ✓ ${users.length} users`)
 
-  // 3. Site content (blog, services, portfolio, faq, pricing, stats, content)
+  // 3. Site content
   const contentKeys = ['blog', 'services', 'portfolio', 'faq', 'pricing', 'stats', 'content']
   let seededContent = 0
   for (const key of contentKeys) {
@@ -73,23 +74,18 @@ async function main() {
   const contacts = readJson('contact.json') || []
   for (const c of contacts) {
     const { submittedAt, id, ...fields } = c
+    const msgId = id || `msg${Date.now()}`
     await prisma.contactMessage.upsert({
-      where: { id: id || `msg${Date.now()}` },
+      where: { id: msgId },
       update: {
-        name: fields.name || '',
-        email: fields.email || '',
-        phone: fields.phone || '',
-        message: fields.message || '',
-        read: fields.read || false,
+        name: fields.name || '', email: fields.email || '', phone: fields.phone || '',
+        message: fields.message || '', read: fields.read || false,
         submittedAt: submittedAt ? new Date(submittedAt) : new Date(),
       },
       create: {
-        id: id || `msg${Date.now()}`,
-        name: fields.name || '',
-        email: fields.email || '',
-        phone: fields.phone || '',
-        message: fields.message || '',
-        read: fields.read || false,
+        id: msgId,
+        name: fields.name || '', email: fields.email || '', phone: fields.phone || '',
+        message: fields.message || '', read: fields.read || false,
         submittedAt: submittedAt ? new Date(submittedAt) : new Date(),
       },
     })
