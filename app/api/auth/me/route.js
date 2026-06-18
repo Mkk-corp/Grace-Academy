@@ -19,7 +19,9 @@ export async function GET() {
   const role = roles.find(r => r.id === user.roleId)
   const permissions = role?.permissions || []
 
-  const hasAdminAccess = permissions.some(p => p !== 'access_student_portal' && p !== 'access_assessor_portal')
+  const hasAdminAccess = permissions.some(p => !['access_student_portal', 'access_assessor_portal', 'access_teacher_portal'].includes(p))
+  const isAssessor = permissions.includes('access_assessor_portal') && !hasAdminAccess
+  const isTeacher  = permissions.includes('access_teacher_portal')  && !hasAdminAccess
   return NextResponse.json({
     user: {
       id: user.id,
@@ -30,7 +32,8 @@ export async function GET() {
       avatar: user.avatar || 'user1',
       permissions,
       hasAdminAccess,
-      isAssessor: permissions.includes('access_assessor_portal') && !hasAdminAccess,
+      isAssessor,
+      isTeacher,
     },
   })
 }

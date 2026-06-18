@@ -1,207 +1,431 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
+import PortalTopbar from '@/components/portal/PortalTopbar'
 
-const USER_SECTIONS = [
-  {
-    href: '/admin/users',
-    label: 'Users',
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-  },
-  {
-    href: '/admin/roles',
-    label: 'Roles',
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
-  },
-]
-
-const CONTENT_SECTIONS = [
-  {
-    href: '/admin/content/home',
-    label: 'Home',
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
-  },
-  {
-    href: '/admin/content/about',
-    label: 'About',
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>,
-  },
-  {
-    href: '/admin/stats',
-    label: 'Stats',
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
-  },
-  {
-    href: '/admin/services',
-    label: 'Services',
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>,
-  },
-  {
-    href: '/admin/portfolio',
-    label: 'Portfolio',
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>,
-  },
-  {
-    href: '/admin/blog',
-    label: 'Blog',
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
-  },
-  {
-    href: '/admin/faq',
-    label: 'FAQ',
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
-  },
-  {
-    href: '/admin/pricing',
-    label: 'Pricing',
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
-  },
-  {
-    href: '/admin/contact',
-    label: 'Messages',
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
-  },
-  {
-    href: '/admin/content/contact',
-    label: 'Contact Info',
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>,
-  },
-]
-
-function Toggles() {
-  const { lang, toggleLang } = useLang()
-  const { toggleTheme } = useTheme()
+/* ─── Sidebar icons ───────────────────────────────────────────────── */
+function SbIcon({ d, size = 16 }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-      <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
-        <svg className="theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        <svg className="theme-icon theme-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-      </button>
-      <button className="lang-toggle" onClick={toggleLang}>{lang === 'ar' ? 'EN' : 'عربي'}</button>
-    </div>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width={size} height={size} style={{ flexShrink: 0 }}>
+      {d}
+    </svg>
   )
 }
 
+const ICONS = {
+  overview:   <><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></>,
+  layers:     <><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></>,
+  users:      <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
+  shield:     <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></>,
+  portal:     <><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></>,
+  student:    <><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></>,
+  teacher:    <><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></>,
+  assessor:   <><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></>,
+  home:       <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>,
+  about:      <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></>,
+  stats:      <><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></>,
+  services:   <><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></>,
+  portfolio:  <><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></>,
+  blog:       <><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></>,
+  faq:        <><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></>,
+  pricing:    <><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></>,
+  messages:   <><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></>,
+  location:   <><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></>,
+  user:       <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
+  logout:     <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>,
+  chevron:    <><polyline points="6 9 12 15 18 9"/></>,
+}
+
+/* ─── Nav definitions ─────────────────────────────────────────────── */
+const CONTENT_NAV = [
+  { href: '/admin/content/home',    label: 'Home',         icon: 'home'      },
+  { href: '/admin/content/about',   label: 'About',        icon: 'about'     },
+  { href: '/admin/stats',           label: 'Stats',        icon: 'stats'     },
+  { href: '/admin/services',        label: 'Services',     icon: 'services'  },
+  { href: '/admin/portfolio',       label: 'Portfolio',    icon: 'portfolio' },
+  { href: '/admin/blog',            label: 'Blog',         icon: 'blog'      },
+  { href: '/admin/faq',             label: 'FAQ',          icon: 'faq'       },
+  { href: '/admin/pricing',         label: 'Pricing',      icon: 'pricing'   },
+  { href: '/admin/contact',         label: 'Messages',     icon: 'messages'  },
+  { href: '/admin/content/contact', label: 'Contact Info', icon: 'location'  },
+]
+
+const USERS_NAV = [
+  { href: '/admin/users', label: 'Users', icon: 'users'  },
+  { href: '/admin/roles', label: 'Roles', icon: 'shield' },
+]
+
+const PORTALS_NAV = [
+  { href: '/portal',   label: 'Student Portal',  icon: 'student',  color: '#c9932c' },
+  { href: '/teacher',  label: 'Teacher Portal',  icon: 'teacher',  color: '#c9932c' },
+  { href: '/assessor', label: 'Assessor Portal', icon: 'assessor', color: '#00897B' },
+]
+
 export default function AdminLayout({ children }) {
   const pathname = usePathname()
-  const router = useRouter()
+  const router   = useRouter()
+  const { lang, toggleLang } = useLang()
+  const { theme, toggleTheme } = useTheme()
+  const isDark = theme === 'dark'
+  const isAr   = lang === 'ar'
 
-  const isContentRelated = pathname !== '/admin' && pathname !== '/admin/login' && !pathname.startsWith('/admin/users') && !pathname.startsWith('/admin/roles')
-  const isUserRelated = pathname.startsWith('/admin/users') || pathname.startsWith('/admin/roles')
-  const [contentOpen, setContentOpen] = useState(isContentRelated)
-  const [usersOpen, setUsersOpen] = useState(isUserRelated)
+  const [user,        setUser]        = useState(null)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [isMobile,    setIsMobile]    = useState(false)
+  const [search,      setSearch]      = useState('')
 
+  /* Detect mobile, auto-close sidebar */
   useEffect(() => {
-    if (isContentRelated) setContentOpen(true)
-    if (isUserRelated) setUsersOpen(true)
-  }, [pathname])
+    function check() {
+      const mobile = window.innerWidth < 768
+      setIsMobile(mobile)
+      if (mobile) setSidebarOpen(false)
+    }
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
-  // Guard: logged-in users without admin access are redirected to the 401 page
+  /* Accordions — auto-open on matching path */
+  const isContent  = pathname !== '/admin' && !pathname.startsWith('/admin/users') && !pathname.startsWith('/admin/roles') && !pathname.startsWith('/admin/login')
+  const isUsers    = pathname.startsWith('/admin/users') || pathname.startsWith('/admin/roles')
+  const [contentOpen,  setContentOpen]  = useState(isContent)
+  const [usersOpen,    setUsersOpen]    = useState(isUsers)
+  const [portalsOpen,  setPortalsOpen]  = useState(false)
+
+  useEffect(() => { if (isContent) setContentOpen(true) }, [isContent])
+  useEffect(() => { if (isUsers)   setUsersOpen(true)   }, [isUsers])
+
+  /* Auth guard */
   useEffect(() => {
     if (pathname === '/admin/login') return
     fetch('/api/auth/me').then(r => r.json()).then(({ user }) => {
-      if (!user) { router.replace('/admin/login'); return }
-      if (!user.hasAdminAccess) router.replace('/unauthorized')
+      if (!user)               { router.replace('/admin/login'); return }
+      if (!user.hasAdminAccess){ router.replace('/unauthorized');return }
+      setUser(user)
     }).catch(() => router.replace('/admin/login'))
   }, [pathname, router])
 
-  async function logout() {
-    await fetch('/api/admin/logout', { method: 'POST' })
+  async function handleLogout() {
+    await fetch('/api/logout', { method: 'POST' })
     router.push('/login')
   }
 
-  if (pathname === '/admin/login') {
-    return <>{children}</>
+  if (pathname === '/admin/login') return <>{children}</>
+
+  const SW = sidebarOpen ? 264 : 68
+
+  /* Light / dark CSS vars for child pages */
+  const lightVars = `
+    --bg:#f5f7fa; --surface:#fff; --surface-2:#edf0f5;
+    --text:#1c2433; --text-80:rgba(28,36,51,.82); --text-60:rgba(28,36,51,.6); --text-40:rgba(28,36,51,.38);
+    --border:rgba(28,36,51,.09); --border-gold:rgba(174,109,12,.22); --accent-dim:rgba(201,147,44,.08);
+  `
+  const darkVars = `
+    --bg:#0d1b24; --surface:#10222b; --surface-2:#0a1820;
+    --text:#f1f5f9; --text-80:rgba(241,245,249,.82); --text-60:rgba(241,245,249,.6); --text-40:rgba(241,245,249,.38);
+    --border:rgba(255,255,255,.07); --border-gold:rgba(201,147,44,.28); --accent-dim:rgba(201,147,44,.1);
+  `
+
+  /* Sidebar accent for active state */
+  const GOLD = '#c9932c'
+
+  /* inline color tokens computed from isDark */
+  const bg      = isDark ? '#0d1b24'  : '#f5f7fa'
+  const surface = isDark ? '#10222b'  : '#ffffff'
+  const border  = isDark ? 'rgba(255,255,255,.07)' : 'rgba(28,36,51,.09)'
+  const text    = isDark ? '#f1f5f9'  : '#1c2433'
+  const muted   = isDark ? 'rgba(241,245,249,.55)' : 'rgba(28,36,51,.55)'
+  const hover   = isDark ? 'rgba(255,255,255,.04)' : 'rgba(201,147,44,.06)'
+
+  /* ── Sidebar nav item ─────────────────────────────────────────── */
+  function NavLink({ href, label, icon, color, startsWith }) {
+    const active = startsWith ? pathname.startsWith(href) : pathname === href
+    const accent = color || GOLD
+    return (
+      <Link href={href} style={{ textDecoration: 'none' }}>
+        <div style={{
+          display: 'flex', alignItems: 'center',
+          gap: sidebarOpen ? 10 : 0,
+          padding: `8px ${sidebarOpen ? 12 : 0}px`,
+          margin: `1px ${sidebarOpen ? 8 : 6}px`,
+          borderRadius: 9,
+          background: active ? `${accent}14` : 'transparent',
+          color: active ? accent : muted,
+          fontWeight: active ? 600 : 400,
+          fontSize: '.83rem', cursor: 'pointer', transition: 'all .15s',
+          justifyContent: sidebarOpen ? 'flex-start' : 'center',
+          whiteSpace: 'nowrap', overflow: 'hidden',
+          borderLeft: active && !isAr ? `2px solid ${accent}` : '2px solid transparent',
+          borderRight: active && isAr  ? `2px solid ${accent}` : '2px solid transparent',
+        }}
+          onMouseEnter={e => { if (!active) { e.currentTarget.style.background = hover; e.currentTarget.style.color = text } }}
+          onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = muted } }}
+        >
+          <SbIcon d={ICONS[icon]} />
+          {sidebarOpen && <span style={{ opacity: sidebarOpen ? 1 : 0, transition: 'opacity .12s', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: 'var(--font-montserrat,"Montserrat",sans-serif)' }}>{label}</span>}
+        </div>
+      </Link>
+    )
+  }
+
+  /* ── Accordion toggle ─────────────────────────────────────────── */
+  function AccordionToggle({ label, icon, open, onClick, active }) {
+    return (
+      <button onClick={onClick} style={{
+        display: 'flex', alignItems: 'center',
+        gap: sidebarOpen ? 10 : 0,
+        padding: `9px ${sidebarOpen ? 14 : 0}px`,
+        margin: `2px ${sidebarOpen ? 6 : 4}px`,
+        width: `calc(100% - ${sidebarOpen ? 12 : 8}px)`,
+        borderRadius: 10, background: 'none', border: 'none', cursor: 'pointer',
+        color: active ? GOLD : muted, fontWeight: active ? 600 : 500,
+        fontSize: '.83rem', transition: 'all .15s', textAlign: isAr ? 'right' : 'left',
+        justifyContent: sidebarOpen ? 'flex-start' : 'center',
+        whiteSpace: 'nowrap', overflow: 'hidden', fontFamily: 'inherit',
+      }}
+        onMouseEnter={e => { e.currentTarget.style.background = hover; e.currentTarget.style.color = text }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = active ? GOLD : muted }}
+      >
+        <SbIcon d={ICONS[icon]} />
+        {sidebarOpen && <>
+          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: 'var(--font-montserrat,"Montserrat",sans-serif)' }}>{label}</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="13" height="13"
+            style={{ flexShrink: 0, opacity: .45, transition: 'transform .2s', transform: open ? 'rotate(180deg)' : 'none' }}>
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </>}
+      </button>
+    )
   }
 
   return (
-    <div className="admin-layout">
-      <aside className="admin-sidebar">
-        {/* Logo */}
-        <div className="admin-sidebar__logo">
-          <div style={{ fontSize: '.85rem', fontWeight: 700, color: 'var(--gold)', letterSpacing: '.12em', fontFamily: 'var(--font)' }}>
-            GRACE ADMIN
+    <>
+      <style>{`
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        @keyframes adFadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+        .admin-layout {
+          display:flex; min-height:100vh;
+          ${isDark ? darkVars : lightVars}
+          background:var(--bg);
+          --gold:#c9932c; --gold-dark:#ae6d0c; --r:8px; --r-lg:12px;
+          --ease:.15s ease; --font:var(--font-montserrat,'Montserrat',sans-serif);
+          --font-en:var(--font-montserrat,'Montserrat',sans-serif);
+        }
+        .admin-main {
+          flex:1; padding:32px; overflow-x:auto; background:var(--bg);
+          animation:adFadeUp .22s ease;
+          margin-${isAr ? 'right' : 'left'}:${SW}px;
+          transition:margin .22s cubic-bezier(.4,0,.2,1);
+          min-height:100vh;
+        }
+        .admin-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; }
+        .admin-header h1 { font-size:1.5rem; font-weight:700; color:var(--text); font-family:var(--font); }
+        .admin-table { width:100%; border-collapse:collapse; background:var(--surface); border-radius:var(--r-lg); overflow:hidden; }
+        .admin-table th { padding:12px 16px; font-size:.75rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); background:var(--surface-2); text-align:start; font-family:var(--font); }
+        .admin-table td { padding:14px 16px; font-size:.875rem; color:var(--text-80); border-top:1px solid var(--border); vertical-align:middle; font-family:var(--font); }
+        .admin-table tr:hover td { background:rgba(201,147,44,.04); }
+        .admin-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 16px; border-radius:var(--r); font-size:.8rem; font-weight:600; cursor:pointer; transition:all var(--ease); border:1px solid var(--border); background:var(--surface); color:var(--text-60); font-family:var(--font); }
+        .admin-btn:hover { border-color:var(--gold); color:var(--gold); }
+        .admin-btn--primary { background:var(--gold); color:#fff; border-color:var(--gold); }
+        .admin-btn--primary:hover { background:var(--gold-dark); border-color:var(--gold-dark); color:#fff; }
+        .admin-btn--danger { border-color:rgba(220,53,69,.4); color:#dc3545; }
+        .admin-btn--danger:hover { background:rgba(220,53,69,.1); border-color:#dc3545; }
+        .admin-modal { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:1000; display:flex; align-items:center; justify-content:center; padding:24px; }
+        .admin-modal__box { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:28px; width:100%; max-width:560px; max-height:90vh; overflow-y:auto; }
+        .admin-modal__title { font-size:1.1rem; font-weight:700; color:var(--text); margin-bottom:20px; font-family:var(--font); }
+        .admin-field { margin-bottom:16px; }
+        .admin-field label { display:block; font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:var(--text-60); margin-bottom:6px; font-family:var(--font); }
+        .admin-field input,.admin-field textarea,.admin-field select { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:var(--r); padding:.65rem .9rem; color:var(--text); font-size:.9rem; font-family:inherit; transition:border-color var(--ease); }
+        .admin-field input:focus,.admin-field textarea:focus,.admin-field select:focus { outline:none; border-color:var(--gold); }
+        .admin-field textarea { resize:vertical; min-height:90px; }
+        .badge-unread { display:inline-flex; align-items:center; padding:2px 8px; background:rgba(232,160,32,.15); color:#e8a020; border:1px solid rgba(232,160,32,.3); border-radius:100px; font-size:.65rem; font-weight:700; letter-spacing:.08em; font-family:var(--font); }
+        .theme-toggle,.lang-toggle { display:none; }
+        @media(max-width:768px) {
+          .admin-main { margin-left:0 !important; margin-right:0 !important; padding:20px; }
+        }
+      `}</style>
+
+      <div className="admin-layout">
+
+        {/* Mobile backdrop */}
+        {isMobile && sidebarOpen && (
+          <div
+            onClick={() => setSidebarOpen(false)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 99 }}
+          />
+        )}
+
+        {/* ── SIDEBAR ── */}
+        <aside style={{
+          position: 'fixed', top: 0, [isAr ? 'right' : 'left']: 0,
+          width: isMobile ? 264 : SW, height: '100vh',
+          background: surface, borderRight: isAr ? 'none' : `1px solid ${border}`,
+          borderLeft: isAr ? `1px solid ${border}` : 'none',
+          display: 'flex', flexDirection: 'column',
+          transition: 'width .22s cubic-bezier(.4,0,.2,1), transform .22s cubic-bezier(.4,0,.2,1)',
+          transform: isMobile && !sidebarOpen ? `translateX(${isAr ? '100%' : '-100%'})` : 'none',
+          zIndex: 100, overflow: 'hidden',
+          boxShadow: isDark ? '0 1px 4px rgba(0,0,0,.35)' : '0 1px 3px rgba(0,0,0,.07)',
+        }}>
+
+          {/* Brand */}
+          <div style={{
+            height: 64, flexShrink: 0,
+            display: 'flex', alignItems: 'center',
+            padding: sidebarOpen ? '0 18px' : '0',
+            gap: sidebarOpen ? 10 : 0,
+            borderBottom: `1px solid ${border}`,
+            justifyContent: sidebarOpen ? 'flex-start' : 'center',
+            overflow: 'hidden', whiteSpace: 'nowrap',
+          }}>
+            <div style={{
+              width: 34, height: 34, flexShrink: 0, borderRadius: 10,
+              background: 'rgba(201,147,44,.1)', border: '1px solid rgba(201,147,44,.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Image src="/images/logo.png" alt="" width={20} height={20} style={{ objectFit: 'contain' }} />
+            </div>
+            {sidebarOpen && (
+              <div style={{ overflow: 'hidden' }}>
+                <div style={{ fontSize: '.68rem', fontWeight: 800, letterSpacing: '.15em', color: GOLD, fontFamily: 'var(--font-montserrat,"Montserrat",sans-serif)' }}>GRACE ACADEMY</div>
+                <div style={{ fontSize: '.54rem', letterSpacing: '.1em', color: muted, marginTop: 2 }}>ADMIN PORTAL</div>
+              </div>
+            )}
           </div>
-        </div>
 
-        <nav className="admin-sidebar__nav" style={{ flex: 1, overflowY: 'auto' }}>
-          {/* Overview */}
-          <Link href="/admin" className={pathname === '/admin' ? 'active' : ''}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-            <span>Overview</span>
-          </Link>
+          {/* Nav */}
+          <nav style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '10px 0', scrollbarWidth: 'thin', scrollbarColor: `${border} transparent` }}>
 
-          {/* Website Content accordion */}
-          <button
-            className={`admin-nav-toggle${isContentRelated ? ' active' : ''}`}
-            onClick={() => setContentOpen(o => !o)}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-            <span>Website Content</span>
-            <svg
-              className={`admin-nav-toggle__chevron${contentOpen ? ' open' : ''}`}
-              viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="13" height="13"
+            {/* Overview */}
+            <NavLink href="/admin" label="Overview" icon="overview" />
+
+            <div style={{ height: 1, background: border, margin: '8px 12px' }} />
+
+            {/* Website Content */}
+            <AccordionToggle
+              label="Website Content" icon="layers"
+              open={contentOpen} onClick={() => setContentOpen(o => !o)}
+              active={isContent}
+            />
+            {contentOpen && sidebarOpen && (
+              <div style={{ paddingLeft: isAr ? 0 : 8, paddingRight: isAr ? 8 : 0 }}>
+                {CONTENT_NAV.map(item => (
+                  <NavLink key={item.href} href={item.href} label={item.label} icon={item.icon} />
+                ))}
+              </div>
+            )}
+
+            <div style={{ height: 1, background: border, margin: '8px 12px' }} />
+
+            {/* Roles & Users */}
+            <AccordionToggle
+              label="Roles & Users" icon="users"
+              open={usersOpen} onClick={() => setUsersOpen(o => !o)}
+              active={isUsers}
+            />
+            {usersOpen && sidebarOpen && (
+              <div style={{ paddingLeft: isAr ? 0 : 8, paddingRight: isAr ? 8 : 0 }}>
+                {USERS_NAV.map(item => (
+                  <NavLink key={item.href} href={item.href} label={item.label} icon={item.icon} startsWith />
+                ))}
+              </div>
+            )}
+
+            <div style={{ height: 1, background: border, margin: '8px 12px' }} />
+
+            {/* Portals */}
+            <AccordionToggle
+              label="Portals" icon="portal"
+              open={portalsOpen} onClick={() => setPortalsOpen(o => !o)}
+              active={false}
+            />
+            {portalsOpen && sidebarOpen && (
+              <div style={{ paddingLeft: isAr ? 0 : 8, paddingRight: isAr ? 8 : 0 }}>
+                {PORTALS_NAV.map(item => (
+                  <NavLink key={item.href} href={item.href} label={item.label} icon={item.icon} color={item.color} />
+                ))}
+              </div>
+            )}
+
+            {/* When collapsed, show portal icons directly */}
+            {!sidebarOpen && PORTALS_NAV.map(item => (
+              <NavLink key={item.href} href={item.href} label={item.label} icon={item.icon} color={item.color} />
+            ))}
+          </nav>
+
+          {/* Bottom */}
+          <div style={{ borderTop: `1px solid ${border}`, flexShrink: 0, padding: '8px 0' }}>
+            <Link href="/profile" style={{ textDecoration: 'none' }}>
+              <div style={{
+                display: 'flex', alignItems: 'center',
+                gap: sidebarOpen ? 10 : 0,
+                padding: `9px ${sidebarOpen ? 12 : 0}px`,
+                margin: `1px ${sidebarOpen ? 8 : 6}px`,
+                borderRadius: 9, cursor: 'pointer',
+                color: muted, fontSize: '.83rem',
+                justifyContent: sidebarOpen ? 'flex-start' : 'center',
+                transition: 'all .15s', whiteSpace: 'nowrap', overflow: 'hidden',
+              }}
+                onMouseEnter={e => { e.currentTarget.style.background = hover; e.currentTarget.style.color = text }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = muted }}
+              >
+                <SbIcon d={ICONS.user} />
+                {sidebarOpen && <span style={{ fontFamily: 'var(--font-montserrat,"Montserrat",sans-serif)' }}>My Profile</span>}
+              </div>
+            </Link>
+            <div
+              onClick={handleLogout}
+              style={{
+                display: 'flex', alignItems: 'center',
+                gap: sidebarOpen ? 10 : 0,
+                padding: `9px ${sidebarOpen ? 12 : 0}px`,
+                margin: `1px ${sidebarOpen ? 8 : 6}px`,
+                borderRadius: 9, cursor: 'pointer',
+                color: '#ef4444', fontSize: '.83rem',
+                justifyContent: sidebarOpen ? 'flex-start' : 'center',
+                transition: 'all .15s', whiteSpace: 'nowrap', overflow: 'hidden',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,.07)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
             >
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
-          </button>
-
-          {contentOpen && (
-            <div className="admin-nav-sub">
-              {CONTENT_SECTIONS.map(({ href, label, icon }) => (
-                <Link key={href} href={href} className={pathname === href ? 'active' : ''}>
-                  <span style={{ flexShrink: 0 }}>{icon}</span>
-                  <span>{label}</span>
-                </Link>
-              ))}
+              <SbIcon d={ICONS.logout} />
+              {sidebarOpen && <span style={{ fontFamily: 'var(--font-montserrat,"Montserrat",sans-serif)' }}>Log Out</span>}
             </div>
-          )}
+          </div>
+        </aside>
 
-          {/* Roles & Users accordion */}
-          <button
-            className={`admin-nav-toggle${isUserRelated ? ' active' : ''}`}
-            onClick={() => setUsersOpen(o => !o)}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            <span>Roles & Users</span>
-            <svg
-              className={`admin-nav-toggle__chevron${usersOpen ? ' open' : ''}`}
-              viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="13" height="13"
-            >
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
-          </button>
+        {/* ── MAIN COLUMN ── */}
+        <div style={{
+          [isAr ? 'marginRight' : 'marginLeft']: isMobile ? 0 : SW,
+          flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh',
+          transition: `${isAr ? 'margin-right' : 'margin-left'} .22s cubic-bezier(.4,0,.2,1)`,
+        }}>
 
-          {usersOpen && (
-            <div className="admin-nav-sub">
-              {USER_SECTIONS.map(({ href, label, icon }) => (
-                <Link key={href} href={href} className={pathname.startsWith(href) ? 'active' : ''}>
-                  <span style={{ flexShrink: 0 }}>{icon}</span>
-                  <span>{label}</span>
-                </Link>
-              ))}
-            </div>
-          )}
-        </nav>
+          <PortalTopbar
+            user={user}
+            isAr={isAr}
+            isDark={isDark}
+            toggleLang={toggleLang}
+            toggleTheme={toggleTheme}
+            sidebarOpen={sidebarOpen}
+            onToggleSidebar={() => setSidebarOpen(o => !o)}
+            search={search}
+            onSearchChange={setSearch}
+            onLogout={handleLogout}
+          />
 
-        {/* Bottom: logout + toggles */}
-        <div style={{ padding: '14px 20px', borderTop: '1px solid var(--border)' }}>
-          <button
-            onClick={logout}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '.82rem', color: 'var(--text-60)', background: 'none', border: 'none', cursor: 'pointer', width: '100%', marginBottom: 14, fontFamily: 'var(--font)' }}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            Log out
-          </button>
-          <Toggles />
+          <main className="admin-main" style={{ marginLeft: 0, marginRight: 0 }}>
+            {children}
+          </main>
         </div>
-      </aside>
-
-      <main className="admin-main">{children}</main>
-    </div>
+      </div>
+    </>
   )
 }

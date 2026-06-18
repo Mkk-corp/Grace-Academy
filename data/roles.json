@@ -28,5 +28,11 @@
     "name": "Assessor",
     "description": "Placement assessors who conduct and manage student assessments",
     "permissions": ["access_assessor_portal"]
+  },
+  {
+    "id": "r_teacher",
+    "name": "Teacher",
+    "description": "Teachers who deliver courses and manage student learning",
+    "permissions": ["access_teacher_portal"]
   }
 ]

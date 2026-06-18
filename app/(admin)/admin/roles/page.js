@@ -81,6 +81,7 @@ export default function AdminRolesPage() {
         </div>
       )}
 
+      <div className="admin-table-wrap">
       <table className="admin-table">
         <thead>
           <tr>
@@ -120,6 +121,7 @@ export default function AdminRolesPage() {
           }
         </tbody>
       </table>
+      </div>
 
       {editing && (
         <RoleModal

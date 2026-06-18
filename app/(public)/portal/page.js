@@ -6,6 +6,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
+import AvailabilitySettings from '@/components/assessor/AvailabilitySettings'
+import PortalTopbar from '@/components/portal/PortalTopbar'
 
 /* ── service icon map ─────────────────────────────────────────────── */
 function SvcIcon({ slug, size = 18 }) {
@@ -86,12 +88,16 @@ export default function PortalPage() {
   }
 
   useEffect(() => {
+    if (window.innerWidth < 768) setSidebarOpen(false)
+  }, [])
+
+  useEffect(() => {
     async function init() {
       const meRes = await fetch('/api/auth/me')
       const me = await meRes.json()
-      if (!me.user) { router.replace('/login'); return }
-      if (me.user.hasAdminAccess) { router.replace('/admin'); return }
-      if (me.user.isAssessor)     { router.replace('/assessor'); return }
+      if (!me.user)                                            { router.replace('/login');    return }
+      if (me.user.isAssessor)                              { router.replace('/assessor'); return }
+      if (me.user.isTeacher)                               { router.replace('/teacher');  return }
 
       setUser(me.user)
 
@@ -395,17 +401,27 @@ export default function PortalPage() {
         .pr-act-hint{font-size:.77rem;color:var(--pr-xmuted);margin-top:6px}
 
         @media(max-width:1100px){.pr-stats{grid-template-columns:repeat(2,1fr)}.pr-svcs{grid-template-columns:repeat(2,1fr)}}
+        .pr-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
         @media(max-width:768px){
-          .pr-sb{width:260px !important;transform:${sidebarOpen?'none':(isAr?'translateX(100%)':'translateX(-100%)')};transition:transform .22s}
+          .pr-backdrop{display:block}
+          .pr-sb{width:min(80vw,280px) !important;transition:transform .22s cubic-bezier(.4,0,.2,1) !important;transform:${sidebarOpen?'none':(isAr?'translateX(100%)':'translateX(-100%)')}}
           .pr-main{${isAr?'margin-right':'margin-left'}:0 !important}
           .pr-content{padding:18px 16px 40px}
-          .pr-svcs{grid-template-columns:1fr}
+          .pr-svcs{grid-template-columns:repeat(2,1fr)}
           .pr-stats{grid-template-columns:repeat(2,1fr)}
-          .pr-user-name,.pr-user-role{display:none}
+        }
+        @media(max-width:480px){
+          .pr-stats{grid-template-columns:1fr !important}
+          .pr-svcs{grid-template-columns:1fr !important}
+          .pr-content{padding:14px 12px 32px}
+          .pr-welcome-h{font-size:1.2rem}
         }
       `}</style>
 
       <div className="pr-root">
+
+        {/* Mobile backdrop */}
+        {sidebarOpen && <div className="pr-backdrop" onClick={() => setSidebarOpen(false)} />}
 
         {/* ══ SIDEBAR ══════════════════════════════════════════════════ */}
         <aside className="pr-sb">
@@ -472,8 +488,12 @@ export default function PortalPage() {
                 <span className="pr-ni-lbl">{isAr ? 'الملف الشخصي' : 'My Profile'}</span>
               </div>
             </Link>
-            <div className="pr-ni" title={!sidebarOpen ? (isAr ? 'الإعدادات' : 'Settings') : undefined}>
-              <Icon name="settings" size={18} />
+            <div
+              className={`pr-ni${activeNav === 'settings' ? ' active' : ''}`}
+              onClick={() => setActiveNav('settings')}
+              title={!sidebarOpen ? (isAr ? 'الإعدادات' : 'Settings') : undefined}
+            >
+              <Icon name="settings" size={18} color={activeNav === 'settings' ? '#c9932c' : 'currentColor'} />
               <span className="pr-ni-lbl">{isAr ? 'الإعدادات' : 'Settings'}</span>
             </div>
             <div
@@ -491,64 +511,21 @@ export default function PortalPage() {
         <div className="pr-main">
 
           {/* ── TOPBAR ── */}
-          <header className="pr-top">
-            {/* Sidebar toggle */}
-            <button className="pr-toggle-btn" onClick={() => setSidebarOpen(v => !v)}>
-              <Icon name={sidebarOpen ? 'x' : 'menu'} size={16} color="currentColor" />
-            </button>
-
-            {/* Search */}
-            <div className="pr-search">
-              <span className="pr-search-ic"><Icon name="search" size={15} color="currentColor" /></span>
-              <input
-                className="pr-search-input"
-                type="text" value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder={isAr ? 'البحث في البوابة…' : 'Search portal…'}
-              />
-            </div>
-
-            <div className="pr-top-spacer" />
-
-            <div className="pr-top-actions">
-              {/* Language toggle */}
-              <button className="pr-lang-btn" onClick={toggleLang}>
-                {lang === 'en' ? 'عربي' : 'EN'}
-              </button>
-
-              {/* Theme toggle */}
-              <button className="pr-ic-btn" onClick={toggleTheme} title={isDark ? 'Light mode' : 'Dark mode'}>
-                <Icon name={isDark ? 'sun' : 'moon'} size={16} color="currentColor" />
-              </button>
-
-              {/* Notifications */}
-              <button className="pr-ic-btn">
-                <Icon name="bell" size={16} color="currentColor" />
-                <span className="pr-notif-badge">2</span>
-              </button>
-
-              {/* User chip — links to profile */}
-              <Link href="/profile" style={{ textDecoration: 'none' }}>
-                <div className="pr-user-chip">
-                  <div className="pr-user-av" style={{ overflow: 'hidden', padding: 0 }}>
-                    <Image
-                      src={`/images/avatar-${user?.avatar || 'user1'}.svg`}
-                      alt="avatar"
-                      width={28} height={28}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  </div>
-                  <div>
-                    <div className="pr-user-name">{firstName}</div>
-                    <div className="pr-user-role">{user?.roleName || 'Student'}</div>
-                  </div>
-                </div>
-              </Link>
-            </div>
-          </header>
+          <PortalTopbar
+            user={user} isAr={isAr} isDark={isDark}
+            toggleLang={toggleLang} toggleTheme={toggleTheme}
+            sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(v => !v)}
+            search={search} onSearchChange={setSearch}
+            onLogout={handleLogout}
+            onSettings={() => setActiveNav('settings')}
+          />
 
           {/* ── CONTENT ── */}
-          <main className="pr-content">
+          <main className={activeNav === 'settings' ? '' : 'pr-content'}>
+
+          {activeNav === 'settings' ? (
+            <AvailabilitySettings user={user} isAr={isAr} isDark={isDark} />
+          ) : (<>
 
             {/* Welcome */}
             <div className="pr-welcome">
@@ -613,6 +590,7 @@ export default function PortalPage() {
               </div>
             </div>
 
+          </>)}
           </main>
         </div>
       </div>

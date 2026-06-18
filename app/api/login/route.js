@@ -43,9 +43,10 @@ export async function POST(request) {
   const userRole = roles.find(r => r.id === user.roleId)
   const permissions = userRole?.permissions || []
 
-  const hasAdminAccess    = permissions.some(p => p !== 'access_student_portal' && p !== 'access_assessor_portal')
-  const isAssessor        = permissions.includes('access_assessor_portal') && !hasAdminAccess
-  const redirect = hasAdminAccess ? '/admin' : isAssessor ? '/assessor' : '/portal'
+  const hasAdminAccess = permissions.some(p => !['access_student_portal', 'access_assessor_portal', 'access_teacher_portal'].includes(p))
+  const isAssessor     = permissions.includes('access_assessor_portal') && !hasAdminAccess
+  const isTeacher      = permissions.includes('access_teacher_portal')  && !hasAdminAccess
+  const redirect = hasAdminAccess ? '/admin' : isAssessor ? '/assessor' : isTeacher ? '/teacher' : '/portal'
 
   const token = signToken({ userId: user.id, roleId: user.roleId, name: user.name })
   const response = NextResponse.json({ ok: true, redirect })

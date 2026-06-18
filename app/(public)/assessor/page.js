@@ -6,6 +6,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
+import AvailabilitySettings from '@/components/assessor/AvailabilitySettings'
+import PortalTopbar from '@/components/portal/PortalTopbar'
 
 /* ─── icons ──────────────────────────────────────────────────────────── */
 function Icon({ name, size = 18, color = 'currentColor' }) {
@@ -144,15 +146,17 @@ export default function AssessorPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [activeTab,   setActiveTab]   = useState('dashboard')
   const [search,      setSearch]      = useState('')
-  const [profileOpen, setProfileOpen] = useState(false)
+
+  useEffect(() => {
+    if (window.innerWidth < 768) setSidebarOpen(false)
+  }, [])
 
   useEffect(() => {
     async function init() {
       const res  = await fetch('/api/auth/me')
       const data = await res.json()
-      if (!data.user)           { router.replace('/login');    return }
-      if (data.user.hasAdminAccess) { router.replace('/admin');    return }
-      if (!data.user.isAssessor)    { router.replace('/portal');   return }
+      if (!data.user)                                                      { router.replace('/login');  return }
+      if (!data.user.isAssessor && !data.user.hasAdminAccess)              { router.replace('/portal'); return }
       setUser(data.user)
       setLoading(false)
     }
@@ -353,14 +357,26 @@ export default function AssessorPage() {
         /* ── CONTENT ── */
         .as-content{flex:1;animation:asFadeUp .25s ease}
 
+        .as-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
         @media(max-width:768px){
-          .as-sb{width:${sidebarOpen ? '80vw' : '0px'} !important}
+          .as-backdrop{display:block}
+          .as-sb{
+            width:min(80vw,280px) !important;
+            transition:transform .22s cubic-bezier(.4,0,.2,1) !important;
+            transform:${sidebarOpen ? 'none' : (isAr ? 'translateX(100%)' : 'translateX(-100%)')};
+          }
           .as-main{margin-left:0 !important;margin-right:0 !important}
-          .as-search{max-width:160px}
+          .as-search{display:none}
+        }
+        @media(max-width:480px){
+          .as-content>div{padding-left:16px !important;padding-right:16px !important}
         }
       `}</style>
 
-      <div className="as-root" onClick={() => profileOpen && setProfileOpen(false)}>
+      <div className="as-root">
+
+        {/* Mobile backdrop */}
+        {sidebarOpen && <div className="as-backdrop" onClick={() => setSidebarOpen(false)} />}
 
         {/* ── SIDEBAR ── */}
         <aside className="as-sb">
@@ -410,90 +426,21 @@ export default function AssessorPage() {
         <div className="as-main">
 
           {/* TOPBAR */}
-          <header className="as-top">
-            {/* Sidebar toggle */}
-            <button className="as-top-btn" onClick={() => setSidebarOpen(o => !o)} aria-label="Toggle sidebar">
-              <Icon name="menu" size={16} color="currentColor" />
-            </button>
-
-            {/* Search */}
-            <div className="as-search">
-              <span className="as-search-icon">
-                <Icon name="search" size={15} color="currentColor" />
-              </span>
-              <input
-                className="as-search-input"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder={isAr ? 'بحث…' : 'Search…'}
-              />
-            </div>
-
-            <div className="as-top-spacer" />
-
-            <div className="as-top-actions">
-              {/* Theme toggle */}
-              <button className="as-top-btn" onClick={toggleTheme} aria-label="Toggle theme">
-                <Icon name={isDark ? 'sun' : 'moon'} size={16} color="currentColor" />
-              </button>
-
-              {/* Lang toggle */}
-              <button className="as-lang-btn" onClick={toggleLang}>
-                {isAr ? 'EN' : 'عربي'}
-              </button>
-
-              {/* Bell */}
-              <button className="as-top-btn" aria-label="Notifications">
-                <Icon name="bell" size={16} color="currentColor" />
-              </button>
-
-              {/* Avatar chip + dropdown */}
-              <div className="as-avatar-wrap" onClick={e => e.stopPropagation()}>
-                <button className="as-avatar-btn" onClick={() => setProfileOpen(o => !o)}>
-                  <img src={avatarSrc} alt={user?.name} className="as-avatar-img" />
-                  <span className="as-avatar-name">{firstName}</span>
-                  <Icon name={profileOpen ? 'chevronL' : 'chevron'} size={13} color="var(--as-gold)" />
-                </button>
-
-                {profileOpen && (
-                  <div className="as-profile-drop">
-                    {/* User info header */}
-                    <div style={{ padding: '10px 12px 8px', borderBottom: '1px solid var(--as-border)', marginBottom: 4 }}>
-                      <div style={{ fontWeight: 700, fontSize: '.88rem', color: 'var(--as-text)', marginBottom: 2 }}>{user?.name}</div>
-                      <div style={{ fontSize: '.75rem', color: 'var(--as-xmuted)' }}>{user?.email}</div>
-                      <div style={{ marginTop: 5, display: 'inline-flex', alignItems: 'center', gap: 5, background: 'var(--as-gold-bg)', border: '1px solid var(--as-gold-bd)', borderRadius: 100, padding: '2px 8px' }}>
-                        <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--as-gold)' }} />
-                        <span style={{ fontSize: '.68rem', fontWeight: 600, color: 'var(--as-gold)', letterSpacing: isAr ? 0 : '.08em' }}>{isAr ? 'مقيّم' : 'ASSESSOR'}</span>
-                      </div>
-                    </div>
-
-                    <Link href="/profile" style={{ textDecoration: 'none' }} onClick={() => setProfileOpen(false)}>
-                      <button className="as-drop-item">
-                        <Icon name="user" size={15} color="currentColor" />
-                        {isAr ? 'الملف الشخصي' : 'My Profile'}
-                      </button>
-                    </Link>
-                    <button className="as-drop-item" onClick={() => { setActiveTab('avail'); setProfileOpen(false) }}>
-                      <Icon name="avail" size={15} color="currentColor" />
-                      {isAr ? 'إعدادات التوفر' : 'Availability Settings'}
-                    </button>
-
-                    <div className="as-drop-divider" />
-
-                    <button className="as-drop-item danger" onClick={handleLogout}>
-                      <Icon name="logout" size={15} color="currentColor" />
-                      {isAr ? 'تسجيل الخروج' : 'Log Out'}
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </header>
+          <PortalTopbar
+            user={user} isAr={isAr} isDark={isDark}
+            toggleLang={toggleLang} toggleTheme={toggleTheme}
+            sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(o => !o)}
+            search={search} onSearchChange={setSearch}
+            onLogout={handleLogout}
+            onSettings={() => setActiveTab('avail')}
+          />
 
           {/* CONTENT */}
           <main className="as-content" key={activeTab}>
             {activeTab === 'dashboard'
               ? <DashboardTab user={user} isAr={isAr} />
+              : activeTab === 'avail'
+              ? <AvailabilitySettings user={user} isAr={isAr} isDark={isDark} />
               : <ComingSoon tab={activeTab} isAr={isAr} isDark={isDark} />
             }
           </main>

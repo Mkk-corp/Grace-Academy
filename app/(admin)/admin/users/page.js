@@ -71,6 +71,7 @@ export default function AdminUsersPage() {
         </div>
       )}
 
+      <div className="admin-table-wrap">
       <table className="admin-table">
         <thead>
           <tr>
@@ -128,6 +129,7 @@ export default function AdminUsersPage() {
           }
         </tbody>
       </table>
+      </div>
 
       {editing && (
         <UserModal

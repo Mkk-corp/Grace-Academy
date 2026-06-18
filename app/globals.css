@@ -733,6 +733,10 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .badge-unread { display: inline-block; background: var(--gold); color: var(--azure); font-size: .65rem; font-weight: 700; padding: 2px 7px; border-radius: var(--r-pill); letter-spacing: .05em; }
 
 /* ═══ RESPONSIVE ═══ */
+
+/* Wrap admin tables on small screens */
+.admin-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--r-lg); }
+
 @media (max-width: 1024px) {
     .courses__grid  { grid-template-columns: repeat(2, 1fr); }
     .audience__grid { grid-template-columns: repeat(2, 1fr); }
@@ -778,8 +782,10 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     .why-grid { grid-template-columns: 1fr; }
     .process-steps { grid-template-columns: 1fr; }
     .page-hero { min-height: 360px; padding: 100px 1.5rem 60px; }
-    .admin-layout { flex-direction: column; }
-    .admin-sidebar { width: 100%; }
+    /* admin — old classes no longer used for layout (handled inline), keep table tweaks */
+    .admin-table th, .admin-table td { padding: 10px 12px; font-size: .8rem; }
+    .admin-header h1 { font-size: 1.2rem; }
+    .admin-modal__box { padding: 20px; }
 }
 
 @media (max-width: 540px) {
@@ -791,6 +797,16 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
     .team-grid { grid-template-columns: 1fr; }
     .blog-grid { grid-template-columns: 1fr; }
+    .admin-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .admin-actions { flex-wrap: wrap; justify-content: flex-start; }
+}
+
+@media (max-width: 400px) {
+    .nav__container { gap: 10px; padding: 0 16px; }
+    .nav__controls { gap: 8px; }
+    .nav__brand { display: none; }
+    .lang-toggle { padding: 6px 10px; font-size: 0.7rem; }
+    .theme-toggle { width: 32px; height: 32px; }
 }
 
 /* ═══ REDUCED MOTION ═══ */
