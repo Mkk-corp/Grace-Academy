@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { readContent } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import PostClient from './PostClient'

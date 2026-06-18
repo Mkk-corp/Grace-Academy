@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { readContent } from '@/lib/db'
 import FaqClient from './FaqClient'
 
