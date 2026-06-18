@@ -1,98 +1,31 @@
 const { PrismaClient } = require('@prisma/client')
 const { PrismaPg } = require('@prisma/adapter-pg')
-const { readFileSync } = require('fs')
-const { join } = require('path')
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
 const prisma = new PrismaClient({ adapter })
 
-function readJson(filename) {
-  try {
-    return JSON.parse(readFileSync(join(process.cwd(), 'data', filename), 'utf8'))
-  } catch {
-    return null
-  }
-}
+const ROLES = [
+  { id: 'r_admin',    name: 'Administrator',  description: 'Full access to all features',                           permissions: ['manage_users','manage_roles','manage_content','manage_blog','manage_services','manage_portfolio','manage_faq','manage_pricing','manage_stats','view_messages','access_student_portal'] },
+  { id: 'r_editor',   name: 'Content Editor', description: 'Can manage website content and media',                  permissions: ['manage_content','manage_blog','manage_services','manage_portfolio','manage_faq','manage_pricing','manage_stats'] },
+  { id: 'r_viewer',   name: 'Viewer',         description: 'Can view contact messages only',                        permissions: ['view_messages'] },
+  { id: 'r_student',  name: 'Student',        description: 'Enrolled students with access to the student portal',   permissions: ['access_student_portal'] },
+  { id: 'r_assessor', name: 'Assessor',       description: 'Placement assessors who conduct and manage assessments',permissions: ['access_assessor_portal'] },
+  { id: 'r_teacher',  name: 'Teacher',        description: 'Teachers who deliver courses and manage student learning',permissions: ['access_teacher_portal'] },
+]
 
 async function main() {
-  console.log('Seeding database from JSON files...')
+  console.log('Seeding database...')
 
-  // 1. Roles
-  const roles = readJson('roles.json') || []
-  for (const role of roles) {
+  for (const role of ROLES) {
     await prisma.role.upsert({
       where: { id: role.id },
-      update: { name: role.name, description: role.description || '', permissions: role.permissions || [] },
-      create: { id: role.id, name: role.name, description: role.description || '', permissions: role.permissions || [] },
+      update: { name: role.name, description: role.description, permissions: role.permissions },
+      create: role,
     })
   }
-  console.log(`  ✓ ${roles.length} roles`)
+  console.log(`  ✓ ${ROLES.length} roles`)
 
-  // 2. Users (roles must exist first)
-  const users = readJson('users.json') || []
-  for (const raw of users) {
-    const { updatedAt, passwordHistory, createdAt, ...fields } = raw
-    const data = {
-      name: fields.name || '',
-      username: fields.username || '',
-      email: fields.email,
-      phone: fields.phone || '',
-      password: fields.password ?? null,
-      googleId: fields.googleId ?? null,
-      avatar: fields.avatar ?? null,
-      roleId: fields.roleId ?? null,
-      source: fields.source || 'website',
-      forcePasswordReset: fields.forcePasswordReset || false,
-      passwordHistory: passwordHistory || [],
-      createdAt: createdAt ? new Date(createdAt) : new Date(),
-    }
-    await prisma.user.upsert({
-      where: { id: raw.id },
-      update: data,
-      create: { id: raw.id, ...data },
-    })
-  }
-  console.log(`  ✓ ${users.length} users`)
-
-  // 3. Site content
-  const contentKeys = ['blog', 'services', 'portfolio', 'faq', 'pricing', 'stats', 'content']
-  let seededContent = 0
-  for (const key of contentKeys) {
-    const data = readJson(`${key}.json`)
-    if (data !== null) {
-      await prisma.siteContent.upsert({
-        where: { key },
-        update: { data },
-        create: { key, data },
-      })
-      seededContent++
-    }
-  }
-  console.log(`  ✓ ${seededContent} content collections`)
-
-  // 4. Contact messages
-  const contacts = readJson('contact.json') || []
-  for (const c of contacts) {
-    const { submittedAt, id, ...fields } = c
-    const msgId = id || `msg${Date.now()}`
-    await prisma.contactMessage.upsert({
-      where: { id: msgId },
-      update: {
-        name: fields.name || '', email: fields.email || '', phone: fields.phone || '',
-        message: fields.message || '', read: fields.read || false,
-        submittedAt: submittedAt ? new Date(submittedAt) : new Date(),
-      },
-      create: {
-        id: msgId,
-        name: fields.name || '', email: fields.email || '', phone: fields.phone || '',
-        message: fields.message || '', read: fields.read || false,
-        submittedAt: submittedAt ? new Date(submittedAt) : new Date(),
-      },
-    })
-  }
-  console.log(`  ✓ ${contacts.length} contact messages`)
-
-  console.log('Seed complete.')
+  console.log('Seed complete. Users and content are managed via the admin panel.')
 }
 
 main()
