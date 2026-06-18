@@ -1,7 +1,8 @@
-import { readData } from '@/lib/db'
+import { readContent } from '@/lib/db'
 import BlogClient from './BlogClient'
 
-export default function BlogPage() {
-  const posts = readData('blog.json').filter(p => p.published)
+export default async function BlogPage() {
+  const allPosts = await readContent('blog') || []
+  const posts = allPosts.filter(p => p.published)
   return <BlogClient posts={posts} />
 }

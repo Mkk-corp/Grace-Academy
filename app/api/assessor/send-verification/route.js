@@ -15,17 +15,15 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
   }
 
-  const lockedSeconds = checkLock(email)
-  if (lockedSeconds) {
-    return NextResponse.json({ error: 'locked', lockedSeconds }, { status: 429 })
-  }
+  const lockedSeconds = await checkLock(email)
+  if (lockedSeconds) return NextResponse.json({ error: 'locked', lockedSeconds }, { status: 429 })
 
-  const { resendCount, canResend } = getResendInfo(email)
+  const { resendCount, canResend } = await getResendInfo(email)
   if (!canResend) {
     return NextResponse.json({ error: 'Too many attempts. Please wait before retrying.' }, { status: 429 })
   }
 
-  const { otp } = generateAndStoreOtp(email, resendCount > 0 ? { resendCount } : null)
+  const { otp } = await generateAndStoreOtp(email, resendCount > 0 ? { resendCount } : null)
 
   try {
     await sendVerificationEmail(email, otp)

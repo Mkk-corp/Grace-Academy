@@ -1,7 +1,7 @@
-import { readData } from '@/lib/db'
+import { readContent } from '@/lib/db'
 import ContactClient from './ContactClient'
 
-export default function ContactPage() {
-  const content = readData('content.json')
+export default async function ContactPage() {
+  const content = await readContent('content') || {}
   return <ContactClient content={content} />
 }

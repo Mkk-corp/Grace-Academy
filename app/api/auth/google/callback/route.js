@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
-import crypto from 'crypto'
 import { signToken } from '@/lib/auth'
-import { readData, writeData } from '@/lib/db'
+import { prisma } from '@/lib/db'
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
@@ -9,11 +8,8 @@ export async function GET(request) {
   const error = searchParams.get('error')
   const authUrl = process.env.AUTH_URL || 'http://localhost:3000'
 
-  if (error || !code) {
-    return NextResponse.redirect(`${authUrl}/login?error=google_cancelled`)
-  }
+  if (error || !code) return NextResponse.redirect(`${authUrl}/login?error=google_cancelled`)
 
-  // Exchange code for tokens
   let googleUser
   try {
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
@@ -39,45 +35,41 @@ export async function GET(request) {
     return NextResponse.redirect(`${authUrl}/login?error=google_failed`)
   }
 
-  const users = readData('users.json')
-  const roles = readData('roles.json')
-
-  // Find existing user by email or google sub
-  let user = users.find(u =>
-    u.email?.toLowerCase() === googleUser.email.toLowerCase() ||
-    u.googleId === googleUser.sub
-  )
+  let user = await prisma.user.findFirst({
+    where: { OR: [{ email: { equals: googleUser.email, mode: 'insensitive' } }, { googleId: googleUser.sub }] },
+    include: { role: true },
+  })
 
   if (user) {
-    // Sync googleId if not yet stored
     if (!user.googleId) {
-      user.googleId = googleUser.sub
-      writeData('users.json', users)
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { googleId: googleUser.sub },
+        include: { role: true },
+      })
     }
   } else {
-    // Create new student account
-    user = {
-      id: crypto.randomUUID(),
-      name: googleUser.name || googleUser.email.split('@')[0],
-      username: '',
-      email: googleUser.email,
-      phone: '',
-      password: null,
-      googleId: googleUser.sub,
-      avatar: googleUser.picture || null,
-      roleId: 'r_student',
-      source: 'google',
-      createdAt: new Date().toISOString(),
-    }
-    users.push(user)
-    writeData('users.json', users)
+    user = await prisma.user.create({
+      data: {
+        name: googleUser.name || googleUser.email.split('@')[0],
+        username: '',
+        email: googleUser.email,
+        phone: '',
+        password: null,
+        googleId: googleUser.sub,
+        avatar: googleUser.picture || null,
+        roleId: 'r_student',
+        source: 'google',
+      },
+      include: { role: true },
+    })
   }
 
-  // Determine redirect
-  const userRole = roles.find(r => r.id === user.roleId)
-  const permissions = userRole?.permissions || []
-  const hasAdminAccess = permissions.some(p => p !== 'access_student_portal')
-  const redirect = hasAdminAccess ? '/admin' : '/portal'
+  const permissions = user.role?.permissions || []
+  const hasAdminAccess = permissions.some(p => !['access_student_portal', 'access_assessor_portal', 'access_teacher_portal'].includes(p))
+  const isAssessor     = permissions.includes('access_assessor_portal') && !hasAdminAccess
+  const isTeacher      = permissions.includes('access_teacher_portal')  && !hasAdminAccess
+  const redirect = hasAdminAccess ? '/admin' : isAssessor ? '/assessor' : isTeacher ? '/teacher' : '/portal'
 
   const token = signToken({ userId: user.id, roleId: user.roleId, name: user.name })
   const response = NextResponse.redirect(`${authUrl}${redirect}`)

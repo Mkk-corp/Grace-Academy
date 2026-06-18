@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import crypto from 'crypto'
 import { verifyToken } from '@/lib/auth'
-import { readData, writeData } from '@/lib/db'
+import { prisma } from '@/lib/db'
 import { hashPassword } from '@/lib/password'
 
 async function requireAdmin() {
@@ -11,9 +10,15 @@ async function requireAdmin() {
   return token ? verifyToken(token) : null
 }
 
+const SAFE_SELECT = {
+  id: true, name: true, username: true, email: true, phone: true,
+  roleId: true, source: true, forcePasswordReset: true,
+  avatar: true, googleId: true, createdAt: true, updatedAt: true,
+}
+
 export async function GET() {
   if (!await requireAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const users = readData('users.json').map(({ password, ...u }) => u)
+  const users = await prisma.user.findMany({ select: SAFE_SELECT, orderBy: { createdAt: 'desc' } })
   return NextResponse.json(users)
 }
 
@@ -25,64 +30,61 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Username, email and password required' }, { status: 400 })
   }
 
-  const users = readData('users.json')
-  if (users.find(u => u.email === email)) {
-    return NextResponse.json({ error: 'Email already registered' }, { status: 409 })
-  }
-  if (users.find(u => u.username && u.username === username)) {
-    return NextResponse.json({ error: 'Username already taken' }, { status: 409 })
-  }
+  const existingEmail = await prisma.user.findFirst({
+    where: { email: { equals: email, mode: 'insensitive' } },
+  })
+  if (existingEmail) return NextResponse.json({ error: 'Email already registered' }, { status: 409 })
 
-  const newUser = {
-    id: crypto.randomUUID(),
-    name: name || username,
-    username,
-    email,
-    phone: phone || '',
-    password: hashPassword(password),
-    roleId: roleId || null,
-    source: 'admin',
-    forcePasswordReset: true,
-    createdAt: new Date().toISOString(),
-  }
+  const existingUsername = await prisma.user.findFirst({
+    where: { username: { equals: username, mode: 'insensitive' } },
+  })
+  if (existingUsername) return NextResponse.json({ error: 'Username already taken' }, { status: 409 })
 
-  users.push(newUser)
-  writeData('users.json', users)
+  const user = await prisma.user.create({
+    data: {
+      name: name || username,
+      username,
+      email,
+      phone: phone || '',
+      password: hashPassword(password),
+      roleId: roleId || null,
+      source: 'admin',
+      forcePasswordReset: true,
+    },
+    select: SAFE_SELECT,
+  })
 
-  const { password: _, ...safe } = newUser
-  return NextResponse.json(safe, { status: 201 })
+  return NextResponse.json(user, { status: 201 })
 }
 
 export async function PUT(request) {
   if (!await requireAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id, name, email, phone, roleId, password } = await request.json()
 
-  const users = readData('users.json')
-  const idx = users.findIndex(u => u.id === id)
-  if (idx === -1) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  const existing = await prisma.user.findUnique({ where: { id } })
+  if (!existing) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-  users[idx] = {
-    ...users[idx],
-    ...(name !== undefined && { name }),
-    ...(email !== undefined && { email }),
-    ...(phone !== undefined && { phone }),
-    ...(roleId !== undefined && { roleId }),
-    ...(password && { password: hashPassword(password), forcePasswordReset: true }),
+  const data = {}
+  if (name     !== undefined) data.name   = name
+  if (email    !== undefined) data.email  = email
+  if (phone    !== undefined) data.phone  = phone
+  if (roleId   !== undefined) data.roleId = roleId
+  if (password) {
+    data.password = hashPassword(password)
+    data.forcePasswordReset = true
   }
 
-  writeData('users.json', users)
-  const { password: _, ...safe } = users[idx]
-  return NextResponse.json(safe)
+  const user = await prisma.user.update({ where: { id }, data, select: SAFE_SELECT })
+  return NextResponse.json(user)
 }
 
 export async function DELETE(request) {
   if (!await requireAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id } = await request.json()
 
-  const users = readData('users.json')
-  const filtered = users.filter(u => u.id !== id)
-  if (filtered.length === users.length) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  const existing = await prisma.user.findUnique({ where: { id } })
+  if (!existing) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-  writeData('users.json', filtered)
+  await prisma.user.delete({ where: { id } })
   return NextResponse.json({ ok: true })
 }

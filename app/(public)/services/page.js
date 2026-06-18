@@ -1,8 +1,8 @@
-import { readData } from '@/lib/db'
+import { readContent } from '@/lib/db'
 import ServicesClient from './ServicesClient'
 
-export default function ServicesPage() {
-  const services = readData('services.json')
-  const stats = readData('stats.json')
+export default async function ServicesPage() {
+  const services = await readContent('services') || []
+  const stats = await readContent('stats') || {}
   return <ServicesClient services={services} stats={stats} />
 }

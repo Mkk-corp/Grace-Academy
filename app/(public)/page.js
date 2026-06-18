@@ -1,8 +1,8 @@
-import { readData } from '@/lib/db'
+import { readContent } from '@/lib/db'
 import HomeClient from './HomeClient'
 
-export default function HomePage() {
-  const stats = readData('stats.json')
-  const content = readData('content.json')
+export default async function HomePage() {
+  const stats = await readContent('stats') || {}
+  const content = await readContent('content') || {}
   return <HomeClient stats={stats} content={content} />
 }

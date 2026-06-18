@@ -1,17 +1,16 @@
 import { NextResponse } from 'next/server'
-import { readData, writeData } from '@/lib/db'
-import { verifyToken } from '@/lib/auth'
 import { cookies } from 'next/headers'
+import { verifyToken } from '@/lib/auth'
+import { readContent, writeContent } from '@/lib/db'
 
 export async function GET() {
-  const data = readData('stats.json')
-  return NextResponse.json(data)
+  return NextResponse.json(await readContent('stats') || [])
 }
 
 export async function PUT(request) {
   const token = (await cookies()).get('ga-admin')?.value
   if (!verifyToken(token)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await request.json()
-  writeData('stats.json', body)
+  await writeContent('stats', body)
   return NextResponse.json({ ok: true })
 }

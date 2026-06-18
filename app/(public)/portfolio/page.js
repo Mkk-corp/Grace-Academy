@@ -1,8 +1,8 @@
-import { readData } from '@/lib/db'
+import { readContent } from '@/lib/db'
 import PortfolioClient from './PortfolioClient'
 
-export default function PortfolioPage() {
-  const projects = readData('portfolio.json')
-  const stats = readData('stats.json')
+export default async function PortfolioPage() {
+  const projects = await readContent('portfolio') || []
+  const stats = await readContent('stats') || {}
   return <PortfolioClient projects={projects} stats={stats} />
 }

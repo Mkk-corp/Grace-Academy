@@ -10,11 +10,9 @@ export async function POST(request) {
   if (!verifyToken(token)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { email, otp } = await request.json()
-  if (!email || !otp) {
-    return NextResponse.json({ error: 'Email and code are required' }, { status: 400 })
-  }
+  if (!email || !otp) return NextResponse.json({ error: 'Email and code are required' }, { status: 400 })
 
-  const result = verifyOtp(email, otp)
+  const result = await verifyOtp(email, otp)
   if (!result.ok) {
     if (result.error === 'locked') {
       return NextResponse.json({ error: 'locked', lockedSeconds: result.lockedSeconds }, { status: 429 })

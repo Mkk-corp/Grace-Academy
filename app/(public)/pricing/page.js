@@ -1,7 +1,7 @@
-import { readData } from '@/lib/db'
+import { readContent } from '@/lib/db'
 import PricingClient from './PricingClient'
 
-export default function PricingPage() {
-  const plans = readData('pricing.json')
+export default async function PricingPage() {
+  const plans = await readContent('pricing') || []
   return <PricingClient plans={plans} />
 }

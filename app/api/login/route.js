@@ -1,35 +1,42 @@
 import { NextResponse } from 'next/server'
 import { signToken } from '@/lib/auth'
-import { readData } from '@/lib/db'
+import { prisma } from '@/lib/db'
 import { verifyPassword } from '@/lib/password'
 import { checkLock, generateAndStoreOtp, getResendInfo } from '@/lib/otp'
 import { sendOtpEmail } from '@/lib/mailer'
 
+async function findUser(identifier) {
+  const id = identifier.toLowerCase().trim()
+
+  const user = await prisma.user.findFirst({
+    where: { OR: [{ email: { equals: id, mode: 'insensitive' } }, { username: { equals: id, mode: 'insensitive' } }] },
+    include: { role: true },
+  })
+  if (user) return user
+
+  // Phone fallback — normalize spaces
+  const idNoSpaces = id.replace(/\s+/g, '')
+  const candidates = await prisma.user.findMany({
+    where: { phone: { not: '' } },
+    include: { role: true },
+  })
+  return candidates.find(u => u.phone?.replace(/\s+/g, '') === idNoSpaces) || null
+}
+
 export async function POST(request) {
   const { identifier, password } = await request.json()
-
   if (!identifier || !password) {
     return NextResponse.json({ error: 'Please enter your identifier and password' }, { status: 400 })
   }
 
-  const id = identifier.toLowerCase().trim()
-  const users = readData('users.json')
+  const user = await findUser(identifier)
 
-  const user = users.find(u =>
-    u.username?.toLowerCase() === id ||
-    u.email?.toLowerCase() === id ||
-    u.phone?.replace(/\s+/g, '') === id.replace(/\s+/g, '')
-  )
-
-  // Admin-created users must set their own password on first login
-  if (user && user.forcePasswordReset) {
-    const lockedSeconds = checkLock(user.email)
-    if (lockedSeconds) {
-      return NextResponse.json({ error: 'locked', lockedSeconds }, { status: 429 })
-    }
-    const { resendCount, canResend } = getResendInfo(user.email)
+  if (user?.forcePasswordReset) {
+    const lockedSeconds = await checkLock(user.email)
+    if (lockedSeconds) return NextResponse.json({ error: 'locked', lockedSeconds }, { status: 429 })
+    const { resendCount, canResend } = await getResendInfo(user.email)
     if (canResend) {
-      const { otp } = generateAndStoreOtp(user.email, resendCount > 0 ? { resendCount } : null)
+      const { otp } = await generateAndStoreOtp(user.email, resendCount > 0 ? { resendCount } : null)
       try { await sendOtpEmail(user.email, otp) } catch (e) { console.error('OTP email failed:', e) }
     }
     return NextResponse.json({ forceReset: true, email: user.email })
@@ -39,10 +46,7 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Invalid credentials. Please check your details and try again.' }, { status: 401 })
   }
 
-  const roles = readData('roles.json')
-  const userRole = roles.find(r => r.id === user.roleId)
-  const permissions = userRole?.permissions || []
-
+  const permissions = user.role?.permissions || []
   const hasAdminAccess = permissions.some(p => !['access_student_portal', 'access_assessor_portal', 'access_teacher_portal'].includes(p))
   const isAssessor     = permissions.includes('access_assessor_portal') && !hasAdminAccess
   const isTeacher      = permissions.includes('access_teacher_portal')  && !hasAdminAccess

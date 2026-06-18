@@ -1,21 +1,25 @@
-import { readData } from '@/lib/db'
+import { readContent } from '@/lib/db'
+import { prisma } from '@/lib/db'
 
-export default function AdminOverviewPage() {
-  const stats = readData('stats.json')
-  const services = readData('services.json')
-  const portfolio = readData('portfolio.json')
-  const blog = readData('blog.json')
-  const faq = readData('faq.json')
-  const messages = readData('contact.json')
+export default async function AdminOverviewPage() {
+  const [stats, services, portfolio, blog, faq, messages] = await Promise.all([
+    readContent('stats').then(d => d || {}),
+    readContent('services').then(d => d || []),
+    readContent('portfolio').then(d => d || []),
+    readContent('blog').then(d => d || []),
+    readContent('faq').then(d => d || []),
+    prisma.contactMessage.findMany({ orderBy: { submittedAt: 'desc' } }),
+  ])
+
   const unread = messages.filter(m => !m.read).length
 
   const tiles = [
-    { label: 'Reviews', value: `${stats.reviews.value}${stats.reviews.suffix}`, color: 'var(--gold)' },
-    { label: 'Services', value: services.length },
-    { label: 'Portfolio Cases', value: portfolio.length },
-    { label: 'Blog Posts', value: blog.filter(b => b.published).length },
-    { label: 'FAQ Items', value: faq.length },
-    { label: 'Unread Messages', value: unread, color: unread > 0 ? '#e8a020' : undefined },
+    { label: 'Reviews',          value: stats.reviews ? `${stats.reviews.value}${stats.reviews.suffix}` : '—', color: 'var(--gold)' },
+    { label: 'Services',         value: services.length },
+    { label: 'Portfolio Cases',  value: portfolio.length },
+    { label: 'Blog Posts',       value: blog.filter(b => b.published).length },
+    { label: 'FAQ Items',        value: faq.length },
+    { label: 'Unread Messages',  value: unread, color: unread > 0 ? '#e8a020' : undefined },
   ]
 
   return (
@@ -33,7 +37,7 @@ export default function AdminOverviewPage() {
       </div>
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '24px' }}>
         <h2 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text)', marginBottom: '12px' }}>Recent Messages</h2>
-        {messages.slice(-5).reverse().map(msg => (
+        {messages.slice(0, 5).map(msg => (
           <div key={msg.id} style={{ padding: '12px 0', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '12px' }}>
             {!msg.read && <span className="badge-unread">NEW</span>}
             <div>

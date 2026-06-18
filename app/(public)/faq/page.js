@@ -1,7 +1,7 @@
-import { readData } from '@/lib/db'
+import { readContent } from '@/lib/db'
 import FaqClient from './FaqClient'
 
-export default function FaqPage() {
-  const faqs = readData('faq.json')
+export default async function FaqPage() {
+  const faqs = await readContent('faq') || []
   return <FaqClient faqs={faqs} />
 }

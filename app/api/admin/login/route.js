@@ -1,23 +1,20 @@
 import { NextResponse } from 'next/server'
 import { signToken } from '@/lib/auth'
-import { readData } from '@/lib/db'
+import { prisma } from '@/lib/db'
 import { verifyPassword } from '@/lib/password'
 
 export async function POST(request) {
   const { identifier, password } = await request.json()
-
   if (!identifier || !password) {
     return NextResponse.json({ error: 'Identifier and password are required' }, { status: 400 })
   }
 
   const id = identifier.toLowerCase().trim()
-  const users = readData('users.json')
 
-  const user = users.find(u =>
-    u.username?.toLowerCase() === id ||
-    u.email?.toLowerCase() === id ||
-    u.phone?.replace(/\s+/g, '') === id.replace(/\s+/g, '')
-  )
+  const user = await prisma.user.findFirst({
+    where: { OR: [{ email: { equals: id, mode: 'insensitive' } }, { username: { equals: id, mode: 'insensitive' } }] },
+    include: { role: true },
+  })
 
   if (user && user.password && verifyPassword(password, user.password)) {
     const token = signToken({ userId: user.id, roleId: user.roleId, name: user.name })
@@ -32,7 +29,7 @@ export async function POST(request) {
     return response
   }
 
-  // Fallback for env-based super-admin (ADMIN_PASSWORD + ADMIN_USER)
+  // Fallback env-based super-admin
   const adminUser = process.env.ADMIN_USER || 'admin'
   if (
     password === process.env.ADMIN_PASSWORD &&

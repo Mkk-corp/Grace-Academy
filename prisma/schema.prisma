@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id          String   @id
+  name        String   @unique
+  description String   @default("")
+  permissions String[]
+  users       User[]
+}
+
+model User {
+  id                 String    @id @default(cuid())
+  name               String
+  username           String    @default("")
+  email              String    @unique
+  phone              String    @default("")
+  password           String?
+  googleId           String?   @unique
+  avatar             String?
+  roleId             String?
+  role               Role?     @relation(fields: [roleId], references: [id])
+  source             String    @default("website")
+  forcePasswordReset Boolean   @default(false)
+  passwordHistory    String[]  @default([])
+  dob                String?
+  gender             String?
+  bio                String?
+  country            String?
+  city               String?
+  nationalId         String?
+  emergencyContact   String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model OtpSession {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  otpHash     String
+  expiresAt   DateTime
+  resendCount Int       @default(0)
+  lockedUntil DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model SiteContent {
+  key       String   @id
+  data      Json
+  updatedAt DateTime @updatedAt
+}
+
+model ContactMessage {
+  id          String   @id @default(cuid())
+  name        String
+  email       String
+  phone       String   @default("")
+  message     String
+  read        Boolean  @default(false)
+  submittedAt DateTime @default(now())
+}

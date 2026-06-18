@@ -1,7 +1,7 @@
-import { readData } from '@/lib/db'
+import { readContent } from '@/lib/db'
 import AboutClient from './AboutClient'
 
-export default function AboutPage() {
-  const stats = readData('stats.json')
+export default async function AboutPage() {
+  const stats = await readContent('stats') || {}
   return <AboutClient stats={stats} />
 }

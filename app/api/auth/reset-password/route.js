@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { readData, writeData } from '@/lib/db'
+import { prisma } from '@/lib/db'
 import { hashPassword, verifyPassword } from '@/lib/password'
 import { signToken } from '@/lib/auth'
 import { clearSession } from '@/lib/otp'
@@ -28,39 +28,29 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Passwords do not match.' }, { status: 400 })
   }
 
-  // Password rules
   for (const rule of PWD_RULES) {
-    if (!rule.test(password)) {
-      return NextResponse.json({ error: rule.msg }, { status: 400 })
-    }
+    if (!rule.test(password)) return NextResponse.json({ error: rule.msg }, { status: 400 })
   }
 
   const emailLower = email.toLowerCase()
-
-  // Must not contain email local-part
   const emailLocal = emailLower.split('@')[0]
   if (password.toLowerCase().includes(emailLocal)) {
     return NextResponse.json({ error: 'Password must not contain your email address.' }, { status: 400 })
   }
-
-  // Must not be a common password
   if (COMMON_PASSWORDS.includes(password.toLowerCase())) {
     return NextResponse.json({ error: 'Password is too common. Please choose a stronger password.' }, { status: 400 })
   }
 
-  const users = readData('users.json')
-  const idx = users.findIndex(u => u.email?.toLowerCase() === emailLower)
-  if (idx === -1) {
-    return NextResponse.json({ error: 'User not found.' }, { status: 404 })
-  }
-  const user = users[idx]
+  const user = await prisma.user.findFirst({
+    where: { email: { equals: emailLower, mode: 'insensitive' } },
+    include: { role: true },
+  })
+  if (!user) return NextResponse.json({ error: 'User not found.' }, { status: 404 })
 
-  // Must not match current password
   if (user.password && verifyPassword(password, user.password)) {
     return NextResponse.json({ error: 'New password cannot be the same as your current password.' }, { status: 400 })
   }
 
-  // Must not match last 5 passwords
   const history = user.passwordHistory || []
   for (const oldHash of history) {
     if (verifyPassword(password, oldHash)) {
@@ -68,30 +58,22 @@ export async function POST(request) {
     }
   }
 
-  // Build updated history (keep last 5)
   const newHistory = [user.password, ...history].filter(Boolean).slice(0, 5)
-  const newHash = hashPassword(password)
+  const updated = await prisma.user.update({
+    where: { id: user.id },
+    data: { password: hashPassword(password), passwordHistory: newHistory, forcePasswordReset: false },
+    include: { role: true },
+  })
 
-  users[idx] = {
-    ...user,
-    password: newHash,
-    passwordHistory: newHistory,
-    forcePasswordReset: false,
-    updatedAt: new Date().toISOString(),
-  }
-  writeData('users.json', users)
+  await clearSession(email)
 
-  // Clear OTP session
-  clearSession(email)
+  const permissions = updated.role?.permissions || []
+  const hasAdminAccess = permissions.some(p => !['access_student_portal', 'access_assessor_portal', 'access_teacher_portal'].includes(p))
+  const isAssessor     = permissions.includes('access_assessor_portal') && !hasAdminAccess
+  const isTeacher      = permissions.includes('access_teacher_portal')  && !hasAdminAccess
+  const redirect = hasAdminAccess ? '/admin' : isAssessor ? '/assessor' : isTeacher ? '/teacher' : '/portal'
 
-  // Auto-login
-  const roles = readData('roles.json')
-  const userRole = roles.find(r => r.id === users[idx].roleId)
-  const permissions = userRole?.permissions || []
-  const hasAdminAccess = permissions.some(p => p !== 'access_student_portal')
-  const redirect = hasAdminAccess ? '/admin' : '/portal'
-
-  const token = signToken({ userId: users[idx].id, roleId: users[idx].roleId, name: users[idx].name })
+  const token = signToken({ userId: updated.id, roleId: updated.roleId, name: updated.name })
   const response = NextResponse.json({ ok: true, redirect })
   response.cookies.set('ga-admin', token, {
     httpOnly: true,
