@@ -3,35 +3,40 @@ import { prisma } from '@/lib/db'
 import { hashPassword } from '@/lib/password'
 
 export async function POST(request) {
-  const { name, username, email, phone, password } = await request.json()
+  try {
+    const { name, username, email, phone, password } = await request.json()
 
-  if (!name || !email || !password) {
-    return NextResponse.json({ error: 'Name, email and password are required' }, { status: 400 })
-  }
+    if (!name || !email || !password) {
+      return NextResponse.json({ error: 'Name, email and password are required' }, { status: 400 })
+    }
 
-  const existingEmail = await prisma.user.findFirst({
-    where: { email: { equals: email, mode: 'insensitive' } },
-  })
-  if (existingEmail) return NextResponse.json({ error: 'Email already registered' }, { status: 409 })
-
-  if (username) {
-    const existingUsername = await prisma.user.findFirst({
-      where: { username: { equals: username, mode: 'insensitive' } },
+    const existingEmail = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: 'insensitive' } },
     })
-    if (existingUsername) return NextResponse.json({ error: 'Username already taken' }, { status: 409 })
+    if (existingEmail) return NextResponse.json({ error: 'Email already registered' }, { status: 409 })
+
+    if (username) {
+      const existingUsername = await prisma.user.findFirst({
+        where: { username: { equals: username, mode: 'insensitive' } },
+      })
+      if (existingUsername) return NextResponse.json({ error: 'Username already taken' }, { status: 409 })
+    }
+
+    await prisma.user.create({
+      data: {
+        name,
+        username: username || '',
+        email,
+        phone: phone || '',
+        password: hashPassword(password),
+        roleId: 'r_student',
+        source: 'website',
+      },
+    })
+
+    return NextResponse.json({ ok: true }, { status: 201 })
+  } catch (err) {
+    console.error('[register]', err)
+    return NextResponse.json({ error: 'Internal server error', detail: err.message }, { status: 500 })
   }
-
-  await prisma.user.create({
-    data: {
-      name,
-      username: username || '',
-      email,
-      phone: phone || '',
-      password: hashPassword(password),
-      roleId: 'r_student',
-      source: 'website',
-    },
-  })
-
-  return NextResponse.json({ ok: true }, { status: 201 })
 }
