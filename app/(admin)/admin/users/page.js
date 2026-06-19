@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 import Modal from '@/components/ui/Modal'
+import EmptyState from '@/components/ui/EmptyState'
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([])
@@ -79,6 +80,15 @@ export default function AdminUsersPage() {
         </div>
       )}
 
+      {!loading && users.length === 0 && (
+        <EmptyState
+          title="No users yet"
+          description="Users who register from the website will appear here. You can also add users manually."
+          actionLabel="Add User"
+          onAction={newUser}
+        />
+      )}
+      {(loading || users.length > 0) && (
       <div className="admin-table-wrap">
       <table className="admin-table">
         <thead>
@@ -95,15 +105,7 @@ export default function AdminUsersPage() {
         <tbody>
           {loading
             ? <AdminTableSkeleton cols={7} rows={6} />
-            : users.length === 0
-              ? (
-                <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-40)', padding: '40px 0', fontSize: '.9rem' }}>
-                    No users yet. Users who register from the website will appear here.
-                  </td>
-                </tr>
-              )
-              : users.map(user => (
+            : users.map(user => (
                 <tr key={user.id}>
                   <td>
                     <div style={{ fontWeight: 600 }}>{user.name || '—'}</div>
@@ -138,6 +140,7 @@ export default function AdminUsersPage() {
         </tbody>
       </table>
       </div>
+      )}
 
       {editing && (
         <UserModal

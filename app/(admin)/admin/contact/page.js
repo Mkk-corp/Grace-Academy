@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 import Modal from '@/components/ui/Modal'
+import EmptyState from '@/components/ui/EmptyState'
 
 export default function AdminContactPage() {
   const [messages, setMessages] = useState([])
@@ -30,6 +31,13 @@ export default function AdminContactPage() {
       <div className="admin-header">
         <h1>Messages <span style={{ fontSize: '.8rem', color: 'var(--text-60)' }}>({messages.filter(m => !m.read).length} unread)</span></h1>
       </div>
+      {!loading && messages.length === 0 && (
+        <EmptyState
+          title="No messages yet"
+          description="Contact form submissions from the website will appear here."
+        />
+      )}
+      {(loading || messages.length > 0) && (
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
         <div>
           <table className="admin-table">
@@ -52,9 +60,6 @@ export default function AdminContactPage() {
                   </tr>
                 ))
               }
-              {!loading && messages.length === 0 && (
-                <tr><td colSpan={3} style={{ color: 'var(--text-40)', textAlign: 'center', padding: '24px' }}>No messages</td></tr>
-              )}
             </tbody>
           </table>
         </div>
@@ -73,6 +78,7 @@ export default function AdminContactPage() {
           )}
         </div>
       </div>
+      )}
 
       <Modal
         open={!!deleteTarget}

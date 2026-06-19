@@ -2,15 +2,16 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import AdminLayout from '@/components/admin/AdminLayout'
+import EmptyState from '@/components/ui/EmptyState'
 
 const DAYS = [
-  { key: 'sat', en: 'Sat', ar: 'السبت'   },
-  { key: 'sun', en: 'Sun', ar: 'الأحد'    },
-  { key: 'mon', en: 'Mon', ar: 'الاثنين'  },
-  { key: 'tue', en: 'Tue', ar: 'الثلاثاء' },
-  { key: 'wed', en: 'Wed', ar: 'الأربعاء' },
-  { key: 'thu', en: 'Thu', ar: 'الخميس'  },
-  { key: 'fri', en: 'Fri', ar: 'الجمعة'   },
+  { key: 'sat', en: 'Saturday', ar: 'السبت'   },
+  { key: 'sun', en: 'Sunday',   ar: 'الأحد'    },
+  { key: 'mon', en: 'Monday',   ar: 'الاثنين'  },
+  { key: 'tue', en: 'Tuesday',  ar: 'الثلاثاء' },
+  { key: 'wed', en: 'Wednesday',ar: 'الأربعاء' },
+  { key: 'thu', en: 'Thursday', ar: 'الخميس'  },
+  { key: 'fri', en: 'Friday',   ar: 'الجمعة'   },
 ]
 
 function minutesToLabel(m) {
@@ -29,8 +30,13 @@ function StatusBadge({ status }) {
   }
   const cfg = MAP[status] || MAP.pending
   return (
-    <span className="badge-unread" style={{ background: cfg.bg, border: `1px solid ${cfg.bd}`, color: cfg.color }}>
-      <span style={{ width: 5, height: 5, borderRadius: '50%', background: cfg.color, display: 'inline-block', marginRight: 4 }} />
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5,
+      padding: '3px 10px', borderRadius: 100,
+      background: cfg.bg, border: `1px solid ${cfg.bd}`,
+      fontSize: '.72rem', fontWeight: 700, color: cfg.color,
+    }}>
+      <span style={{ width: 5, height: 5, borderRadius: '50%', background: cfg.color, flexShrink: 0, display: 'inline-block' }} />
       {cfg.label}
     </span>
   )
@@ -47,15 +53,19 @@ function ScheduleColumn({ schedule, label }) {
   return (
     <div>
       <div style={{ fontSize: '.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-40)', marginBottom: 8 }}>{label}</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {activeDays.map(day => {
           const slots = (schedule[day.key] || []).sort((a, b) => a - b)
           return (
             <div key={day.key}>
-              <div style={{ fontSize: '.74rem', fontWeight: 700, color: '#c9932c', marginBottom: 3 }}>{day.en}</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+              <div style={{ fontSize: '.76rem', fontWeight: 700, color: '#c9932c', marginBottom: 4 }}>{day.en}</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                 {slots.map(slot => (
-                  <span key={slot} style={{ fontSize: '.62rem', direction: 'ltr', background: 'rgba(201,147,44,.1)', border: '1px solid rgba(201,147,44,.22)', borderRadius: 100, padding: '1px 6px', color: '#c9932c', fontWeight: 600 }}>
+                  <span key={slot} style={{
+                    fontSize: '.64rem', direction: 'ltr',
+                    background: 'rgba(201,147,44,.1)', border: '1px solid rgba(201,147,44,.22)',
+                    borderRadius: 100, padding: '2px 8px', color: '#c9932c', fontWeight: 600,
+                  }}>
                     {minutesToLabel(slot)}
                   </span>
                 ))}
@@ -70,27 +80,167 @@ function ScheduleColumn({ schedule, label }) {
 }
 
 function countDaysChanged(current, proposed) {
-  if (!current || !proposed) return DAYS.filter(d => (proposed?.[d.key] || []).length > 0).length
+  if (!current) return DAYS.filter(d => (proposed?.[d.key] || []).length > 0).length
   let changed = 0
   for (const day of DAYS) {
     const c = JSON.stringify((current[day.key] || []).sort())
-    const p = JSON.stringify((proposed[day.key] || []).sort())
+    const p = JSON.stringify((proposed?.[day.key] || []).sort())
     if (c !== p) changed++
   }
   return changed
 }
 
-const FILTERS = ['All', 'Pending', 'Approved', 'Rejected']
-
-export default function AdminRequestsPage() {
-  const [requests, setRequests] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('All')
-  const [expanded, setExpanded] = useState(null)
-  const [rejectingId, setRejectingId] = useState(null)
+/* ─── Request detail modal ─────────────────────────────────────────── */
+function RequestModal({ req, onClose, onApprove, onReject, actionLoading }) {
   const [rejectNote, setRejectNote] = useState('')
+  const [showRejectForm, setShowRejectForm] = useState(false)
+
+  if (!req) return null
+  const isPending = req.status === 'pending'
+
+  return (
+    <div
+      className="admin-modal"
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div className="admin-modal__box" style={{ maxWidth: 720 }}>
+        <div className="admin-modal__header">
+          <div>
+            <div style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '.12em', color: 'var(--gold)', marginBottom: 3 }}>SCHEDULE CHANGE REQUEST</div>
+            <div className="admin-modal__title">{req.assessorName}</div>
+            <div style={{ fontSize: '.78rem', color: 'var(--text-40)', marginTop: 2 }}>{req.assessorEmail}</div>
+          </div>
+          <button className="admin-modal__close" onClick={onClose} aria-label="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* Status + meta */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+          <StatusBadge status={req.status} />
+          <span style={{ fontSize: '.76rem', color: 'var(--text-40)' }}>
+            Submitted {new Date(req.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            {' '}at{' '}
+            {new Date(req.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+          </span>
+          <span style={{ fontSize: '.76rem', fontWeight: 600, color: '#c9932c' }}>
+            {countDaysChanged(req.currentSchedule, req.proposedSchedule)} day{countDaysChanged(req.currentSchedule, req.proposedSchedule) !== 1 ? 's' : ''} changed
+          </span>
+        </div>
+
+        {/* Schedule comparison */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20,
+          background: 'var(--bg)', borderRadius: 12, padding: '18px 20px',
+          border: '1px solid var(--border)',
+        }}>
+          <ScheduleColumn schedule={req.currentSchedule} label="CURRENT SCHEDULE" />
+          <div style={{ width: 1, background: 'var(--border)' }} />
+          <ScheduleColumn schedule={req.proposedSchedule} label="PROPOSED SCHEDULE" />
+        </div>
+
+        {/* Reason */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: '.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-40)', marginBottom: 6 }}>REASON FOR CHANGE</div>
+          <div style={{ fontSize: '.88rem', color: 'var(--text-80)', lineHeight: 1.7, background: 'var(--bg)', borderRadius: 9, padding: '12px 14px', border: '1px solid var(--border)' }}>
+            {req.reason}
+          </div>
+        </div>
+
+        {/* Admin note (if resolved) */}
+        {req.adminNote && (
+          <div style={{
+            marginBottom: 16, padding: '12px 14px', borderRadius: 9,
+            background: req.status === 'rejected' ? 'rgba(239,68,68,.06)' : 'rgba(16,185,129,.06)',
+            border: `1px solid ${req.status === 'rejected' ? 'rgba(239,68,68,.2)' : 'rgba(16,185,129,.2)'}`,
+          }}>
+            <div style={{ fontSize: '.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-40)', marginBottom: 5 }}>ADMIN NOTE</div>
+            <div style={{ fontSize: '.84rem', color: 'var(--text-80)', lineHeight: 1.65 }}>{req.adminNote}</div>
+          </div>
+        )}
+
+        {req.resolvedAt && (
+          <div style={{ fontSize: '.72rem', color: 'var(--text-40)', marginBottom: 16 }}>
+            Resolved {new Date(req.resolvedAt).toLocaleString()}
+            {req.resolvedByName && ` · by ${req.resolvedByName}`}
+          </div>
+        )}
+
+        {/* Reject form (inline inside modal) */}
+        {showRejectForm && isPending && (
+          <div style={{ marginBottom: 16, padding: '16px', background: 'rgba(239,68,68,.04)', borderRadius: 10, border: '1px solid rgba(239,68,68,.15)' }}>
+            <div className="admin-field" style={{ marginBottom: 10 }}>
+              <label>Rejection reason (optional)</label>
+              <textarea
+                value={rejectNote}
+                onChange={e => setRejectNote(e.target.value)}
+                placeholder="Explain why the request is being rejected..."
+                rows={3}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                className="admin-btn admin-btn--danger"
+                disabled={!!actionLoading}
+                onClick={() => onReject(req.id, rejectNote)}
+                style={{ opacity: actionLoading ? .6 : 1 }}
+              >
+                {actionLoading ? 'Rejecting…' : 'Confirm Reject'}
+              </button>
+              <button className="admin-btn" onClick={() => setShowRejectForm(false)}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {/* Actions */}
+        {isPending && !showRejectForm && (
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+            <button
+              className="admin-btn admin-btn--danger"
+              disabled={!!actionLoading}
+              onClick={() => setShowRejectForm(true)}
+            >
+              Reject
+            </button>
+            <button
+              disabled={!!actionLoading}
+              onClick={() => onApprove(req.id)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '7px 20px', borderRadius: 8,
+                background: actionLoading ? '#6ee7b7' : '#10b981',
+                color: '#fff', border: 'none', fontWeight: 700, fontSize: '.84rem',
+                cursor: actionLoading ? 'default' : 'pointer', fontFamily: 'inherit',
+                transition: 'background .15s', opacity: actionLoading ? .7 : 1,
+              }}
+              onMouseEnter={e => { if (!actionLoading) e.currentTarget.style.background = '#059669' }}
+              onMouseLeave={e => { if (!actionLoading) e.currentTarget.style.background = '#10b981' }}
+            >
+              {actionLoading ? '…' : (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Approve
+                </>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ─── Main page ─────────────────────────────────────────────────────── */
+export default function AdminRequestsPage() {
+  const [requests, setRequests]       = useState([])
+  const [loading, setLoading]         = useState(true)
+  const [selectedReq, setSelectedReq] = useState(null)
+  const [rejectingId, setRejectingId] = useState(null)
+  const [rejectNote, setRejectNote]   = useState('')
   const [actionLoading, setActionLoading] = useState(null)
-  const [toast, setToast] = useState(null)
+  const [toast, setToast]             = useState(null)
 
   const fetchRequests = useCallback(async () => {
     try {
@@ -111,21 +261,42 @@ export default function AdminRequestsPage() {
     setTimeout(() => setToast(null), 3500)
   }
 
-  async function handleAction(id, action, adminNote) {
-    setActionLoading(id + action)
+  async function handleApprove(id) {
+    setActionLoading(id + 'approve')
     try {
       const res = await fetch('/api/admin/slot-requests', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, action, adminNote }),
+        body: JSON.stringify({ id, action: 'approve' }),
       })
       const data = await res.json()
       if (!res.ok) { showToast(data.error || 'Action failed', 'error'); return }
-      showToast(action === 'approve' ? 'Request approved successfully' : 'Request rejected', 'success')
+      showToast('Request approved successfully')
+      setSelectedReq(null)
+      await fetchRequests()
+    } catch {
+      showToast('An error occurred', 'error')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  async function handleReject(id, adminNote) {
+    setActionLoading(id + 'reject')
+    try {
+      const res = await fetch('/api/admin/slot-requests', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action: 'reject', adminNote }),
+      })
+      const data = await res.json()
+      if (!res.ok) { showToast(data.error || 'Action failed', 'error'); return }
+      showToast('Request rejected')
       setRejectingId(null)
       setRejectNote('')
+      setSelectedReq(null)
       await fetchRequests()
-    } catch (e) {
+    } catch {
       showToast('An error occurred', 'error')
     } finally {
       setActionLoading(null)
@@ -133,13 +304,14 @@ export default function AdminRequestsPage() {
   }
 
   const pendingCount = requests.filter(r => r.status === 'pending').length
-  const filtered = filter === 'All' ? requests : requests.filter(r => r.status === filter.toLowerCase())
 
   return (
     <AdminLayout>
       <style>{`
         @keyframes adToast{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
         @keyframes adExpand{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+        .req-row { cursor: pointer; transition: background .12s; }
+        .req-row:hover td { background: rgba(201,147,44,.04) !important; }
       `}</style>
 
       {/* Toast */}
@@ -156,13 +328,29 @@ export default function AdminRequestsPage() {
         </div>
       )}
 
+      {/* Modal */}
+      {selectedReq && (
+        <RequestModal
+          req={selectedReq}
+          onClose={() => setSelectedReq(null)}
+          onApprove={handleApprove}
+          onReject={handleReject}
+          actionLoading={actionLoading}
+        />
+      )}
+
+      {/* Page header */}
       <div className="admin-header">
         <div>
-          <div style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '.12em', color: 'var(--gold)', marginBottom: 4 }}>SLOT REQUESTS</div>
+          <div style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '.12em', color: 'var(--gold)', marginBottom: 4 }}>MANAGEMENT</div>
           <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            Requests
+            Slot Requests
             {pendingCount > 0 && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 10px', background: 'rgba(217,119,6,.12)', border: '1px solid rgba(217,119,6,.3)', borderRadius: 100, fontSize: '.72rem', fontWeight: 700, color: '#d97706' }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', padding: '2px 10px',
+                background: 'rgba(217,119,6,.12)', border: '1px solid rgba(217,119,6,.3)',
+                borderRadius: 100, fontSize: '.72rem', fontWeight: 700, color: '#d97706',
+              }}>
                 {pendingCount} pending
               </span>
             )}
@@ -170,40 +358,13 @@ export default function AdminRequestsPage() {
         </div>
       </div>
 
-      {/* Filter tabs */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 20, flexWrap: 'wrap' }}>
-        {FILTERS.map(f => {
-          const count = f === 'All' ? requests.length : requests.filter(r => r.status === f.toLowerCase()).length
-          const active = filter === f
-          return (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className="admin-btn"
-              style={{
-                background: active ? 'var(--gold)' : 'var(--surface)',
-                color: active ? '#fff' : 'var(--text-60)',
-                borderColor: active ? 'var(--gold)' : 'var(--border)',
-                fontWeight: active ? 700 : 500,
-              }}
-            >
-              {f}
-              {count > 0 && (
-                <span style={{ background: active ? 'rgba(255,255,255,.25)' : 'var(--accent-dim)', borderRadius: 100, padding: '1px 7px', fontSize: '.68rem' }}>
-                  {count}
-                </span>
-              )}
-            </button>
-          )
-        })}
-      </div>
-
       {loading ? (
         <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-40)' }}>Loading…</div>
-      ) : filtered.length === 0 ? (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '56px 32px', textAlign: 'center' }}>
-          <div style={{ fontSize: '.88rem', color: 'var(--text-40)' }}>No {filter !== 'All' ? filter.toLowerCase() : ''} requests found.</div>
-        </div>
+      ) : requests.length === 0 ? (
+        <EmptyState
+          title="No requests yet"
+          description="Schedule change requests from assessors will appear here for review."
+        />
       ) : (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
           <table className="admin-table">
@@ -217,12 +378,12 @@ export default function AdminRequestsPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(req => (
+              {requests.map(req => (
                 <>
                   <tr
                     key={req.id}
-                    onClick={() => setExpanded(expanded === req.id ? null : req.id)}
-                    style={{ cursor: 'pointer' }}
+                    className="req-row"
+                    onClick={() => setSelectedReq(req)}
                   >
                     <td>
                       <div style={{ fontWeight: 600, color: 'var(--text)' }}>{req.assessorName}</div>
@@ -244,10 +405,19 @@ export default function AdminRequestsPage() {
                       {req.status === 'pending' ? (
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                           <button
-                            className="admin-btn admin-btn--primary"
                             disabled={!!actionLoading}
-                            onClick={() => handleAction(req.id, 'approve')}
-                            style={{ opacity: actionLoading === req.id + 'approve' ? .6 : 1 }}
+                            onClick={() => handleApprove(req.id)}
+                            style={{
+                              display: 'inline-flex', alignItems: 'center', gap: 5,
+                              padding: '6px 14px', borderRadius: 7,
+                              background: actionLoading === req.id + 'approve' ? '#6ee7b7' : '#10b981',
+                              color: '#fff', border: 'none', fontWeight: 600, fontSize: '.78rem',
+                              cursor: actionLoading ? 'default' : 'pointer', fontFamily: 'inherit',
+                              transition: 'background .15s',
+                              opacity: actionLoading === req.id + 'approve' ? .7 : 1,
+                            }}
+                            onMouseEnter={e => { if (!actionLoading) e.currentTarget.style.background = '#059669' }}
+                            onMouseLeave={e => { if (!actionLoading) e.currentTarget.style.background = '#10b981' }}
                           >
                             {actionLoading === req.id + 'approve' ? '…' : 'Approve'}
                           </button>
@@ -267,12 +437,19 @@ export default function AdminRequestsPage() {
                     </td>
                   </tr>
 
-                  {/* Inline reject form */}
+                  {/* Inline reject form (table row) */}
                   {rejectingId === req.id && (
                     <tr key={`${req.id}-reject`}>
                       <td colSpan={5} style={{ padding: 0, borderTop: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
-                        <div style={{ padding: '16px 20px', background: 'rgba(239,68,68,.04)', borderBottom: '1px solid rgba(239,68,68,.15)', animation: 'adExpand .18s ease' }}>
-                          <div style={{ fontSize: '.8rem', fontWeight: 600, color: 'var(--text)', marginBottom: 8 }}>Rejection reason (optional)</div>
+                        <div style={{
+                          padding: '16px 20px',
+                          background: 'rgba(239,68,68,.04)',
+                          borderBottom: '1px solid rgba(239,68,68,.15)',
+                          animation: 'adExpand .18s ease',
+                        }}>
+                          <div style={{ fontSize: '.8rem', fontWeight: 600, color: 'var(--text)', marginBottom: 8 }}>
+                            Rejection reason <span style={{ color: 'var(--text-40)', fontWeight: 400 }}>(optional)</span>
+                          </div>
                           <div className="admin-field" style={{ marginBottom: 10 }}>
                             <textarea
                               value={rejectNote}
@@ -286,46 +463,13 @@ export default function AdminRequestsPage() {
                             <button
                               className="admin-btn admin-btn--danger"
                               disabled={!!actionLoading}
-                              onClick={() => handleAction(req.id, 'reject', rejectNote)}
+                              onClick={() => handleReject(req.id, rejectNote)}
                               style={{ opacity: actionLoading === req.id + 'reject' ? .6 : 1 }}
                             >
                               {actionLoading === req.id + 'reject' ? 'Rejecting…' : 'Confirm Reject'}
                             </button>
                             <button className="admin-btn" onClick={() => setRejectingId(null)}>Cancel</button>
                           </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-
-                  {/* Expanded detail */}
-                  {expanded === req.id && rejectingId !== req.id && (
-                    <tr key={`${req.id}-detail`}>
-                      <td colSpan={5} style={{ padding: 0, borderTop: '1px solid var(--border)' }}>
-                        <div style={{ padding: '24px 24px', background: 'var(--bg)', animation: 'adExpand .18s ease' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 20 }}>
-                            <ScheduleColumn schedule={req.currentSchedule} label="CURRENT SCHEDULE" />
-                            <ScheduleColumn schedule={req.proposedSchedule} label="PROPOSED SCHEDULE" />
-                          </div>
-
-                          <div style={{ padding: '12px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 9, marginBottom: req.adminNote ? 12 : 0 }}>
-                            <div style={{ fontSize: '.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-40)', marginBottom: 5 }}>REASON</div>
-                            <div style={{ fontSize: '.84rem', color: 'var(--text-80)', lineHeight: 1.65 }}>{req.reason}</div>
-                          </div>
-
-                          {req.adminNote && (
-                            <div style={{ padding: '12px 16px', background: req.status === 'rejected' ? 'rgba(239,68,68,.06)' : 'rgba(16,185,129,.06)', border: `1px solid ${req.status === 'rejected' ? 'rgba(239,68,68,.2)' : 'rgba(16,185,129,.2)'}`, borderRadius: 9 }}>
-                              <div style={{ fontSize: '.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-40)', marginBottom: 5 }}>ADMIN NOTE</div>
-                              <div style={{ fontSize: '.84rem', color: 'var(--text-80)', lineHeight: 1.65 }}>{req.adminNote}</div>
-                            </div>
-                          )}
-
-                          {req.resolvedAt && (
-                            <div style={{ marginTop: 12, fontSize: '.72rem', color: 'var(--text-40)' }}>
-                              Resolved {new Date(req.resolvedAt).toLocaleString()}
-                              {req.resolvedByName && ` · by ${req.resolvedByName}`}
-                            </div>
-                          )}
                         </div>
                       </td>
                     </tr>

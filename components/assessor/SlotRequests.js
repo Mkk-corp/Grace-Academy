@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import EmptyState from '@/components/ui/EmptyState'
 
 const DAYS = [
   { key: 'sat', en: 'Saturday',  ar: 'السبت'   },
@@ -351,13 +352,11 @@ export default function SlotRequests({ user, isAr, isDark }) {
 
         {/* Requests table */}
         {requests.length === 0 ? (
-          <div style={{ background: isDark ? 'rgba(255,255,255,.02)' : '#f9fafb', border: `1px dashed ${border}`, borderRadius: 16, padding: '48px 32px', textAlign: 'center' }}>
-            <div style={{ width: 52, height: 52, borderRadius: 16, background: 'rgba(201,147,44,.08)', border: '1.5px solid rgba(201,147,44,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.8"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
-            </div>
-            <div style={{ fontWeight: 700, color: 'var(--as-text)', marginBottom: 6 }}>{isAr ? 'لا توجد طلبات بعد' : 'No requests yet'}</div>
-            <div style={{ fontSize: '.82rem', color: 'var(--as-muted)' }}>{isAr ? 'ستظهر طلبات التغيير هنا.' : 'Schedule change requests will appear here.'}</div>
-          </div>
+          <EmptyState
+            isAdmin={false}
+            title={isAr ? 'لا توجد طلبات بعد' : 'No requests yet'}
+            description={isAr ? 'ستظهر طلبات تغيير الجدول هنا بمجرد إنشائها.' : 'Your schedule change requests will appear here once submitted.'}
+          />
         ) : (
           <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 14, overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>

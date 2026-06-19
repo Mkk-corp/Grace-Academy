@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 import Modal from '@/components/ui/Modal'
+import EmptyState from '@/components/ui/EmptyState'
 
 export default function AdminServicesPage() {
   const [items, setItems] = useState([])
@@ -33,6 +34,15 @@ export default function AdminServicesPage() {
         <h1>Services</h1>
         <button className="admin-btn admin-btn--primary" onClick={() => setEditing({ id: `new${Date.now()}`, title: { en: '', ar: '' }, body: { en: '', ar: '' }, tag: { en: '', ar: '' }, iconSlug: '' })}>+ Add</button>
       </div>
+      {!loading && items.length === 0 && (
+        <EmptyState
+          title="No services yet"
+          description="Add your first service to showcase what Grace Academy offers."
+          actionLabel="Add Service"
+          onAction={() => setEditing({ id: `new${Date.now()}`, title: { en: '', ar: '' }, body: { en: '', ar: '' }, tag: { en: '', ar: '' }, iconSlug: '' })}
+        />
+      )}
+      {(loading || items.length > 0) && (
       <table className="admin-table">
         <thead><tr><th>Title (EN)</th><th>Tag (EN)</th><th>Actions</th></tr></thead>
         <tbody>
@@ -51,6 +61,7 @@ export default function AdminServicesPage() {
           }
         </tbody>
       </table>
+      )}
 
       {editing && <EditModal item={editing} onSave={save} onClose={() => setEditing(null)} />}
 

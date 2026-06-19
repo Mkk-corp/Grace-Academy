@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 function timeAgo(iso) {
   const diff = Date.now() - new Date(iso).getTime()
@@ -152,14 +153,14 @@ export default function NotificationBell({ isDark, isAr, userId }) {
             overflow: 'hidden',
           }}>
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: `1px solid ${border}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: `1px solid ${border}` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontWeight: 700, fontSize: '.88rem', color: text }}>
                   {isAr ? 'الإشعارات' : 'Notifications'}
                 </span>
                 {unread > 0 && (
                   <span style={{ background: 'rgba(239,68,68,.12)', border: '1px solid rgba(239,68,68,.25)', color: '#ef4444', borderRadius: 100, padding: '1px 7px', fontSize: '.65rem', fontWeight: 700 }}>
-                    {unread} {isAr ? 'غير مقروء' : 'new'}
+                    {unread} {isAr ? 'جديد' : 'new'}
                   </span>
                 )}
               </div>
@@ -216,6 +217,24 @@ export default function NotificationBell({ isDark, isAr, userId }) {
                 ))
               )}
             </div>
+
+            {/* View all footer */}
+            <Link
+              href="/notifications"
+              onClick={() => setOpen(false)}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                padding: '12px 16px', textDecoration: 'none',
+                borderTop: `1px solid ${border}`,
+                fontSize: '.78rem', fontWeight: 600, color: GOLD,
+                transition: 'background .12s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = isDark ? 'rgba(201,147,44,.06)' : 'rgba(201,147,44,.04)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+            >
+              {isAr ? 'عرض كل الإشعارات' : 'View all notifications'}
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </Link>
           </div>
         )}
       </div>

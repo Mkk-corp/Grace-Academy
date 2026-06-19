@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 import Modal from '@/components/ui/Modal'
+import EmptyState from '@/components/ui/EmptyState'
 
 export default function AdminPortfolioPage() {
   const [items, setItems] = useState([])
@@ -35,6 +36,15 @@ export default function AdminPortfolioPage() {
         <h1>Portfolio</h1>
         <button className="admin-btn admin-btn--primary" onClick={() => setEditing(blank)}>+ Add</button>
       </div>
+      {!loading && items.length === 0 && (
+        <EmptyState
+          title="No portfolio cases yet"
+          description="Add your first case study to showcase Grace Academy's work."
+          actionLabel="Add Case Study"
+          onAction={() => setEditing({ id: `new${Date.now()}`, thumbLabel: '', category: { en: '', ar: '' }, title: { en: '', ar: '' }, challenge: { en: '', ar: '' }, approach: { en: '', ar: '' }, outcome: { en: '', ar: '' } })}
+        />
+      )}
+      {(loading || items.length > 0) && (
       <table className="admin-table">
         <thead><tr><th>Title (EN)</th><th>Category</th><th>Actions</th></tr></thead>
         <tbody>
@@ -53,6 +63,7 @@ export default function AdminPortfolioPage() {
           }
         </tbody>
       </table>
+      )}
 
       {editing && <PortfolioModal item={editing} onSave={save} onClose={() => setEditing(null)} />}
 

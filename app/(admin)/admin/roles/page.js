@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 import Modal from '@/components/ui/Modal'
+import EmptyState from '@/components/ui/EmptyState'
 
 const ALL_PERMISSIONS = [
   { id: 'manage_users',     label: 'Manage Users' },
@@ -89,6 +90,15 @@ export default function AdminRolesPage() {
         </div>
       )}
 
+      {!loading && roles.length === 0 && (
+        <EmptyState
+          title="No roles defined yet"
+          description="Create roles to control what each user type can access in the system."
+          actionLabel="Add Role"
+          onAction={newRole}
+        />
+      )}
+      {(loading || roles.length > 0) && (
       <div className="admin-table-wrap">
       <table className="admin-table">
         <thead>
@@ -130,6 +140,7 @@ export default function AdminRolesPage() {
         </tbody>
       </table>
       </div>
+      )}
 
       {editing && (
         <RoleModal

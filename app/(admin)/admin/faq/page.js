@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 import Modal from '@/components/ui/Modal'
+import EmptyState from '@/components/ui/EmptyState'
 
 export default function AdminFaqPage() {
   const [items, setItems] = useState([])
@@ -33,6 +34,15 @@ export default function AdminFaqPage() {
         <h1>FAQ</h1>
         <button className="admin-btn admin-btn--primary" onClick={() => setEditing({ id: `new${Date.now()}`, question: { en: '', ar: '' }, answer: { en: '', ar: '' } })}>+ Add</button>
       </div>
+      {!loading && items.length === 0 && (
+        <EmptyState
+          title="No FAQ entries yet"
+          description="Add your first frequently asked question to help your audience."
+          actionLabel="Add Question"
+          onAction={() => setEditing({ id: `new${Date.now()}`, question: { en: '', ar: '' }, answer: { en: '', ar: '' } })}
+        />
+      )}
+      {(loading || items.length > 0) && (
       <table className="admin-table">
         <thead><tr><th>Question (EN)</th><th>Actions</th></tr></thead>
         <tbody>
@@ -50,6 +60,7 @@ export default function AdminFaqPage() {
           }
         </tbody>
       </table>
+      )}
 
       {editing && <FaqModal item={editing} onSave={save} onClose={() => setEditing(null)} />}
 

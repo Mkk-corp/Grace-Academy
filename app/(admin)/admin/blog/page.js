@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 import Modal from '@/components/ui/Modal'
+import EmptyState from '@/components/ui/EmptyState'
 
 export default function AdminBlogPage() {
   const [items, setItems] = useState([])
@@ -35,6 +36,15 @@ export default function AdminBlogPage() {
         <h1>Blog Posts</h1>
         <button className="admin-btn admin-btn--primary" onClick={() => setEditing({ id: `new${Date.now()}`, title: { en: '', ar: '' }, excerpt: { en: '', ar: '' }, body: { en: '', ar: '' }, category: { en: '', ar: '' }, date: { en: '', ar: '' }, slug: '', image: '', published: false })}>+ Add</button>
       </div>
+      {!loading && items.length === 0 && (
+        <EmptyState
+          title="No blog posts yet"
+          description="Start publishing content by adding your first blog post."
+          actionLabel="Add Post"
+          onAction={() => setEditing({ id: `new${Date.now()}`, title: { en: '', ar: '' }, excerpt: { en: '', ar: '' }, body: { en: '', ar: '' }, category: { en: '', ar: '' }, date: { en: '', ar: '' }, slug: '', image: '', published: false })}
+        />
+      )}
+      {(loading || items.length > 0) && (
       <table className="admin-table">
         <thead><tr><th>Title (EN)</th><th>Category</th><th>Published</th><th>Actions</th></tr></thead>
         <tbody>
@@ -58,6 +68,7 @@ export default function AdminBlogPage() {
           ))}
         </tbody>
       </table>
+      )}
 
       {editing && <BlogModal item={editing} onSave={save} onClose={() => setEditing(null)} />}
 
