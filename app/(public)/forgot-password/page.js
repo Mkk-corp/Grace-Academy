@@ -37,6 +37,7 @@ function AuthToggles() {
   const { lang, toggleLang } = useLang()
   const { theme, toggleTheme } = useTheme()
   const isDark = theme === 'dark'
+  const isAr = lang === 'ar'
   const btn = {
     border: `1px solid ${isDark ? 'rgba(201,147,44,.3)' : '#e2e8f0'}`,
     background: isDark ? 'rgba(201,147,44,.08)' : '#fff',
@@ -44,17 +45,23 @@ function AuthToggles() {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
   }
   return (
-    <div style={{ position: 'fixed', top: 16, right: 16, display: 'flex', gap: 8, zIndex: 200, direction: 'ltr' }}>
-      <button onClick={toggleTheme} style={{ ...btn, width: 36, height: 36 }} aria-label="Toggle theme">
-        {isDark
-          ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-          : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-        }
-      </button>
-      <button onClick={toggleLang} style={{ ...btn, height: 36, padding: '0 12px', fontSize: '.78rem', fontWeight: 700, letterSpacing: '.04em', fontFamily: 'inherit' }}>
-        {lang === 'ar' ? 'EN' : 'عربي'}
-      </button>
-    </div>
+    <>
+      <Link href="/" style={{ position: 'fixed', top: 16, left: 16, zIndex: 200, display: 'flex', alignItems: 'center', gap: 7, padding: '8px 14px', borderRadius: 9, border: `1px solid ${isDark ? 'rgba(201,147,44,.3)' : '#e2e8f0'}`, background: isDark ? 'rgba(201,147,44,.08)' : '#fff', color: '#c9932c', fontSize: '.78rem', fontWeight: 700, textDecoration: 'none', letterSpacing: isAr ? 0 : '.04em' }}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="13" height="13"><polyline points="15 18 9 12 15 6"/></svg>
+        {isAr ? 'الموقع' : 'Website'}
+      </Link>
+      <div style={{ position: 'fixed', top: 16, right: 16, display: 'flex', gap: 8, zIndex: 200, direction: 'ltr' }}>
+        <button onClick={toggleTheme} style={{ ...btn, width: 36, height: 36 }} aria-label="Toggle theme">
+          {isDark
+            ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+          }
+        </button>
+        <button onClick={toggleLang} style={{ ...btn, height: 36, padding: '0 12px', fontSize: '.78rem', fontWeight: 700, letterSpacing: '.04em', fontFamily: 'inherit' }}>
+          {lang === 'ar' ? 'EN' : 'عربي'}
+        </button>
+      </div>
+    </>
   )
 }
 
@@ -353,7 +360,7 @@ function ForgotPasswordPage() {
           <div className="fp-left__bg" style={{ backgroundImage: `url(${leftIllustration})` }} />
           <div className="fp-glow1" /><div className="fp-glow2" /><div className="fp-grid" /><div className="fp-divider" />
 
-          <div className="fp-brand">
+          <Link href="/" className="fp-brand" style={{ textDecoration: 'none' }}>
             <div className="fp-brand__em">
               <Image src="/images/logo.png" alt="Grace Academy" width={26} height={26} style={{ objectFit: 'contain' }} />
             </div>
@@ -361,7 +368,7 @@ function ForgotPasswordPage() {
               <div className="fp-brand__name">GRACE ACADEMY</div>
               <div className="fp-brand__tag">{isAr ? 'العلم نور الحياة' : 'LONG LIVE LEARN'}</div>
             </div>
-          </div>
+          </Link>
 
           <div className="fp-hero">
             <div className="fp-badge"><span className="fp-badge__dot" />{leftBadge}</div>
