@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import AdminLayout from '@/components/admin/AdminLayout'
 import EmptyState from '@/components/ui/EmptyState'
 
 const DAYS = [
@@ -91,12 +90,13 @@ function countDaysChanged(current, proposed) {
 }
 
 /* ─── Request detail modal ─────────────────────────────────────────── */
-function RequestModal({ req, onClose, onApprove, onReject, actionLoading }) {
-  const [rejectNote, setRejectNote] = useState('')
+function RequestModal({ req, onClose, onApprove, onReject, onDelete, actionLoading }) {
+  const [rejectNote, setRejectNote]       = useState('')
   const [showRejectForm, setShowRejectForm] = useState(false)
 
   if (!req) return null
   const isPending = req.status === 'pending'
+  const isResolved = req.status === 'approved' || req.status === 'rejected'
 
   return (
     <div
@@ -168,11 +168,11 @@ function RequestModal({ req, onClose, onApprove, onReject, actionLoading }) {
           </div>
         )}
 
-        {/* Reject form (inline inside modal) */}
+        {/* Inline reject form */}
         {showRejectForm && isPending && (
           <div style={{ marginBottom: 16, padding: '16px', background: 'rgba(239,68,68,.04)', borderRadius: 10, border: '1px solid rgba(239,68,68,.15)' }}>
             <div className="admin-field" style={{ marginBottom: 10 }}>
-              <label>Rejection reason (optional)</label>
+              <label>Rejection reason <span style={{ color: 'var(--text-40)', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
               <textarea
                 value={rejectNote}
                 onChange={e => setRejectNote(e.target.value)}
@@ -194,53 +194,76 @@ function RequestModal({ req, onClose, onApprove, onReject, actionLoading }) {
           </div>
         )}
 
-        {/* Actions */}
-        {isPending && !showRejectForm && (
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+        {/* Footer actions */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 16, borderTop: '1px solid var(--border)', gap: 10, flexWrap: 'wrap' }}>
+          {/* Delete button (only for resolved requests) */}
+          {isResolved && (
             <button
               className="admin-btn admin-btn--danger"
               disabled={!!actionLoading}
-              onClick={() => setShowRejectForm(true)}
+              onClick={() => onDelete(req.id)}
+              style={{ opacity: actionLoading ? .6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}
             >
-              Reject
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+              </svg>
+              {actionLoading === req.id + 'delete' ? 'Deleting…' : 'Delete Request'}
             </button>
-            <button
-              disabled={!!actionLoading}
-              onClick={() => onApprove(req.id)}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '7px 20px', borderRadius: 8,
-                background: actionLoading ? '#6ee7b7' : '#10b981',
-                color: '#fff', border: 'none', fontWeight: 700, fontSize: '.84rem',
-                cursor: actionLoading ? 'default' : 'pointer', fontFamily: 'inherit',
-                transition: 'background .15s', opacity: actionLoading ? .7 : 1,
-              }}
-              onMouseEnter={e => { if (!actionLoading) e.currentTarget.style.background = '#059669' }}
-              onMouseLeave={e => { if (!actionLoading) e.currentTarget.style.background = '#10b981' }}
-            >
-              {actionLoading ? '…' : (
-                <>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  Approve
-                </>
-              )}
-            </button>
-          </div>
-        )}
+          )}
+          {!isResolved && <div />}
+
+          {/* Pending actions */}
+          {isPending && !showRejectForm && (
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                className="admin-btn admin-btn--danger"
+                disabled={!!actionLoading}
+                onClick={() => setShowRejectForm(true)}
+              >
+                Reject
+              </button>
+              <button
+                disabled={!!actionLoading}
+                onClick={() => onApprove(req.id)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '7px 20px', borderRadius: 8,
+                  background: actionLoading ? '#6ee7b7' : '#10b981',
+                  color: '#fff', border: 'none', fontWeight: 700, fontSize: '.84rem',
+                  cursor: actionLoading ? 'default' : 'pointer', fontFamily: 'inherit',
+                  transition: 'background .15s', opacity: actionLoading ? .7 : 1,
+                }}
+                onMouseEnter={e => { if (!actionLoading) e.currentTarget.style.background = '#059669' }}
+                onMouseLeave={e => { if (!actionLoading) e.currentTarget.style.background = '#10b981' }}
+              >
+                {actionLoading ? '…' : (
+                  <>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    Approve
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
 }
 
+/* ─── Filters ─────────────────────────────────────────────────────── */
+const FILTERS = ['All', 'Pending', 'Approved', 'Rejected']
+
 /* ─── Main page ─────────────────────────────────────────────────────── */
 export default function AdminRequestsPage() {
-  const [requests, setRequests]       = useState([])
-  const [loading, setLoading]         = useState(true)
-  const [selectedReq, setSelectedReq] = useState(null)
-  const [rejectingId, setRejectingId] = useState(null)
-  const [rejectNote, setRejectNote]   = useState('')
+  const [requests, setRequests]           = useState([])
+  const [loading, setLoading]             = useState(true)
+  const [filter, setFilter]               = useState('All')
+  const [selectedReq, setSelectedReq]     = useState(null)
+  const [rejectingId, setRejectingId]     = useState(null)
+  const [rejectNote, setRejectNote]       = useState('')
   const [actionLoading, setActionLoading] = useState(null)
-  const [toast, setToast]             = useState(null)
+  const [toast, setToast]                 = useState(null)
 
   const fetchRequests = useCallback(async () => {
     try {
@@ -303,14 +326,35 @@ export default function AdminRequestsPage() {
     }
   }
 
+  async function handleDelete(id) {
+    setActionLoading(id + 'delete')
+    try {
+      const res = await fetch('/api/admin/slot-requests', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+      const data = await res.json()
+      if (!res.ok) { showToast(data.error || 'Delete failed', 'error'); return }
+      showToast('Request deleted')
+      setSelectedReq(null)
+      await fetchRequests()
+    } catch {
+      showToast('An error occurred', 'error')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
   const pendingCount = requests.filter(r => r.status === 'pending').length
+  const filtered = filter === 'All' ? requests : requests.filter(r => r.status === filter.toLowerCase())
 
   return (
-    <AdminLayout>
+    <>
       <style>{`
         @keyframes adToast{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
         @keyframes adExpand{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-        .req-row { cursor: pointer; transition: background .12s; }
+        .req-row { cursor: pointer; }
         .req-row:hover td { background: rgba(201,147,44,.04) !important; }
       `}</style>
 
@@ -335,6 +379,7 @@ export default function AdminRequestsPage() {
           onClose={() => setSelectedReq(null)}
           onApprove={handleApprove}
           onReject={handleReject}
+          onDelete={handleDelete}
           actionLoading={actionLoading}
         />
       )}
@@ -358,12 +403,45 @@ export default function AdminRequestsPage() {
         </div>
       </div>
 
+      {/* Filter tabs */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 20, flexWrap: 'wrap' }}>
+        {FILTERS.map(f => {
+          const count = f === 'All' ? requests.length : requests.filter(r => r.status === f.toLowerCase()).length
+          const active = filter === f
+          return (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className="admin-btn"
+              style={{
+                background: active ? 'var(--gold)' : 'var(--surface)',
+                color: active ? '#fff' : 'var(--text-60)',
+                borderColor: active ? 'var(--gold)' : 'var(--border)',
+                fontWeight: active ? 700 : 500,
+              }}
+            >
+              {f}
+              {count > 0 && (
+                <span style={{
+                  background: active ? 'rgba(255,255,255,.25)' : 'var(--accent-dim)',
+                  borderRadius: 100, padding: '1px 7px', fontSize: '.68rem',
+                }}>
+                  {count}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
       {loading ? (
         <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-40)' }}>Loading…</div>
-      ) : requests.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <EmptyState
-          title="No requests yet"
-          description="Schedule change requests from assessors will appear here for review."
+          title={filter === 'All' ? 'No requests yet' : `No ${filter.toLowerCase()} requests`}
+          description={filter === 'All'
+            ? 'Schedule change requests from assessors will appear here for review.'
+            : `There are no ${filter.toLowerCase()} requests at the moment.`}
         />
       ) : (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
@@ -378,7 +456,7 @@ export default function AdminRequestsPage() {
               </tr>
             </thead>
             <tbody>
-              {requests.map(req => (
+              {filtered.map(req => (
                 <>
                   <tr
                     key={req.id}
@@ -430,21 +508,33 @@ export default function AdminRequestsPage() {
                           </button>
                         </div>
                       ) : (
-                        <span style={{ fontSize: '.78rem', color: 'var(--text-40)' }}>
-                          {req.resolvedAt ? new Date(req.resolvedAt).toLocaleDateString() : '—'}
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '.78rem', color: 'var(--text-40)' }}>
+                            {req.resolvedAt ? new Date(req.resolvedAt).toLocaleDateString() : '—'}
+                          </span>
+                          <button
+                            className="admin-btn admin-btn--danger"
+                            disabled={!!actionLoading}
+                            onClick={() => handleDelete(req.id)}
+                            style={{ padding: '4px 10px', opacity: actionLoading === req.id + 'delete' ? .6 : 1 }}
+                            title="Delete request"
+                          >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
+                            </svg>
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>
 
-                  {/* Inline reject form (table row) */}
+                  {/* Inline reject form */}
                   {rejectingId === req.id && (
                     <tr key={`${req.id}-reject`}>
                       <td colSpan={5} style={{ padding: 0, borderTop: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
                         <div style={{
                           padding: '16px 20px',
                           background: 'rgba(239,68,68,.04)',
-                          borderBottom: '1px solid rgba(239,68,68,.15)',
                           animation: 'adExpand .18s ease',
                         }}>
                           <div style={{ fontSize: '.8rem', fontWeight: 600, color: 'var(--text)', marginBottom: 8 }}>
@@ -480,6 +570,6 @@ export default function AdminRequestsPage() {
           </table>
         </div>
       )}
-    </AdminLayout>
+    </>
   )
 }

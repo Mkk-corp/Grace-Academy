@@ -21,7 +21,7 @@ function getNavTarget(notif) {
   return null
 }
 
-export default function NotificationBell({ isDark, isAr, userId }) {
+export default function NotificationBell({ isDark, isAr, userId, notificationsHref = '/notifications' }) {
   const router = useRouter()
   const [notifications, setNotifications] = useState([])
   const [unread, setUnread] = useState(0)
@@ -220,7 +220,7 @@ export default function NotificationBell({ isDark, isAr, userId }) {
 
             {/* View all footer */}
             <Link
-              href="/notifications"
+              href={notificationsHref}
               onClick={() => setOpen(false)}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,

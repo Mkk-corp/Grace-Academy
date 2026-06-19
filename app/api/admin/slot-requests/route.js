@@ -116,3 +116,23 @@ export async function PUT(req) {
 
   return NextResponse.json({ success: true, request: allRequests[idx] })
 }
+
+export async function DELETE(req) {
+  const admin = await getAdminUser()
+  if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { id } = await req.json()
+  if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
+
+  const allRequests = await readContent('slot-requests') || []
+  const target = allRequests.find(r => r.id === id)
+  if (!target) return NextResponse.json({ error: 'Request not found' }, { status: 404 })
+  if (target.status === 'pending') {
+    return NextResponse.json({ error: 'Cannot delete a pending request' }, { status: 409 })
+  }
+
+  const updated = allRequests.filter(r => r.id !== id)
+  await writeContent('slot-requests', updated)
+
+  return NextResponse.json({ success: true })
+}

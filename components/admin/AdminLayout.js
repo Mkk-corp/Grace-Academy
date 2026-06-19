@@ -429,7 +429,7 @@ export default function AdminLayout({ children }) {
             search={search}
             onSearchChange={setSearch}
             onLogout={handleLogout}
-            notificationBell={<NotificationBell isDark={isDark} isAr={isAr} userId={user?.id} />}
+            notificationBell={<NotificationBell isDark={isDark} isAr={isAr} userId={user?.id} notificationsHref="/admin/notifications" />}
           />
 
           <main className="admin-main" style={{ marginLeft: 0, marginRight: 0 }}>
