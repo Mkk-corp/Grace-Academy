@@ -81,7 +81,7 @@ function LoginPage() {
     }
   }
 
-  const ff = isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-montserrat,'Montserrat',sans-serif)"
+  const ff = isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-gotham,'Gotham',sans-serif)"
 
   return (
     <>

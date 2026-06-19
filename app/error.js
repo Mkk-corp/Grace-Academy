@@ -20,7 +20,7 @@ export default function ErrorPage({ reset }) {
       background: isDark ? '#0d1b24' : '#f8fafc',
       padding: '40px 24px',
       direction: dir,
-      fontFamily: isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-montserrat,'Montserrat',sans-serif)",
+      fontFamily: isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-gotham,'Gotham',sans-serif)",
     }}>
       <style>{`
         @keyframes errFadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
@@ -47,7 +47,7 @@ export default function ErrorPage({ reset }) {
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text',
           marginBottom: 8,
-          fontFamily: "'Montserrat',sans-serif",
+          fontFamily: "'Gotham',sans-serif",
         }}>
           500
         </div>

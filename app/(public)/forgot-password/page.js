@@ -277,7 +277,7 @@ function ForgotPasswordPage() {
      firstLogin ? 'Password set! Signing you in to your new account…' : 'Your password has been reset. Signing you in automatically…']
   )[stepIdx]
 
-  const ff = isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-montserrat,'Montserrat',sans-serif)"
+  const ff = isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-gotham,'Gotham',sans-serif)"
 
   /* — color tokens — */
   const bgRight   = isDark ? '#10222b' : '#f8fafc'

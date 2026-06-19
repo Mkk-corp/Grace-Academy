@@ -23,7 +23,7 @@
     --border:       rgba(255,255,255,0.10);
     --border-gold:  rgba(201, 147, 44, 0.30);
 
-    --font-en:      var(--font-montserrat), 'Montserrat', sans-serif;
+    --font-en:      var(--font-gotham), 'Gotham', sans-serif;
     --font-ar:      var(--font-tajawal), 'Tajawal', sans-serif;
     --font:         var(--font-en);
 

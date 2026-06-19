@@ -139,7 +139,7 @@ export default function PortalPage() {
           style={{ width: 'min(500px,82vw)', height: 'min(500px,82vw)', objectFit: 'contain', animation: 'ldFloat 2.8s ease-in-out infinite' }}
         />
         <div style={{ textAlign: 'center', marginTop: 4, animation: 'ldFadeUp .55s ease both' }}>
-          <div style={{ fontSize: 'clamp(1.7rem,4vw,2.5rem)', fontWeight: 900, color: '#c9932c', letterSpacing: isAr ? 0 : '-.02em', lineHeight: 1.1, fontFamily: isAr ? "'Tajawal',sans-serif" : "'Montserrat',sans-serif", direction: dir }}>
+          <div style={{ fontSize: 'clamp(1.7rem,4vw,2.5rem)', fontWeight: 900, color: '#c9932c', letterSpacing: isAr ? 0 : '-.02em', lineHeight: 1.1, fontFamily: isAr ? "'Tajawal',sans-serif" : "'Gotham',sans-serif", direction: dir }}>
             {isAr ? 'الصبر ... بيحمل' : 'Hold your horses'}
           </div>
         </div>
@@ -175,7 +175,7 @@ export default function PortalPage() {
         }
 
         .pr-root{display:flex;min-height:100vh;background:var(--pr-bg);color:var(--pr-text);
-          font-family:${isAr?"var(--font-tajawal,'Tajawal',sans-serif)":"var(--font-montserrat,'Montserrat',sans-serif)"};
+          font-family:${isAr?"var(--font-tajawal,'Tajawal',sans-serif)":"var(--font-gotham,'Gotham',sans-serif)"};
           direction:${dir}}
 
         /* ─── SIDEBAR ─────────────────────── */

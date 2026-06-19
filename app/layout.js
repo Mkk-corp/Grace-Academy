@@ -1,12 +1,18 @@
-import { Montserrat, Tajawal } from 'next/font/google'
+import localFont from 'next/font/local'
+import { Tajawal } from 'next/font/google'
 import { LangProvider } from '@/context/LangContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import '@/app/globals.css'
 
-const montserrat = Montserrat({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '900'],
-  variable: '--font-montserrat',
+const gotham = localFont({
+  src: [
+    { path: '../public/fonts/gotham/Gotham-Light.otf',  weight: '300', style: 'normal' },
+    { path: '../public/fonts/gotham/Gotham-Book.otf',   weight: '400', style: 'normal' },
+    { path: '../public/fonts/gotham/Gotham-Medium.otf', weight: '500', style: 'normal' },
+    { path: '../public/fonts/gotham/Gotham-Bold.otf',   weight: '700', style: 'normal' },
+    { path: '../public/fonts/gotham/Gotham-Black.otf',  weight: '900', style: 'normal' },
+  ],
+  variable: '--font-gotham',
   display: 'swap',
 })
 
@@ -25,7 +31,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" dir="ltr" data-theme="light" suppressHydrationWarning>
-      <body className={`${montserrat.variable} ${tajawal.variable}`}>
+      <body className={`${gotham.variable} ${tajawal.variable}`}>
         <ThemeProvider>
           <LangProvider>
             {children}

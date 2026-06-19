@@ -37,7 +37,7 @@ export default function AdminLoginPage() {
         .login-root {
           display: flex;
           min-height: 100vh;
-          font-family: var(--font-montserrat, 'Montserrat', sans-serif);
+          font-family: var(--font-gotham, 'Gotham', sans-serif);
         }
 
         /* ── LEFT PANEL ── */

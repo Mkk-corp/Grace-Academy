@@ -245,7 +245,7 @@ export default function RegisterPage() {
     setSuccess(true)
   }
 
-  const ff = isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-montserrat,'Montserrat',sans-serif)"
+  const ff = isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-gotham,'Gotham',sans-serif)"
 
   /* — color tokens — */
   const bgRight    = isDark ? '#10222b' : '#f8fafc'

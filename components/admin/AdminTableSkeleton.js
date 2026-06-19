@@ -24,7 +24,7 @@ export default function AdminTableSkeleton({ cols = 3 }) {
           style={{ width: 260, height: 260, objectFit: 'contain', display: 'block', margin: '0 auto', animation: 'ldFloat 2.8s ease-in-out infinite' }}
         />
         <div style={{ marginTop: 8, animation: 'ldFadeUp .55s ease both', direction: dir }}>
-          <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#c9932c', letterSpacing: isAr ? 0 : '-.01em', fontFamily: isAr ? "'Tajawal',sans-serif" : "'Montserrat',sans-serif" }}>
+          <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#c9932c', letterSpacing: isAr ? 0 : '-.01em', fontFamily: isAr ? "'Tajawal',sans-serif" : "'Gotham',sans-serif" }}>
             {isAr ? 'الصبر ... بيحمل' : 'Hold your horses'}
           </div>
         </div>
