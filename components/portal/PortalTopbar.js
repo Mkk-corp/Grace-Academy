@@ -58,6 +58,7 @@ export default function PortalTopbar({
   sidebarOpen, onToggleSidebar,
   search, onSearchChange,
   onLogout, onSettings,
+  notificationBell,
 }) {
   const [open, setOpen] = useState(false)
   const dropRef = useRef(null)
@@ -162,9 +163,13 @@ export default function PortalTopbar({
         </button>
 
         {/* Bell */}
-        <button className="ptb-bell" style={iconBtn} aria-label="Notifications">
-          <BellI c={muted} />
-        </button>
+        <div className="ptb-bell">
+          {notificationBell || (
+            <button style={iconBtn} aria-label="Notifications">
+              <BellI c={muted} />
+            </button>
+          )}
+        </div>
 
         {/* ── Profile chip + dropdown ── */}
         <div ref={dropRef} style={{ position: 'relative', flexShrink: 0 }}>

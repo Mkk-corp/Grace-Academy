@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
 import PortalTopbar from '@/components/portal/PortalTopbar'
+import NotificationBell from '@/components/ui/NotificationBell'
 
 /* ─── Sidebar icons ───────────────────────────────────────────────── */
 function SbIcon({ d, size = 16 }) {
@@ -26,6 +27,7 @@ const ICONS = {
   student:    <><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></>,
   teacher:    <><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></>,
   assessor:   <><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></>,
+  clipboard:  <><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></>,
   home:       <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>,
   about:      <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></>,
   stats:      <><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></>,
@@ -361,6 +363,11 @@ export default function AdminLayout({ children }) {
             {!sidebarOpen && PORTALS_NAV.map(item => (
               <NavLink key={item.href} href={item.href} label={item.label} icon={item.icon} color={item.color} />
             ))}
+
+            <div style={{ height: 1, background: border, margin: '8px 12px' }} />
+
+            {/* Slot Requests */}
+            <NavLink href="/admin/requests" label="Slot Requests" icon="clipboard" startsWith />
           </nav>
 
           {/* Bottom */}
@@ -422,6 +429,7 @@ export default function AdminLayout({ children }) {
             search={search}
             onSearchChange={setSearch}
             onLogout={handleLogout}
+            notificationBell={<NotificationBell isDark={isDark} isAr={isAr} userId={user?.id} />}
           />
 
           <main className="admin-main" style={{ marginLeft: 0, marginRight: 0 }}>

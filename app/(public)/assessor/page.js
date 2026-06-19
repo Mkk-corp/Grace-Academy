@@ -9,7 +9,9 @@ import { useTheme } from '@/context/ThemeContext'
 import AvailabilitySettings from '@/components/assessor/AvailabilitySettings'
 import WeeklySchedule from '@/components/assessor/WeeklySchedule'
 import WeeklyCalendar from '@/components/assessor/WeeklyCalendar'
+import SlotRequests from '@/components/assessor/SlotRequests'
 import PortalTopbar from '@/components/portal/PortalTopbar'
+import NotificationBell from '@/components/ui/NotificationBell'
 
 /* ─── icons ──────────────────────────────────────────────────────────── */
 function Icon({ name, size = 18, color = 'currentColor' }) {
@@ -43,6 +45,7 @@ const NAV = [
   { id: 'assessments', icon: 'clipboard', en: 'My Assessments',               ar: 'تقييماتي' },
   { id: 'schedule',    icon: 'schedule',  en: 'My Schedule',                   ar: 'جدولي' },
   { id: 'calendar',    icon: 'calendar',  en: 'My Calendar',                   ar: 'تقويمي' },
+  { id: 'requests',    icon: 'clipboard', en: 'My Requests',                   ar: 'طلباتي' },
   { id: 'students',    icon: 'students',  en: 'Assigned Students',             ar: 'الطلاب المعيّنون' },
   { id: 'reports',     icon: 'report',    en: 'Pending Reports',               ar: 'التقارير المعلّقة' },
   { id: 'history',     icon: 'history',   en: 'Assessment History',            ar: 'سجل التقييمات' },
@@ -435,6 +438,7 @@ export default function AssessorPage() {
             search={search} onSearchChange={setSearch}
             onLogout={handleLogout}
             onSettings={() => setActiveTab('avail')}
+            notificationBell={<NotificationBell isDark={isDark} isAr={isAr} userId={user?.id} />}
           />
 
           {/* CONTENT */}
@@ -447,6 +451,8 @@ export default function AssessorPage() {
               ? <WeeklySchedule user={user} isAr={isAr} isDark={isDark} />
               : activeTab === 'calendar'
               ? <WeeklyCalendar user={user} isAr={isAr} isDark={isDark} />
+              : activeTab === 'requests'
+              ? <SlotRequests user={user} isAr={isAr} isDark={isDark} />
               : <ComingSoon tab={activeTab} isAr={isAr} isDark={isDark} />
             }
           </main>
