@@ -106,7 +106,7 @@ export async function POST(req) {
     title: 'New Schedule Change Request',
     body: `${user.name} has submitted a schedule change request.`,
     type: 'slot_request',
-    meta: { requestId: newRequest.id, assessorId: user.id },
+    meta: { requestId: newRequest.id, assessorId: user.id, assessorName: user.name },
     read: false,
     createdAt: new Date().toISOString(),
   })

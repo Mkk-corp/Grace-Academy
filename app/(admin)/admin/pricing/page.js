@@ -2,13 +2,55 @@
 
 import { useState, useEffect } from 'react'
 import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
+import { useLang } from '@/context/LangContext'
+
+const S = {
+  en: {
+    title: 'Pricing Plans',
+    colPlan: 'Plan (EN)', colPrice: 'Price', colPopular: 'Popular', colActions: 'Actions',
+    edit: 'Edit', cancel: 'Cancel', save: 'Save',
+    modalTitle: (name) => `Edit ${name}`,
+    fields: [
+      ['Name EN',         'name.en',  'input'],
+      ['Name AR',         'name.ar',  'input'],
+      ['Price',           'price',    'input'],
+      ['Currency',        'currency', 'input'],
+      ['Description EN',  'desc.en',  'textarea'],
+      ['Description AR',  'desc.ar',  'textarea'],
+      ['CTA EN',          'cta.en',   'input'],
+      ['CTA AR',          'cta.ar',   'input'],
+    ],
+    popularLabel: 'Most Popular', yes: 'Yes', no: 'No',
+  },
+  ar: {
+    title: 'خطط الأسعار',
+    colPlan: 'الخطة (إنجليزي)', colPrice: 'السعر', colPopular: 'الأكثر شيوعاً', colActions: 'الإجراءات',
+    edit: 'تعديل', cancel: 'إلغاء', save: 'حفظ',
+    modalTitle: (name) => `تعديل ${name}`,
+    fields: [
+      ['الاسم (إنجليزي)',   'name.en',  'input'],
+      ['الاسم (عربي)',      'name.ar',  'input'],
+      ['السعر',             'price',    'input'],
+      ['العملة',            'currency', 'input'],
+      ['الوصف (إنجليزي)',   'desc.en',  'textarea'],
+      ['الوصف (عربي)',      'desc.ar',  'textarea'],
+      ['نص الزر (إنجليزي)','cta.en',   'input'],
+      ['نص الزر (عربي)',   'cta.ar',   'input'],
+    ],
+    popularLabel: 'الأكثر شيوعاً', yes: 'نعم', no: 'لا',
+  },
+}
 
 export default function AdminPricingPage() {
-  const [plans, setPlans] = useState([])
+  const { lang } = useLang()
+  const s = S[lang] || S.en
+  const [plans, setPlans]   = useState([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null)
 
-  useEffect(() => { fetch('/api/pricing').then(r => r.json()).then(d => { setPlans(d); setLoading(false) }) }, [])
+  useEffect(() => {
+    fetch('/api/pricing').then(r => r.json()).then(d => { setPlans(d); setLoading(false) })
+  }, [])
 
   async function save(plan) {
     await fetch('/api/pricing', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(plan) })
@@ -19,9 +61,11 @@ export default function AdminPricingPage() {
 
   return (
     <>
-      <div className="admin-header"><h1>Pricing Plans</h1></div>
+      <div className="admin-header"><h1>{s.title}</h1></div>
       <table className="admin-table">
-        <thead><tr><th>Plan (EN)</th><th>Price</th><th>Popular</th><th>Actions</th></tr></thead>
+        <thead>
+          <tr><th>{s.colPlan}</th><th>{s.colPrice}</th><th>{s.colPopular}</th><th>{s.colActions}</th></tr>
+        </thead>
         <tbody>
           {loading
             ? <AdminTableSkeleton cols={4} rows={3} />
@@ -35,17 +79,17 @@ export default function AdminPricingPage() {
                   : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16" style={{color:'var(--text-40)'}}><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 }
               </td>
-              <td><button className="admin-btn" onClick={() => setEditing({ ...plan })}>Edit</button></td>
+              <td><button className="admin-btn" onClick={() => setEditing({ ...plan })}>{s.edit}</button></td>
             </tr>
           ))}
         </tbody>
       </table>
-      {editing && <PricingModal plan={editing} onSave={save} onClose={() => setEditing(null)} />}
+      {editing && <PricingModal plan={editing} onSave={save} onClose={() => setEditing(null)} s={s} />}
     </>
   )
 }
 
-function PricingModal({ plan, onSave, onClose }) {
+function PricingModal({ plan, onSave, onClose, s }) {
   const [form, setForm] = useState(plan)
   const set = (path, val) => {
     const [a, b] = path.split('.')
@@ -55,27 +99,31 @@ function PricingModal({ plan, onSave, onClose }) {
   return (
     <div className="admin-modal">
       <div className="admin-modal__box">
-        <h2 className="admin-modal__title">Edit {plan.name.en}</h2>
-        {[['Name EN', 'name.en'], ['Name AR', 'name.ar'], ['Price', 'price'], ['Currency', 'currency'], ['Description EN', 'desc.en'], ['Description AR', 'desc.ar'], ['CTA EN', 'cta.en'], ['CTA AR', 'cta.ar']].map(([label, path]) => (
+        <div className="admin-modal__header">
+          <h2 className="admin-modal__title">{s.modalTitle(plan.name.en)}</h2>
+          <button className="admin-modal__close" onClick={onClose} aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        {s.fields.map(([label, path, type]) => (
           <div key={path} className="admin-field">
             <label>{label}</label>
-            {path.includes('desc') ? (
-              <textarea value={path.split('.').reduce((o, k) => o[k], form)} onChange={e => set(path, e.target.value)} />
-            ) : (
-              <input value={path.split('.').reduce((o, k) => o[k], form)} onChange={e => set(path, e.target.value)} />
-            )}
+            {type === 'textarea'
+              ? <textarea value={path.split('.').reduce((o, k) => o[k], form)} onChange={e => set(path, e.target.value)} />
+              : <input value={path.split('.').reduce((o, k) => o[k], form)} onChange={e => set(path, e.target.value)} />
+            }
           </div>
         ))}
         <div className="admin-field">
-          <label>Most Popular</label>
+          <label>{s.popularLabel}</label>
           <select value={form.popular ? 'yes' : 'no'} onChange={e => set('popular', e.target.value === 'yes')}>
-            <option value="no">No</option>
-            <option value="yes">Yes</option>
+            <option value="no">{s.no}</option>
+            <option value="yes">{s.yes}</option>
           </select>
         </div>
         <div className="admin-actions">
-          <button className="admin-btn" onClick={onClose}>Cancel</button>
-          <button className="admin-btn admin-btn--primary" onClick={() => onSave(form)}>Save</button>
+          <button className="admin-btn" onClick={onClose}>{s.cancel}</button>
+          <button className="admin-btn admin-btn--primary" onClick={() => onSave(form)}>{s.save}</button>
         </div>
       </div>
     </div>

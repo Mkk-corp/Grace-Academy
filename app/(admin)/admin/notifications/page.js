@@ -3,15 +3,40 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import EmptyState from '@/components/ui/EmptyState'
+import { useLang } from '@/context/LangContext'
+import { localizeNotification } from '@/lib/notificationStrings'
 
-function timeAgo(iso) {
+function timeAgo(iso, isAr) {
   const diff = Date.now() - new Date(iso).getTime()
   const m = Math.floor(diff / 60000)
-  if (m < 1) return 'just now'
-  if (m < 60) return `${m}m ago`
+  if (m < 1) return isAr ? 'الآن' : 'just now'
+  if (m < 60) return isAr ? `منذ ${m} د` : `${m}m ago`
   const h = Math.floor(m / 60)
-  if (h < 24) return `${h}h ago`
-  return `${Math.floor(h / 24)}d ago`
+  if (h < 24) return isAr ? `منذ ${h} س` : `${h}h ago`
+  return isAr ? `منذ ${Math.floor(h / 24)} ي` : `${Math.floor(h / 24)}d ago`
+}
+
+const NS = {
+  en: {
+    title: 'Notifications', unread: 'unread',
+    markAllRead: 'Mark all read', markRead: 'Mark read',
+    filterAll: 'All', filterUnread: 'Unread', filterRead: 'Read',
+    viewLink: 'View →',
+    emptyAll: 'No notifications yet', emptyAllDesc: 'Notifications about slot change requests and system events will appear here.',
+    emptyUnread: 'No unread notifications', emptyRead: 'No read notifications',
+    emptyOtherDesc: 'No notifications in this category at the moment.',
+    toastRead: 'All notifications marked as read',
+  },
+  ar: {
+    title: 'الإشعارات', unread: 'غير مقروء',
+    markAllRead: 'تحديد الكل كمقروء', markRead: 'تحديد كمقروء',
+    filterAll: 'الكل', filterUnread: 'غير مقروء', filterRead: 'مقروء',
+    viewLink: 'عرض ←',
+    emptyAll: 'لا توجد إشعارات بعد', emptyAllDesc: 'ستظهر هنا الإشعارات المتعلقة بطلبات تغيير الجدول وأحداث النظام.',
+    emptyUnread: 'لا توجد إشعارات غير مقروءة', emptyRead: 'لا توجد إشعارات مقروءة',
+    emptyOtherDesc: 'لا توجد إشعارات في هذه الفئة حالياً.',
+    toastRead: 'تم تحديد كل الإشعارات كمقروءة',
+  },
 }
 
 function getNavTarget(notif) {
@@ -41,10 +66,16 @@ function NotifIcon({ type, body }) {
   )
 }
 
-const FILTERS = ['All', 'Unread', 'Read']
-
 export default function AdminNotificationsPage() {
   const router = useRouter()
+  const { lang } = useLang()
+  const isAr = lang === 'ar'
+  const ns = NS[lang] || NS.en
+  const FILTERS = [
+    { key: 'All',    label: ns.filterAll },
+    { key: 'Unread', label: ns.filterUnread },
+    { key: 'Read',   label: ns.filterRead },
+  ]
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading]             = useState(true)
   const [filter, setFilter]               = useState('All')
@@ -83,7 +114,7 @@ export default function AdminNotificationsPage() {
       body: JSON.stringify({ all: true }),
     })
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
-    showToast('All notifications marked as read')
+    showToast(ns.toastRead)
   }
 
   async function handleClick(notif) {
@@ -93,9 +124,9 @@ export default function AdminNotificationsPage() {
   }
 
   const unreadCount = notifications.filter(n => !n.read).length
-  const filtered = filter === 'All' ? notifications
+  const filtered = filter === 'All'    ? notifications
     : filter === 'Unread' ? notifications.filter(n => !n.read)
-    : notifications.filter(n => n.read)
+    :                       notifications.filter(n => n.read)
 
   return (
     <>
@@ -112,38 +143,40 @@ export default function AdminNotificationsPage() {
 
       <div className="admin-header">
         <div>
-          <div style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '.12em', color: 'var(--gold)', marginBottom: 4 }}>SYSTEM</div>
+          <div style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '.12em', color: 'var(--gold)', marginBottom: 4 }}>
+            {isAr ? 'النظام' : 'SYSTEM'}
+          </div>
           <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            Notifications
+            {ns.title}
             {unreadCount > 0 && (
               <span style={{
                 padding: '2px 10px', background: 'rgba(239,68,68,.12)',
                 border: '1px solid rgba(239,68,68,.28)', borderRadius: 100,
                 fontSize: '.72rem', fontWeight: 700, color: '#ef4444',
               }}>
-                {unreadCount} unread
+                {unreadCount} {ns.unread}
               </span>
             )}
           </h1>
         </div>
         {unreadCount > 0 && (
           <button className="admin-btn" onClick={markAllRead}>
-            Mark all read
+            {ns.markAllRead}
           </button>
         )}
       </div>
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 20, flexWrap: 'wrap' }}>
-        {FILTERS.map(f => {
-          const count = f === 'All' ? notifications.length
-            : f === 'Unread' ? notifications.filter(n => !n.read).length
-            : notifications.filter(n => n.read).length
-          const active = filter === f
+        {FILTERS.map(({ key, label }) => {
+          const count = key === 'All'    ? notifications.length
+            : key === 'Unread' ? notifications.filter(n => !n.read).length
+            :                    notifications.filter(n => n.read).length
+          const active = filter === key
           return (
             <button
-              key={f}
-              onClick={() => setFilter(f)}
+              key={key}
+              onClick={() => setFilter(key)}
               className="admin-btn"
               style={{
                 background: active ? 'var(--gold)' : 'var(--surface)',
@@ -152,7 +185,7 @@ export default function AdminNotificationsPage() {
                 fontWeight: active ? 700 : 500,
               }}
             >
-              {f}
+              {label}
               {count > 0 && (
                 <span style={{
                   background: active ? 'rgba(255,255,255,.25)' : 'var(--accent-dim)',
@@ -167,17 +200,18 @@ export default function AdminNotificationsPage() {
       </div>
 
       {loading ? (
-        <div style={{ padding: '80px 20px', textAlign: 'center', color: 'var(--text-40)' }}>Loading…</div>
+        <div style={{ padding: '80px 20px', textAlign: 'center', color: 'var(--text-40)' }}>{isAr ? 'جارٍ التحميل…' : 'Loading…'}</div>
       ) : filtered.length === 0 ? (
         <EmptyState
-          title={filter === 'Unread' ? 'No unread notifications' : filter === 'Read' ? 'No read notifications' : 'No notifications yet'}
-          description={filter === 'All' ? 'Notifications about slot change requests and system events will appear here.' : `No ${filter.toLowerCase()} notifications at the moment.`}
+          title={filter === 'Unread' ? ns.emptyUnread : filter === 'Read' ? ns.emptyRead : ns.emptyAll}
+          description={filter === 'All' ? ns.emptyAllDesc : ns.emptyOtherDesc}
         />
       ) : (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
           {filtered.map((notif, i) => {
             const isLast = i === filtered.length - 1
             const clickable = !!getNavTarget(notif)
+            const { title: lTitle, body: lBody } = localizeNotification(notif, lang)
             return (
               <div
                 key={notif.id}
@@ -204,24 +238,24 @@ export default function AdminNotificationsPage() {
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: notif.read ? 600 : 700, fontSize: '.9rem', color: 'var(--text)', marginBottom: 4 }}>
-                    {notif.title}
+                    {lTitle}
                   </div>
                   <div style={{ fontSize: '.82rem', color: 'var(--text-60)', lineHeight: 1.6, marginBottom: 6 }}>
-                    {notif.body}
+                    {lBody}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '.72rem', color: 'var(--text-40)' }}>{timeAgo(notif.createdAt)}</span>
+                    <span style={{ fontSize: '.72rem', color: 'var(--text-40)' }}>{timeAgo(notif.createdAt, isAr)}</span>
                     {!notif.read && (
                       <button
                         onClick={e => { e.stopPropagation(); markRead(notif.id) }}
                         className="admin-btn"
                         style={{ padding: '2px 8px', fontSize: '.7rem' }}
                       >
-                        Mark read
+                        {ns.markRead}
                       </button>
                     )}
                     {clickable && (
-                      <span style={{ fontSize: '.72rem', color: '#c9932c', fontWeight: 700 }}>View →</span>
+                      <span style={{ fontSize: '.72rem', color: '#c9932c', fontWeight: 700 }}>{ns.viewLink}</span>
                     )}
                   </div>
                 </div>

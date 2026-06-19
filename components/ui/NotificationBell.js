@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { localizeNotification } from '@/lib/notificationStrings'
 
 function timeAgo(iso) {
   const diff = Date.now() - new Date(iso).getTime()
@@ -184,7 +185,9 @@ export default function NotificationBell({ isDark, isAr, userId, notificationsHr
                   <div style={{ fontSize: '.82rem', color: xmuted }}>{isAr ? 'لا توجد إشعارات' : 'No notifications yet'}</div>
                 </div>
               ) : (
-                displayed.map(notif => (
+                displayed.map(notif => {
+                  const { title: lTitle, body: lBody } = localizeNotification(notif, isAr ? 'ar' : 'en')
+                  return (
                   <div
                     key={notif.id}
                     onClick={() => handleNotifClick(notif)}
@@ -204,17 +207,18 @@ export default function NotificationBell({ isDark, isAr, userId, notificationsHr
 
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '.82rem', fontWeight: notif.read ? 500 : 700, color: text, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {notif.title}
+                        {lTitle}
                       </div>
                       <div style={{ fontSize: '.74rem', color: muted, lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                        {notif.body}
+                        {lBody}
                       </div>
                       <div style={{ fontSize: '.65rem', color: xmuted, marginTop: 4 }}>
                         {timeAgo(notif.createdAt)}
                       </div>
                     </div>
                   </div>
-                ))
+                  )
+                })
               )}
             </div>
 

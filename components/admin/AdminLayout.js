@@ -44,28 +44,28 @@ const ICONS = {
 }
 
 /* ─── Nav definitions ─────────────────────────────────────────────── */
-const CONTENT_NAV = [
-  { href: '/admin/content/home',    label: 'Home',         icon: 'home'      },
-  { href: '/admin/content/about',   label: 'About',        icon: 'about'     },
-  { href: '/admin/stats',           label: 'Stats',        icon: 'stats'     },
-  { href: '/admin/services',        label: 'Services',     icon: 'services'  },
-  { href: '/admin/portfolio',       label: 'Portfolio',    icon: 'portfolio' },
-  { href: '/admin/blog',            label: 'Blog',         icon: 'blog'      },
-  { href: '/admin/faq',             label: 'FAQ',          icon: 'faq'       },
-  { href: '/admin/pricing',         label: 'Pricing',      icon: 'pricing'   },
-  { href: '/admin/contact',         label: 'Messages',     icon: 'messages'  },
-  { href: '/admin/content/contact', label: 'Contact Info', icon: 'location'  },
+const CONTENT_NAV = (isAr) => [
+  { href: '/admin/content/home',    label: isAr ? 'الرئيسية'         : 'Home',         icon: 'home'      },
+  { href: '/admin/content/about',   label: isAr ? 'من نحن'           : 'About',        icon: 'about'     },
+  { href: '/admin/stats',           label: isAr ? 'الإحصائيات'       : 'Stats',        icon: 'stats'     },
+  { href: '/admin/services',        label: isAr ? 'الخدمات'          : 'Services',     icon: 'services'  },
+  { href: '/admin/portfolio',       label: isAr ? 'أعمالنا'          : 'Portfolio',    icon: 'portfolio' },
+  { href: '/admin/blog',            label: isAr ? 'المدونة'          : 'Blog',         icon: 'blog'      },
+  { href: '/admin/faq',             label: isAr ? 'الأسئلة الشائعة'  : 'FAQ',          icon: 'faq'       },
+  { href: '/admin/pricing',         label: isAr ? 'الأسعار'          : 'Pricing',      icon: 'pricing'   },
+  { href: '/admin/contact',         label: isAr ? 'الرسائل'          : 'Messages',     icon: 'messages'  },
+  { href: '/admin/content/contact', label: isAr ? 'معلومات التواصل'  : 'Contact Info', icon: 'location'  },
 ]
 
-const USERS_NAV = [
-  { href: '/admin/users', label: 'Users', icon: 'users'  },
-  { href: '/admin/roles', label: 'Roles', icon: 'shield' },
+const USERS_NAV = (isAr) => [
+  { href: '/admin/users', label: isAr ? 'المستخدمون' : 'Users', icon: 'users'  },
+  { href: '/admin/roles', label: isAr ? 'الأدوار'    : 'Roles', icon: 'shield' },
 ]
 
-const PORTALS_NAV = [
-  { href: '/portal',   label: 'Student Portal',  icon: 'student',  color: '#c9932c' },
-  { href: '/teacher',  label: 'Teacher Portal',  icon: 'teacher',  color: '#c9932c' },
-  { href: '/assessor', label: 'Assessor Portal', icon: 'assessor', color: '#00897B' },
+const PORTALS_NAV = (isAr) => [
+  { href: '/portal',   label: isAr ? 'بوابة الطالب'   : 'Student Portal',  icon: 'student',  color: '#c9932c' },
+  { href: '/teacher',  label: isAr ? 'بوابة المعلم'   : 'Teacher Portal',  icon: 'teacher',  color: '#c9932c' },
+  { href: '/assessor', label: isAr ? 'بوابة المُقيّم' : 'Assessor Portal', icon: 'assessor', color: '#00897B' },
 ]
 
 export default function AdminLayout({ children }) {
@@ -300,7 +300,7 @@ export default function AdminLayout({ children }) {
             {sidebarOpen && (
               <div style={{ overflow: 'hidden' }}>
                 <div style={{ fontSize: '.68rem', fontWeight: 800, letterSpacing: '.15em', color: GOLD, fontFamily: 'var(--font-gotham,"Gotham",sans-serif)' }}>GRACE ACADEMY</div>
-                <div style={{ fontSize: '.54rem', letterSpacing: '.1em', color: muted, marginTop: 2 }}>ADMIN PORTAL</div>
+                <div style={{ fontSize: '.54rem', letterSpacing: '.1em', color: muted, marginTop: 2 }}>{isAr ? 'لوحة الإدارة' : 'ADMIN PORTAL'}</div>
               </div>
             )}
           </div>
@@ -309,19 +309,19 @@ export default function AdminLayout({ children }) {
           <nav style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '10px 0', scrollbarWidth: 'thin', scrollbarColor: `${border} transparent` }}>
 
             {/* Overview */}
-            <NavLink href="/admin" label="Overview" icon="overview" />
+            <NavLink href="/admin" label={isAr ? 'نظرة عامة' : 'Overview'} icon="overview" />
 
             <div style={{ height: 1, background: border, margin: '8px 12px' }} />
 
             {/* Website Content */}
             <AccordionToggle
-              label="Website Content" icon="layers"
+              label={isAr ? 'محتوى الموقع' : 'Website Content'} icon="layers"
               open={contentOpen} onClick={() => setContentOpen(o => !o)}
               active={isContent}
             />
             {contentOpen && sidebarOpen && (
               <div style={{ paddingLeft: isAr ? 0 : 8, paddingRight: isAr ? 8 : 0 }}>
-                {CONTENT_NAV.map(item => (
+                {CONTENT_NAV(isAr).map(item => (
                   <NavLink key={item.href} href={item.href} label={item.label} icon={item.icon} />
                 ))}
               </div>
@@ -331,13 +331,13 @@ export default function AdminLayout({ children }) {
 
             {/* Roles & Users */}
             <AccordionToggle
-              label="Roles & Users" icon="users"
+              label={isAr ? 'الأدوار والمستخدمون' : 'Roles & Users'} icon="users"
               open={usersOpen} onClick={() => setUsersOpen(o => !o)}
               active={isUsers}
             />
             {usersOpen && sidebarOpen && (
               <div style={{ paddingLeft: isAr ? 0 : 8, paddingRight: isAr ? 8 : 0 }}>
-                {USERS_NAV.map(item => (
+                {USERS_NAV(isAr).map(item => (
                   <NavLink key={item.href} href={item.href} label={item.label} icon={item.icon} startsWith />
                 ))}
               </div>
@@ -347,27 +347,27 @@ export default function AdminLayout({ children }) {
 
             {/* Portals */}
             <AccordionToggle
-              label="Portals" icon="portal"
+              label={isAr ? 'البوابات' : 'Portals'} icon="portal"
               open={portalsOpen} onClick={() => setPortalsOpen(o => !o)}
               active={false}
             />
             {portalsOpen && sidebarOpen && (
               <div style={{ paddingLeft: isAr ? 0 : 8, paddingRight: isAr ? 8 : 0 }}>
-                {PORTALS_NAV.map(item => (
+                {PORTALS_NAV(isAr).map(item => (
                   <NavLink key={item.href} href={item.href} label={item.label} icon={item.icon} color={item.color} />
                 ))}
               </div>
             )}
 
             {/* When collapsed, show portal icons directly */}
-            {!sidebarOpen && PORTALS_NAV.map(item => (
+            {!sidebarOpen && PORTALS_NAV(isAr).map(item => (
               <NavLink key={item.href} href={item.href} label={item.label} icon={item.icon} color={item.color} />
             ))}
 
             <div style={{ height: 1, background: border, margin: '8px 12px' }} />
 
             {/* Slot Requests */}
-            <NavLink href="/admin/requests" label="Slot Requests" icon="clipboard" startsWith />
+            <NavLink href="/admin/requests" label={isAr ? 'طلبات الجدول' : 'Slot Requests'} icon="clipboard" startsWith />
           </nav>
 
           {/* Bottom */}
@@ -387,7 +387,7 @@ export default function AdminLayout({ children }) {
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = muted }}
               >
                 <SbIcon d={ICONS.user} />
-                {sidebarOpen && <span style={{ fontFamily: 'var(--font-gotham,"Gotham",sans-serif)' }}>My Profile</span>}
+                {sidebarOpen && <span style={{ fontFamily: 'var(--font-gotham,"Gotham",sans-serif)' }}>{isAr ? 'ملفي الشخصي' : 'My Profile'}</span>}
               </div>
             </Link>
             <div
@@ -406,7 +406,7 @@ export default function AdminLayout({ children }) {
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
             >
               <SbIcon d={ICONS.logout} />
-              {sidebarOpen && <span style={{ fontFamily: 'var(--font-gotham,"Gotham",sans-serif)' }}>Log Out</span>}
+              {sidebarOpen && <span style={{ fontFamily: 'var(--font-gotham,"Gotham",sans-serif)' }}>{isAr ? 'تسجيل الخروج' : 'Log Out'}</span>}
             </div>
           </div>
         </aside>

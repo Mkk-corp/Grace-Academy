@@ -2,10 +2,11 @@
 
 import { use, useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useLang } from '@/context/LangContext'
 
 const SECTIONS = {
   home: {
-    title: 'Home Page',
+    titleEn: 'Home Page', titleAr: 'الصفحة الرئيسية',
     fields: [
       ['Hero Subtitle EN', 'heroSubtitle.en', 'textarea'],
       ['Hero Subtitle AR', 'heroSubtitle.ar', 'textarea'],
@@ -22,7 +23,7 @@ const SECTIONS = {
     ],
   },
   contact: {
-    title: 'Contact Page',
+    titleEn: 'Contact Page', titleAr: 'صفحة التواصل',
     fields: [
       ['Address', 'contactAddress', 'input'],
       ['Email', 'contactEmail', 'input'],
@@ -35,12 +36,57 @@ const SECTIONS = {
       ['YouTube URL', 'socialLinks.youtube', 'input'],
     ],
   },
-  about:     { title: 'About Page',     redirect: '/admin/stats',    note: 'The About page pulls its stats from the Stats section and its team/mission content from translations. Use the Stats admin to update counters.' },
-  services:  { title: 'Services Page',  redirect: '/admin/services', note: 'Service cards shown on this page are managed in the Services section.' },
-  portfolio: { title: 'Portfolio Page', redirect: '/admin/portfolio', note: 'Case studies and success stories shown on this page are managed in the Portfolio section.' },
-  blog:      { title: 'Blog Page',      redirect: '/admin/blog',     note: 'Blog posts shown on this page are managed in the Blog section.' },
-  faq:       { title: 'FAQ Page',       redirect: '/admin/faq',      note: 'Frequently asked questions shown on this page are managed in the FAQ section.' },
-  pricing:   { title: 'Pricing Page',   redirect: '/admin/pricing',  note: 'Pricing plans shown on this page are managed in the Pricing section.' },
+  about: {
+    titleEn: 'About Page', titleAr: 'صفحة عن الأكاديمية',
+    redirect: '/admin/stats',
+    noteEn: 'The About page pulls its stats from the Stats section and its team/mission content from translations. Use the Stats admin to update counters.',
+    noteAr: 'تسحب صفحة "عن الأكاديمية" إحصائياتها من قسم الإحصائيات. استخدم إدارة الإحصائيات لتحديث الأرقام.',
+  },
+  services: {
+    titleEn: 'Services Page', titleAr: 'صفحة الخدمات',
+    redirect: '/admin/services',
+    noteEn: 'Service cards shown on this page are managed in the Services section.',
+    noteAr: 'بطاقات الخدمات المعروضة في هذه الصفحة تُدار من قسم الخدمات.',
+  },
+  portfolio: {
+    titleEn: 'Portfolio Page', titleAr: 'صفحة أعمالنا',
+    redirect: '/admin/portfolio',
+    noteEn: 'Case studies and success stories shown on this page are managed in the Portfolio section.',
+    noteAr: 'دراسات الحالة وقصص النجاح المعروضة في هذه الصفحة تُدار من قسم الأعمال.',
+  },
+  blog: {
+    titleEn: 'Blog Page', titleAr: 'صفحة المدونة',
+    redirect: '/admin/blog',
+    noteEn: 'Blog posts shown on this page are managed in the Blog section.',
+    noteAr: 'مقالات المدونة المعروضة في هذه الصفحة تُدار من قسم المدونة.',
+  },
+  faq: {
+    titleEn: 'FAQ Page', titleAr: 'صفحة الأسئلة الشائعة',
+    redirect: '/admin/faq',
+    noteEn: 'Frequently asked questions shown on this page are managed in the FAQ section.',
+    noteAr: 'الأسئلة الشائعة المعروضة في هذه الصفحة تُدار من قسم الأسئلة الشائعة.',
+  },
+  pricing: {
+    titleEn: 'Pricing Page', titleAr: 'صفحة الأسعار',
+    redirect: '/admin/pricing',
+    noteEn: 'Pricing plans shown on this page are managed in the Pricing section.',
+    noteAr: 'خطط الأسعار المعروضة في هذه الصفحة تُدار من قسم الأسعار.',
+  },
+}
+
+const S = {
+  en: {
+    notFound: 'Section Not Found',
+    managedTitle: 'Managed in a Dedicated Section',
+    goTo: (name) => `Go to ${name} Section`,
+    save: 'Save Changes', saved: 'Saved',
+  },
+  ar: {
+    notFound: 'القسم غير موجود',
+    managedTitle: 'يُدار في قسم مخصص',
+    goTo: (name) => `الذهاب إلى قسم ${name}`,
+    save: 'حفظ التغييرات', saved: 'تم الحفظ',
+  },
 }
 
 function get(obj, path) {
@@ -55,6 +101,9 @@ function set(obj, path, val) {
 
 export default function ContentSectionPage({ params }) {
   const { section } = use(params)
+  const { lang } = useLang()
+  const isAr = lang === 'ar'
+  const s = S[lang] || S.en
   const config = SECTIONS[section]
   const [content, setContent] = useState(null)
   const [saved, setSaved] = useState(false)
@@ -78,25 +127,29 @@ export default function ContentSectionPage({ params }) {
   if (!config) {
     return (
       <div className="admin-header">
-        <h1>Section Not Found</h1>
+        <h1>{s.notFound}</h1>
       </div>
     )
   }
 
+  const title = isAr ? config.titleAr : config.titleEn
+
   if (config.redirect) {
+    const note = isAr ? config.noteAr : config.noteEn
+    const shortName = isAr ? config.titleAr.replace('صفحة ', '') : config.titleEn.replace(' Page', '')
     return (
       <>
         <div className="admin-header">
-          <h1>{config.title}</h1>
+          <h1>{title}</h1>
         </div>
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '40px 32px', maxWidth: 560 }}>
           <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(201,147,44,.1)', border: '1px solid rgba(201,147,44,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.8" width="22" height="22"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
           </div>
-          <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text)', marginBottom: '.6rem', fontFamily: 'var(--font)' }}>Managed in a Dedicated Section</h3>
-          <p style={{ fontSize: '.9rem', color: 'var(--text-60)', lineHeight: 1.7, marginBottom: '1.5rem', fontFamily: 'var(--font)' }}>{config.note}</p>
+          <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text)', marginBottom: '.6rem', fontFamily: 'var(--font)' }}>{s.managedTitle}</h3>
+          <p style={{ fontSize: '.9rem', color: 'var(--text-60)', lineHeight: 1.7, marginBottom: '1.5rem', fontFamily: 'var(--font)' }}>{note}</p>
           <Link href={config.redirect} className="admin-btn admin-btn--primary" style={{ textDecoration: 'none' }}>
-            Go to {config.title.replace(' Page', '')} Section
+            {s.goTo(shortName)}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </Link>
         </div>
@@ -107,7 +160,7 @@ export default function ContentSectionPage({ params }) {
   if (!content) {
     return (
       <>
-        <div className="admin-header"><h1>{config.title}</h1></div>
+        <div className="admin-header"><h1>{title}</h1></div>
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '28px' }}>
           {config.fields.map(([label]) => (
             <div key={label} className="admin-field">
@@ -123,11 +176,11 @@ export default function ContentSectionPage({ params }) {
   return (
     <>
       <div className="admin-header">
-        <h1>{config.title}</h1>
+        <h1>{title}</h1>
         <button className="admin-btn admin-btn--primary" onClick={save}>
           {saved
-            ? <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Saved</>
-            : 'Save Changes'
+            ? <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> {s.saved}</>
+            : s.save
           }
         </button>
       </div>

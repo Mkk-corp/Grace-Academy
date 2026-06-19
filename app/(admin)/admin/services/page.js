@@ -4,20 +4,47 @@ import { useState, useEffect } from 'react'
 import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 import Modal from '@/components/ui/Modal'
 import EmptyState from '@/components/ui/EmptyState'
+import { useLang } from '@/context/LangContext'
+
+const S = {
+  en: {
+    title: 'Services', addBtn: '+ Add',
+    colTitle: 'Title (EN)', colTag: 'Tag (EN)', colActions: 'Actions',
+    emptyTitle: 'No services yet', emptyDesc: 'Add your first service to showcase what Grace Academy offers.',
+    emptyAction: 'Add Service',
+    modalAdd: 'Add Service', modalEdit: 'Edit Service',
+    fields: [['Title EN','title.en'],['Title AR','title.ar'],['Body EN','body.en'],['Body AR','body.ar'],['Tag EN','tag.en'],['Tag AR','tag.ar']],
+    cancel: 'Cancel', save: 'Save',
+    deleteTitle: 'Delete service', deleteMsg: 'Are you sure you want to delete this service? This action cannot be undone.', deleteBtn: 'Delete',
+  },
+  ar: {
+    title: 'الخدمات', addBtn: '+ إضافة',
+    colTitle: 'العنوان (إنجليزي)', colTag: 'التصنيف (إنجليزي)', colActions: 'الإجراءات',
+    emptyTitle: 'لا توجد خدمات بعد', emptyDesc: 'أضف أول خدمة لعرض ما تقدمه أكاديمية جريس.',
+    emptyAction: 'إضافة خدمة',
+    modalAdd: 'إضافة خدمة', modalEdit: 'تعديل الخدمة',
+    fields: [['العنوان (إنجليزي)','title.en'],['العنوان (عربي)','title.ar'],['الوصف (إنجليزي)','body.en'],['الوصف (عربي)','body.ar'],['التصنيف (إنجليزي)','tag.en'],['التصنيف (عربي)','tag.ar']],
+    cancel: 'إلغاء', save: 'حفظ',
+    deleteTitle: 'حذف الخدمة', deleteMsg: 'هل أنت متأكد من حذف هذه الخدمة؟ لا يمكن التراجع عن هذا الإجراء.', deleteBtn: 'حذف',
+  },
+}
 
 export default function AdminServicesPage() {
-  const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState(null)
-  const [deleteTarget, setDeleteTarget] = useState(null)
+  const { lang } = useLang()
+  const s = S[lang] || S.en
+  const [items, setItems]         = useState([])
+  const [loading, setLoading]     = useState(true)
+  const [editing, setEditing]     = useState(null)
+  const [deleteTarget, setDelete] = useState(null)
+
+  const blank = () => ({ id: `new${Date.now()}`, title: { en: '', ar: '' }, body: { en: '', ar: '' }, tag: { en: '', ar: '' }, iconSlug: '' })
 
   useEffect(() => { fetch('/api/services').then(r => r.json()).then(d => { setItems(d); setLoading(false) }) }, [])
 
   async function save(item) {
     const method = item.id.startsWith('new') ? 'POST' : 'PUT'
     await fetch('/api/services', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) })
-    const fresh = await fetch('/api/services').then(r => r.json())
-    setItems(fresh)
+    setItems(await fetch('/api/services').then(r => r.json()))
     setEditing(null)
   }
 
@@ -25,76 +52,60 @@ export default function AdminServicesPage() {
     if (!deleteTarget) return
     await fetch('/api/services', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: deleteTarget }) })
     setItems(prev => prev.filter(i => i.id !== deleteTarget))
-    setDeleteTarget(null)
+    setDelete(null)
   }
 
   return (
     <>
       <div className="admin-header">
-        <h1>Services</h1>
-        <button className="admin-btn admin-btn--primary" onClick={() => setEditing({ id: `new${Date.now()}`, title: { en: '', ar: '' }, body: { en: '', ar: '' }, tag: { en: '', ar: '' }, iconSlug: '' })}>+ Add</button>
+        <h1>{s.title}</h1>
+        <button className="admin-btn admin-btn--primary" onClick={() => setEditing(blank())}>{s.addBtn}</button>
       </div>
       {!loading && items.length === 0 && (
-        <EmptyState
-          title="No services yet"
-          description="Add your first service to showcase what Grace Academy offers."
-          actionLabel="Add Service"
-          onAction={() => setEditing({ id: `new${Date.now()}`, title: { en: '', ar: '' }, body: { en: '', ar: '' }, tag: { en: '', ar: '' }, iconSlug: '' })}
-        />
+        <EmptyState title={s.emptyTitle} description={s.emptyDesc} actionLabel={s.emptyAction} onAction={() => setEditing(blank())} />
       )}
       {(loading || items.length > 0) && (
-      <table className="admin-table">
-        <thead><tr><th>Title (EN)</th><th>Tag (EN)</th><th>Actions</th></tr></thead>
-        <tbody>
-          {loading
-            ? <AdminTableSkeleton cols={3} rows={6} />
-            : items.map(item => (
+        <table className="admin-table">
+          <thead><tr><th>{s.colTitle}</th><th>{s.colTag}</th><th>{s.colActions}</th></tr></thead>
+          <tbody>
+            {loading ? <AdminTableSkeleton cols={3} rows={6} /> : items.map(item => (
               <tr key={item.id}>
                 <td>{item.title.en}</td>
                 <td>{item.tag.en}</td>
-                <td style={{ display: 'flex', gap: '8px' }}>
-                  <button className="admin-btn" onClick={() => setEditing({ ...item })}>Edit</button>
-                  <button className="admin-btn admin-btn--danger" onClick={() => setDeleteTarget(item.id)}>Delete</button>
+                <td style={{ display: 'flex', gap: 8 }}>
+                  <button className="admin-btn" onClick={() => setEditing({ ...item })}>{lang === 'ar' ? 'تعديل' : 'Edit'}</button>
+                  <button className="admin-btn admin-btn--danger" onClick={() => setDelete(item.id)}>{lang === 'ar' ? 'حذف' : 'Delete'}</button>
                 </td>
               </tr>
-            ))
-          }
-        </tbody>
-      </table>
+            ))}
+          </tbody>
+        </table>
       )}
 
-      {editing && <EditModal item={editing} onSave={save} onClose={() => setEditing(null)} />}
+      {editing && <ServiceModal item={editing} onSave={save} onClose={() => setEditing(null)} s={s} />}
 
-      <Modal
-        open={!!deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={confirmDelete}
-        variant="delete"
-        title="Delete service"
-        message="Are you sure you want to delete this service? This action cannot be undone."
-        confirmText="Delete"
-      />
+      <Modal open={!!deleteTarget} onClose={() => setDelete(null)} onConfirm={confirmDelete}
+        variant="delete" title={s.deleteTitle} message={s.deleteMsg} confirmText={s.deleteBtn} cancelText={lang === 'ar' ? 'إلغاء' : 'Cancel'} />
     </>
   )
 }
 
-function EditModal({ item, onSave, onClose }) {
+function ServiceModal({ item, onSave, onClose, s }) {
   const [form, setForm] = useState(item)
   const set = (path, val) => {
     const [a, b] = path.split('.')
     setForm(f => b ? { ...f, [a]: { ...f[a], [b]: val } } : { ...f, [a]: val })
   }
-
   return (
     <div className="admin-modal">
       <div className="admin-modal__box">
         <div className="admin-modal__header">
-          <h2 className="admin-modal__title">{item.id.startsWith('new') ? 'Add Service' : 'Edit Service'}</h2>
+          <h2 className="admin-modal__title">{item.id.startsWith('new') ? s.modalAdd : s.modalEdit}</h2>
           <button className="admin-modal__close" onClick={onClose} aria-label="Close">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
-        {[['Title EN', 'title.en'], ['Title AR', 'title.ar'], ['Body EN', 'body.en'], ['Body AR', 'body.ar'], ['Tag EN', 'tag.en'], ['Tag AR', 'tag.ar']].map(([label, path]) => (
+        {s.fields.map(([label, path]) => (
           <div key={path} className="admin-field">
             <label>{label}</label>
             {path.includes('body') ? (
@@ -105,8 +116,8 @@ function EditModal({ item, onSave, onClose }) {
           </div>
         ))}
         <div className="admin-actions">
-          <button className="admin-btn" onClick={onClose}>Cancel</button>
-          <button className="admin-btn admin-btn--primary" onClick={() => onSave(form)}>Save</button>
+          <button className="admin-btn" onClick={onClose}>{s.cancel}</button>
+          <button className="admin-btn admin-btn--primary" onClick={() => onSave(form)}>{s.save}</button>
         </div>
       </div>
     </div>

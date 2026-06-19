@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
+import { localizeNotification } from '@/lib/notificationStrings'
 
 function timeAgo(iso, isAr) {
   const diff = Date.now() - new Date(iso).getTime()
@@ -276,6 +277,7 @@ export default function NotificationsPage() {
             {filtered.map((notif, i) => {
               const isLast = i === filtered.length - 1
               const clickable = !!getNavTarget(notif)
+              const { title: lTitle, body: lBody } = localizeNotification(notif, lang)
               return (
                 <div
                   key={notif.id}
@@ -298,14 +300,14 @@ export default function NotificationsPage() {
                     border: notif.read ? `1.5px solid ${border}` : 'none',
                   }} />
 
-                  <NotifIcon type={notif.type} body={notif.body} />
+                  <NotifIcon type={notif.type} body={lBody} />
 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: !notif.read ? 700 : 600, fontSize: '.88rem', color: text, marginBottom: 4 }}>
-                      {notif.title}
+                      {lTitle}
                     </div>
                     <div style={{ fontSize: '.82rem', color: muted, lineHeight: 1.6, marginBottom: 6 }}>
-                      {notif.body}
+                      {lBody}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '.72rem', color: xmuted }}>

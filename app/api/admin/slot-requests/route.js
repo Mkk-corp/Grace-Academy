@@ -91,7 +91,7 @@ export async function PUT(req) {
       ? 'Your schedule change request has been approved. Your new schedule is now active.'
       : `Your schedule change request has been rejected.${adminNote ? ` Reason: ${adminNote}` : ''}`,
     type: 'slot_request_resolved',
-    meta: { requestId: id, action },
+    meta: { requestId: id, action, adminNote: adminNote || null },
     read: false,
     createdAt: new Date().toISOString(),
   })
