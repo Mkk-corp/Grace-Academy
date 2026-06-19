@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
+import Modal from '@/components/ui/Modal'
 
 export default function AdminBlogPage() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
 
   useEffect(() => {
     fetch('/api/blog').then(r => r.json()).then(d => { setItems(d); setLoading(false) })
@@ -20,10 +22,11 @@ export default function AdminBlogPage() {
     setEditing(null)
   }
 
-  async function remove(id) {
-    if (!confirm('Delete?')) return
-    await fetch('/api/blog', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
-    setItems(prev => prev.filter(i => i.id !== id))
+  async function confirmDelete() {
+    if (!deleteTarget) return
+    await fetch('/api/blog', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: deleteTarget }) })
+    setItems(prev => prev.filter(i => i.id !== deleteTarget))
+    setDeleteTarget(null)
   }
 
   return (
@@ -49,13 +52,24 @@ export default function AdminBlogPage() {
               </td>
               <td style={{ display: 'flex', gap: '8px' }}>
                 <button className="admin-btn" onClick={() => setEditing({ ...item })}>Edit</button>
-                <button className="admin-btn admin-btn--danger" onClick={() => remove(item.id)}>Delete</button>
+                <button className="admin-btn admin-btn--danger" onClick={() => setDeleteTarget(item.id)}>Delete</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
       {editing && <BlogModal item={editing} onSave={save} onClose={() => setEditing(null)} />}
+
+      <Modal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        variant="delete"
+        title="Delete blog post"
+        message="Are you sure you want to delete this post? This action cannot be undone."
+        confirmText="Delete"
+      />
     </>
   )
 }
@@ -70,7 +84,12 @@ function BlogModal({ item, onSave, onClose }) {
   return (
     <div className="admin-modal">
       <div className="admin-modal__box">
-        <h2 className="admin-modal__title">{item.id.startsWith('new') ? 'Add Post' : 'Edit Post'}</h2>
+        <div className="admin-modal__header">
+          <h2 className="admin-modal__title">{item.id.startsWith('new') ? 'Add Post' : 'Edit Post'}</h2>
+          <button className="admin-modal__close" onClick={onClose} aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
         {[['Title EN', 'title.en'], ['Title AR', 'title.ar'], ['Excerpt EN', 'excerpt.en'], ['Excerpt AR', 'excerpt.ar'], ['Body EN', 'body.en'], ['Body AR', 'body.ar'], ['Category EN', 'category.en'], ['Category AR', 'category.ar'], ['Date EN', 'date.en'], ['Date AR', 'date.ar'], ['Slug', 'slug'], ['Image URL', 'image']].map(([label, path]) => (
           <div key={path} className="admin-field">
             <label>{label}</label>

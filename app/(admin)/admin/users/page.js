@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
+import Modal from '@/components/ui/Modal'
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([])
@@ -9,6 +10,8 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null)
   const [error, setError] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleteError, setDeleteError] = useState('')
 
   useEffect(() => {
     Promise.all([
@@ -36,15 +39,20 @@ export default function AdminUsersPage() {
     setEditing(null)
   }
 
-  async function remove(id) {
-    if (!confirm('Delete this user?')) return
+  async function confirmDelete() {
+    if (!deleteTarget) return
     const res = await fetch('/api/admin/users', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ id: deleteTarget }),
     })
-    if (!res.ok) { alert('Delete failed'); return }
-    setUsers(prev => prev.filter(u => u.id !== id))
+    if (!res.ok) {
+      setDeleteError('Delete failed. Please try again.')
+      return
+    }
+    setUsers(prev => prev.filter(u => u.id !== deleteTarget))
+    setDeleteTarget(null)
+    setDeleteError('')
   }
 
   function roleName(roleId) {
@@ -122,7 +130,7 @@ export default function AdminUsersPage() {
                   <td style={{ fontSize: '.82rem', color: 'var(--text-60)' }}>{formatDate(user.createdAt)}</td>
                   <td style={{ display: 'flex', gap: 8 }}>
                     <button className="admin-btn" onClick={() => setEditing({ ...user, password: '' })}>Edit</button>
-                    <button className="admin-btn admin-btn--danger" onClick={() => remove(user.id)}>Delete</button>
+                    <button className="admin-btn admin-btn--danger" onClick={() => { setDeleteTarget(user.id); setDeleteError('') }}>Delete</button>
                   </td>
                 </tr>
               ))
@@ -139,6 +147,16 @@ export default function AdminUsersPage() {
           onClose={() => { setEditing(null); setError('') }}
         />
       )}
+
+      <Modal
+        open={!!deleteTarget}
+        onClose={() => { setDeleteTarget(null); setDeleteError('') }}
+        onConfirm={confirmDelete}
+        variant="delete"
+        title="Delete user"
+        message={deleteError || 'Are you sure you want to delete this user? This action cannot be undone.'}
+        confirmText="Delete"
+      />
     </>
   )
 }
@@ -151,7 +169,12 @@ function UserModal({ user, roles, onSave, onClose }) {
   return (
     <div className="admin-modal">
       <div className="admin-modal__box">
-        <h2 className="admin-modal__title">{isNew ? 'Add User' : 'Edit User'}</h2>
+        <div className="admin-modal__header">
+          <h2 className="admin-modal__title">{isNew ? 'Add User' : 'Edit User'}</h2>
+          <button className="admin-modal__close" onClick={onClose} aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
           <div className="admin-field">

@@ -237,9 +237,12 @@ export default function AdminLayout({ children }) {
         .admin-btn--primary:hover { background:var(--gold-dark); border-color:var(--gold-dark); color:#fff; }
         .admin-btn--danger { border-color:rgba(220,53,69,.4); color:#dc3545; }
         .admin-btn--danger:hover { background:rgba(220,53,69,.1); border-color:#dc3545; }
-        .admin-modal { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:1000; display:flex; align-items:center; justify-content:center; padding:24px; }
-        .admin-modal__box { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:28px; width:100%; max-width:560px; max-height:90vh; overflow-y:auto; }
-        .admin-modal__title { font-size:1.1rem; font-weight:700; color:var(--text); margin-bottom:20px; font-family:var(--font); }
+        .admin-modal { position:fixed; inset:0; background:rgba(0,0,0,.55); backdrop-filter:blur(3px); z-index:1000; display:flex; align-items:center; justify-content:center; padding:24px; animation:adFadeUp .16s ease; }
+        .admin-modal__box { background:var(--surface); border-radius:20px; padding:28px; width:100%; max-width:560px; max-height:90vh; overflow-y:auto; box-shadow:0 24px 64px rgba(0,0,0,.18); }
+        .admin-modal__header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+        .admin-modal__title { font-size:1.1rem; font-weight:700; color:var(--text); font-family:var(--font); }
+        .admin-modal__close { background:none; border:none; cursor:pointer; color:var(--text-40); padding:4px; line-height:0; border-radius:6px; transition:color var(--ease); flex-shrink:0; }
+        .admin-modal__close:hover { color:var(--text); }
         .admin-field { margin-bottom:16px; }
         .admin-field label { display:block; font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:var(--text-60); margin-bottom:6px; font-family:var(--font); }
         .admin-field input,.admin-field textarea,.admin-field select { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:var(--r); padding:.65rem .9rem; color:var(--text); font-size:.9rem; font-family:inherit; transition:border-color var(--ease); }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
+import Modal from '@/components/ui/Modal'
 
 const ALL_PERMISSIONS = [
   { id: 'manage_users',     label: 'Manage Users' },
@@ -23,6 +24,8 @@ export default function AdminRolesPage() {
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null)
   const [error, setError] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleteError, setDeleteError] = useState('')
 
   useEffect(() => {
     Promise.all([
@@ -50,16 +53,21 @@ export default function AdminRolesPage() {
     setEditing(null)
   }
 
-  async function remove(id) {
-    if (!confirm('Delete this role?')) return
+  async function confirmDelete() {
+    if (!deleteTarget) return
     const res = await fetch('/api/admin/roles', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ id: deleteTarget }),
     })
     const data = await res.json()
-    if (!res.ok) { alert(data.error || 'Delete failed'); return }
-    setRoles(prev => prev.filter(r => r.id !== id))
+    if (!res.ok) {
+      setDeleteError(data.error || 'Delete failed. Please try again.')
+      return
+    }
+    setRoles(prev => prev.filter(r => r.id !== deleteTarget))
+    setDeleteTarget(null)
+    setDeleteError('')
   }
 
   function usersWithRole(roleId) {
@@ -114,7 +122,7 @@ export default function AdminRolesPage() {
                 <td>{usersWithRole(role.id)}</td>
                 <td style={{ display: 'flex', gap: 8 }}>
                   <button className="admin-btn" onClick={() => setEditing({ ...role })}>Edit</button>
-                  <button className="admin-btn admin-btn--danger" onClick={() => remove(role.id)}>Delete</button>
+                  <button className="admin-btn admin-btn--danger" onClick={() => { setDeleteTarget(role.id); setDeleteError('') }}>Delete</button>
                 </td>
               </tr>
             ))
@@ -130,6 +138,16 @@ export default function AdminRolesPage() {
           onClose={() => { setEditing(null); setError('') }}
         />
       )}
+
+      <Modal
+        open={!!deleteTarget}
+        onClose={() => { setDeleteTarget(null); setDeleteError('') }}
+        onConfirm={confirmDelete}
+        variant="delete"
+        title="Delete role"
+        message={deleteError || 'Are you sure you want to delete this role? Users assigned to it will lose their permissions.'}
+        confirmText="Delete"
+      />
     </>
   )
 }
@@ -158,7 +176,12 @@ function RoleModal({ role, onSave, onClose }) {
   return (
     <div className="admin-modal">
       <div className="admin-modal__box" style={{ maxWidth: 560 }}>
-        <h2 className="admin-modal__title">{isNew ? 'Add Role' : 'Edit Role'}</h2>
+        <div className="admin-modal__header">
+          <h2 className="admin-modal__title">{isNew ? 'Add Role' : 'Edit Role'}</h2>
+          <button className="admin-modal__close" onClick={onClose} aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
 
         <div className="admin-field">
           <label>Role Name</label>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
 
@@ -24,15 +25,23 @@ export default function DatePicker({ value, onChange, label, placeholder }) {
   const [vm,      setVm]      = useState(seed.getMonth())
   const [showMP,  setShowMP]  = useState(false)
   const [showYP,  setShowYP]  = useState(false)
-  const ref = useRef(null)
+  const [popupPos, setPopupPos] = useState({ top: 0, left: 0 })
+  const [mounted,  setMounted]  = useState(false)
+
+  const triggerRef = useRef(null)
+  const popupRef   = useRef(null)
 
   const MONTHS = isAr ? MONTHS_AR : MONTHS_EN
   const DAYS   = isAr ? DAYS_AR   : DAYS_EN
 
-  // Close on outside click
+  useEffect(() => { setMounted(true) }, [])
+
+  // Close on outside click — must check both trigger and popup (portal)
   useEffect(() => {
     function h(e) {
-      if (ref.current && !ref.current.contains(e.target)) {
+      const inTrigger = triggerRef.current && triggerRef.current.contains(e.target)
+      const inPopup   = popupRef.current   && popupRef.current.contains(e.target)
+      if (!inTrigger && !inPopup) {
         setOpen(false); setShowMP(false); setShowYP(false)
       }
     }
@@ -40,10 +49,38 @@ export default function DatePicker({ value, onChange, label, placeholder }) {
     return () => document.removeEventListener('mousedown', h)
   }, [])
 
-  // Sync view when external value changes
   useEffect(() => {
     if (value) { const d = new Date(value); setVy(d.getFullYear()); setVm(d.getMonth()) }
   }, [value])
+
+  function calcPos() {
+    if (!triggerRef.current) return
+    const rect = triggerRef.current.getBoundingClientRect()
+    setPopupPos({
+      top:   rect.bottom + 8,
+      left:  isAr ? 'auto' : rect.left,
+      right: isAr ? window.innerWidth - rect.right : 'auto',
+    })
+  }
+
+  function toggleOpen() {
+    if (!open) calcPos()
+    setOpen(o => !o)
+    setShowMP(false)
+    setShowYP(false)
+  }
+
+  // Reposition on scroll/resize while open
+  useEffect(() => {
+    if (!open) return
+    const reposition = () => calcPos()
+    window.addEventListener('scroll', reposition, true)
+    window.addEventListener('resize', reposition)
+    return () => {
+      window.removeEventListener('scroll', reposition, true)
+      window.removeEventListener('resize', reposition)
+    }
+  }, [open, isAr]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const selY = value ? new Date(value).getFullYear() : null
   const selM = value ? new Date(value).getMonth()    : null
@@ -95,7 +132,7 @@ export default function DatePicker({ value, onChange, label, placeholder }) {
   const dropdownStyle = {
     position: 'absolute', top: '100%', left: 0, background: bg,
     border: `1px solid ${border}`, borderRadius: 10, padding: 4,
-    zIndex: 30, maxHeight: 200, overflowY: 'auto',
+    zIndex: 9999, maxHeight: 200, overflowY: 'auto',
     boxShadow: isDark ? '0 4px 24px rgba(0,0,0,.5)' : '0 4px 24px rgba(0,0,0,.1)',
   }
 
@@ -112,17 +149,116 @@ export default function DatePicker({ value, onChange, label, placeholder }) {
     )
   }
 
+  const popup = (
+    <div
+      ref={popupRef}
+      style={{
+        position: 'fixed',
+        top: popupPos.top,
+        left: popupPos.left,
+        right: popupPos.right,
+        background: bg, borderRadius: 16, padding: '18px 16px',
+        boxShadow: isDark ? '0 8px 40px rgba(0,0,0,.55)' : '0 8px 40px rgba(0,0,0,.13)',
+        border: `1px solid ${border}`,
+        zIndex: 9999, width: 320, direction: 'ltr',
+      }}
+    >
+      {/* Navigation header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+
+        <button onClick={prevMonth} style={{ width: 32, height: 32, borderRadius: 8, background: 'none', border: `1px solid ${border}`, cursor: 'pointer', color: text, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+
+        <div style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          {/* Month */}
+          <div style={{ position: 'relative' }}>
+            <button onClick={() => { setShowMP(p => !p); setShowYP(false) }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '.98rem', color: text, display: 'flex', alignItems: 'center', gap: 4, padding: '4px 6px', borderRadius: 6, fontFamily: 'inherit' }}>
+              {MONTHS[vm]}
+              <svg viewBox="0 0 10 6" width="8" height="5"><path d="M0 0l5 6 5-6z" fill="#c9932c"/></svg>
+            </button>
+            {showMP && (
+              <div style={{ ...dropdownStyle, minWidth: 140 }}>
+                {MONTHS.map((mo, i) => (
+                  <div key={i}>{dropItem(i === vm, () => { setVm(i); setShowMP(false) }, mo)}</div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Year */}
+          <div style={{ position: 'relative' }}>
+            <button onClick={() => { setShowYP(p => !p); setShowMP(false) }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '.98rem', color: text, display: 'flex', alignItems: 'center', gap: 4, padding: '4px 6px', borderRadius: 6, fontFamily: 'inherit' }}>
+              {vy}
+              <svg viewBox="0 0 10 6" width="8" height="5"><path d="M0 0l5 6 5-6z" fill="#c9932c"/></svg>
+            </button>
+            {showYP && (
+              <div style={{ ...dropdownStyle, minWidth: 90 }}>
+                {years.map(y => (
+                  <div key={y}>{dropItem(y === vy, () => { setVy(y); setShowYP(false) }, y)}</div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <button onClick={nextMonth} style={{ width: 32, height: 32, borderRadius: 8, background: 'none', border: `1px solid ${border}`, cursor: 'pointer', color: text, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+
+      {/* Day-of-week headers */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 6 }}>
+        {DAYS.map(d => (
+          <div key={d} style={{ textAlign: 'center', fontSize: '.75rem', fontWeight: 600, color: muted, padding: '4px 0' }}>{d}</div>
+        ))}
+      </div>
+
+      {/* Day grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
+        {cells.map((cell, i) => {
+          const isCur = cell.t === 'cur'
+          const isSel = isCur && cell.d === selD && vm === selM && vy === selY
+          const isTod = isCur && cell.d === now.getDate() && vm === now.getMonth() && vy === now.getFullYear()
+          return (
+            <button
+              key={i}
+              onClick={() => {
+                if (cell.t === 'prev') { prevMonth(); return }
+                if (cell.t === 'next') { nextMonth(); return }
+                select(vy, vm, cell.d)
+              }}
+              style={{
+                aspectRatio: '1', borderRadius: 9,
+                border: isTod && !isSel ? '1.5px solid #c9932c' : '1.5px solid transparent',
+                background: isSel ? '#c9932c' : 'transparent',
+                color: isSel ? '#fff' : !isCur ? muted : text,
+                cursor: 'pointer', fontWeight: isSel || isTod ? 700 : 400,
+                fontSize: '.88rem', fontFamily: 'inherit',
+                opacity: !isCur ? 0.4 : 1, transition: 'background .1s',
+              }}
+              onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = hover }}
+              onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent' }}
+            >
+              {cell.d}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+
   return (
-    <div ref={ref} style={{ position: 'relative', width: '100%' }}>
-      {/* Label */}
+    <div style={{ position: 'relative', width: '100%' }}>
       {label && (
         <label style={{ display: 'block', fontSize: '.82rem', fontWeight: 600, color: isDark ? 'rgba(255,255,255,.5)' : '#6b7280', marginBottom: 6, letterSpacing: '.04em', textTransform: 'uppercase' }}>
           {label}
         </label>
       )}
 
-      {/* Trigger */}
-      <button type="button" onClick={() => { setOpen(o => !o); setShowMP(false); setShowYP(false) }} style={inputStyle}>
+      <button ref={triggerRef} type="button" onClick={toggleOpen} style={inputStyle}>
         <span>{display() || (placeholder || (isAr ? 'اختر تاريخاً' : 'Select a date'))}</span>
         <svg viewBox="0 0 24 24" fill="none" stroke={value ? '#c9932c' : muted} strokeWidth="2" width="16" height="16" style={{ flexShrink: 0 }}>
           <rect x="3" y="4" width="18" height="18" rx="2"/>
@@ -131,100 +267,7 @@ export default function DatePicker({ value, onChange, label, placeholder }) {
         </svg>
       </button>
 
-      {/* Calendar popup — always ltr internally */}
-      {open && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 8px)', [isAr ? 'right' : 'left']: 0, background: bg, borderRadius: 16, padding: '18px 16px', boxShadow: isDark ? '0 8px 40px rgba(0,0,0,.55)' : '0 8px 40px rgba(0,0,0,.13)', border: `1px solid ${border}`, zIndex: 1000, width: 320, direction: 'ltr' }}>
-
-          {/* ── Navigation header ── */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-
-            {/* Prev month */}
-            <button onClick={prevMonth} style={{ width: 32, height: 32, borderRadius: 8, background: 'none', border: `1px solid ${border}`, cursor: 'pointer', color: text, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg>
-            </button>
-
-            {/* Month + Year selectors */}
-            <div style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-
-              {/* Month */}
-              <div style={{ position: 'relative' }}>
-                <button onClick={() => { setShowMP(p => !p); setShowYP(false) }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '.98rem', color: text, display: 'flex', alignItems: 'center', gap: 4, padding: '4px 6px', borderRadius: 6, fontFamily: 'inherit' }}>
-                  {MONTHS[vm]}
-                  <svg viewBox="0 0 10 6" width="8" height="5"><path d="M0 0l5 6 5-6z" fill="#c9932c"/></svg>
-                </button>
-                {showMP && (
-                  <div style={{ ...dropdownStyle, minWidth: 140 }}>
-                    {MONTHS.map((mo, i) => (
-                      <div key={i}>{dropItem(i === vm, () => { setVm(i); setShowMP(false) }, mo)}</div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Year */}
-              <div style={{ position: 'relative' }}>
-                <button onClick={() => { setShowYP(p => !p); setShowMP(false) }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '.98rem', color: text, display: 'flex', alignItems: 'center', gap: 4, padding: '4px 6px', borderRadius: 6, fontFamily: 'inherit' }}>
-                  {vy}
-                  <svg viewBox="0 0 10 6" width="8" height="5"><path d="M0 0l5 6 5-6z" fill="#c9932c"/></svg>
-                </button>
-                {showYP && (
-                  <div style={{ ...dropdownStyle, minWidth: 90 }}>
-                    {years.map(y => (
-                      <div key={y}>{dropItem(y === vy, () => { setVy(y); setShowYP(false) }, y)}</div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Next month */}
-            <button onClick={nextMonth} style={{ width: 32, height: 32, borderRadius: 8, background: 'none', border: `1px solid ${border}`, cursor: 'pointer', color: text, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-          </div>
-
-          {/* ── Day-of-week headers ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 6 }}>
-            {DAYS.map(d => (
-              <div key={d} style={{ textAlign: 'center', fontSize: '.75rem', fontWeight: 600, color: muted, padding: '4px 0' }}>{d}</div>
-            ))}
-          </div>
-
-          {/* ── Day grid ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
-            {cells.map((cell, i) => {
-              const isCur = cell.t === 'cur'
-              const isSel = isCur && cell.d === selD && vm === selM && vy === selY
-              const isTod = isCur && cell.d === now.getDate() && vm === now.getMonth() && vy === now.getFullYear()
-              return (
-                <button
-                  key={i}
-                  onClick={() => {
-                    if (cell.t === 'prev') { prevMonth(); return }
-                    if (cell.t === 'next') { nextMonth(); return }
-                    select(vy, vm, cell.d)
-                  }}
-                  style={{
-                    aspectRatio: '1', borderRadius: 9,
-                    border: isTod && !isSel ? '1.5px solid #c9932c' : '1.5px solid transparent',
-                    background: isSel ? '#c9932c' : 'transparent',
-                    color: isSel ? '#fff' : !isCur ? muted : text,
-                    cursor: 'pointer', fontWeight: isSel || isTod ? 700 : 400,
-                    fontSize: '.88rem', fontFamily: 'inherit',
-                    opacity: !isCur ? 0.4 : 1, transition: 'background .1s',
-                  }}
-                  onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = hover }}
-                  onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent' }}
-                >
-                  {cell.d}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
+      {open && mounted && createPortal(popup, document.body)}
     </div>
   )
 }

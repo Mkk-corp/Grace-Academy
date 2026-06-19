@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
+import Modal from '@/components/ui/Modal'
 
 export default function AdminContactPage() {
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
 
   useEffect(() => { fetch('/api/contact').then(r => r.json()).then(msgs => { setMessages(msgs.reverse()); setLoading(false) }) }, [])
 
@@ -15,11 +17,12 @@ export default function AdminContactPage() {
     setMessages(prev => prev.map(m => m.id === id ? { ...m, read: true } : m))
   }
 
-  async function remove(id) {
-    if (!confirm('Delete this message?')) return
-    await fetch('/api/contact', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
-    setMessages(prev => prev.filter(m => m.id !== id))
-    if (selected?.id === id) setSelected(null)
+  async function confirmDelete() {
+    if (!deleteTarget) return
+    await fetch('/api/contact', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: deleteTarget }) })
+    setMessages(prev => prev.filter(m => m.id !== deleteTarget))
+    if (selected?.id === deleteTarget) setSelected(null)
+    setDeleteTarget(null)
   }
 
   return (
@@ -42,7 +45,7 @@ export default function AdminContactPage() {
                     </td>
                     <td style={{ fontSize: '.8rem', color: 'var(--text-60)' }}>{new Date(msg.submittedAt).toLocaleDateString()}</td>
                     <td>
-                      <button className="admin-btn admin-btn--danger" onClick={e => { e.stopPropagation(); remove(msg.id) }} style={{ display:'flex', alignItems:'center', justifyContent:'center', padding:'4px 8px' }}>
+                      <button className="admin-btn admin-btn--danger" onClick={e => { e.stopPropagation(); setDeleteTarget(msg.id) }} style={{ display:'flex', alignItems:'center', justifyContent:'center', padding:'4px 8px' }}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                       </button>
                     </td>
@@ -70,6 +73,16 @@ export default function AdminContactPage() {
           )}
         </div>
       </div>
+
+      <Modal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        variant="delete"
+        title="Delete message"
+        message="Are you sure you want to delete this message? This action cannot be undone."
+        confirmText="Delete"
+      />
     </>
   )
 }
