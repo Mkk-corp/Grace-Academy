@@ -7,6 +7,8 @@ import Link from 'next/link'
 import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
 import AvailabilitySettings from '@/components/assessor/AvailabilitySettings'
+import WeeklySchedule from '@/components/assessor/WeeklySchedule'
+import WeeklyCalendar from '@/components/assessor/WeeklyCalendar'
 import PortalTopbar from '@/components/portal/PortalTopbar'
 
 /* ─── icons ──────────────────────────────────────────────────────────── */
@@ -441,6 +443,10 @@ export default function AssessorPage() {
               ? <DashboardTab user={user} isAr={isAr} />
               : activeTab === 'avail'
               ? <AvailabilitySettings user={user} isAr={isAr} isDark={isDark} />
+              : activeTab === 'schedule'
+              ? <WeeklySchedule user={user} isAr={isAr} isDark={isDark} />
+              : activeTab === 'calendar'
+              ? <WeeklyCalendar user={user} isAr={isAr} isDark={isDark} />
               : <ComingSoon tab={activeTab} isAr={isAr} isDark={isDark} />
             }
           </main>
