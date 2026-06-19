@@ -173,7 +173,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 /* ─── RTL Overrides ─── */
 [dir="rtl"] body { font-family: var(--font-ar); }
-[dir="rtl"] * { letter-spacing: 0 !important; }
+[dir="rtl"] * { letter-spacing: 0 !important; font-family: var(--font-ar) !important; }
 
 /* ─── Utilities ─── */
 .container {
