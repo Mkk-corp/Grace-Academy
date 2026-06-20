@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 
 /* ─── Helpers ─────────────────────────────────────────────────────── */
 function slotMinToLabel(min) {
@@ -14,21 +15,32 @@ function slotMinToLabel(min) {
 
 /* ─── Main Component ──────────────────────────────────────────────── */
 export default function PlacementTest({ user, isAr, isDark }) {
-  const [step, setStep]           = useState('choose') // 'choose' | 'ai' | 'slots' | 'confirm' | 'done'
-  const [slots, setSlots]         = useState(null)
-  const [slotsLoading, setSlotsLoading] = useState(false)
-  const [selectedSlot, setSelectedSlot] = useState(null) // {date,slotMin,dateLabel,timeLabel}
-  const [booking, setBooking]     = useState(false)
+  const router = useRouter()
+  const [step, setStep]                   = useState('choose') // 'choose' | 'ai' | 'slots' | 'confirm' | 'done'
+  const [slots, setSlots]                 = useState(null)
+  const [slotsLoading, setSlotsLoading]   = useState(false)
+  const [alreadyBooked, setAlreadyBooked] = useState(false)
+  const [selectedSlot, setSelectedSlot]   = useState(null) // {date,slotMin,dateLabel,timeLabel}
+  const [booking, setBooking]             = useState(false)
   const [bookingResult, setBookingResult] = useState(null)
-  const [error, setError]         = useState('')
+  const [error, setError]                 = useState('')
+  const [showProfilePopup, setShowProfilePopup] = useState(false)
+  const [profileMissing, setProfileMissing]     = useState([])
+  const [pendingSlot, setPendingSlot]           = useState(null)
 
   const loadSlots = useCallback(async () => {
     setSlotsLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/placement/slots')
-      if (!res.ok) throw new Error()
-      setSlots(await res.json())
+      const [slotsRes, upcomingRes] = await Promise.all([
+        fetch('/api/placement/slots'),
+        fetch('/api/placement/upcoming'),
+      ])
+      if (!slotsRes.ok) throw new Error()
+      const slotsData    = await slotsRes.json()
+      const upcomingData = upcomingRes.ok ? await upcomingRes.json() : null
+      if (upcomingData?.booking) setAlreadyBooked(true)
+      setSlots(slotsData)
     } catch {
       setError(isAr ? 'فشل تحميل المواعيد المتاحة' : 'Failed to load available slots')
     } finally {
@@ -42,8 +54,22 @@ export default function PlacementTest({ user, isAr, isDark }) {
     loadSlots()
   }
 
-  function handleSlotClick(date, slotMin, dateLabel) {
-    setSelectedSlot({ date, slotMin, dateLabel, timeLabel: slotMinToLabel(slotMin) })
+  async function handleSlotClick(date, slotMin, dateLabel) {
+    const pending = { date, slotMin, dateLabel }
+    try {
+      const profile = await fetch('/api/profile').then(r => r.ok ? r.json() : null)
+      const missing = []
+      if (!profile?.name?.trim())           missing.push(isAr ? 'الاسم الكامل' : 'Full Name')
+      if (!profile?.dob)                    missing.push(isAr ? 'تاريخ الميلاد' : 'Date of Birth')
+      if (!profile?.educationLevel?.trim()) missing.push(isAr ? 'المستوى التعليمي' : 'Education Level')
+      if (missing.length > 0) {
+        setPendingSlot(pending)
+        setProfileMissing(missing)
+        setShowProfilePopup(true)
+        return
+      }
+    } catch { /* proceed anyway */ }
+    setSelectedSlot({ ...pending, timeLabel: slotMinToLabel(slotMin) })
     setStep('confirm')
   }
 
@@ -266,7 +292,7 @@ export default function PlacementTest({ user, isAr, isDark }) {
 
   /* ── SLOT PICKER ─────────────────────────────────────────────────── */
   if (step === 'slots') return (
-    <div style={{ maxWidth: 900, margin: '0 auto' }}>
+    <div style={{ maxWidth: '100%', margin: '0 auto' }}>
       {/* Back + heading */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 24 }}>
         <button
@@ -298,6 +324,87 @@ export default function PlacementTest({ user, isAr, isDark }) {
           background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)',
           color: '#ef4444', fontSize: '.84rem',
         }}>{error}</div>
+      )}
+
+      {/* Profile completion popup */}
+      {showProfilePopup && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,.55)',
+          zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 20,
+        }}>
+          <div style={{
+            ...surface, maxWidth: 420, width: '100%',
+            padding: '40px 36px', textAlign: 'center', borderRadius: 20,
+          }}>
+            <div style={{ width: 140, height: 140, margin: '0 auto 24px', position: 'relative' }}>
+              <Image src="/images/finish-your-profile.svg" alt="" fill style={{ objectFit: 'contain' }} />
+            </div>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: isDark ? '#f1f5f9' : '#111827', margin: '0 0 8px' }}>
+              {isAr ? 'أكمل ملفك الشخصي أولاً' : 'Complete Your Profile First'}
+            </h3>
+            <p style={{ fontSize: '.84rem', color: isDark ? 'rgba(255,255,255,.5)' : '#6b7280', margin: '0 0 20px', lineHeight: 1.6 }}>
+              {isAr
+                ? 'يجب إكمال الحقول التالية قبل حجز موعد التقييم:'
+                : 'The following fields are required before booking a placement session:'}
+            </p>
+            <div style={{
+              background: 'rgba(201,147,44,.07)', border: '1px solid rgba(201,147,44,.2)',
+              borderRadius: 10, padding: '12px 16px', marginBottom: 24, textAlign: isAr ? 'right' : 'left',
+            }}>
+              {profileMissing.map(f => (
+                <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', fontSize: '.84rem', color: isDark ? '#f1f5f9' : '#374151' }}>
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke={gold} strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                  {f}
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+              <button
+                onClick={() => setShowProfilePopup(false)}
+                style={{
+                  padding: '10px 20px', borderRadius: 10, fontWeight: 600, fontSize: '.84rem', cursor: 'pointer',
+                  background: 'none', border: `1px solid ${isDark ? 'rgba(255,255,255,.15)' : '#e5e7eb'}`,
+                  color: isDark ? 'rgba(255,255,255,.55)' : '#6b7280',
+                }}
+              >
+                {isAr ? 'لاحقاً' : 'Later'}
+              </button>
+              <button
+                onClick={() => router.push('/profile?tab=academic')}
+                style={{
+                  padding: '10px 22px', borderRadius: 10, fontWeight: 700, fontSize: '.84rem', cursor: 'pointer',
+                  background: gold, border: 'none', color: '#fff',
+                }}
+              >
+                {isAr ? 'أكمل الملف الشخصي' : 'Complete Profile'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Already booked banner */}
+      {alreadyBooked && (
+        <div style={{
+          padding: '16px 20px', borderRadius: 12, marginBottom: 20,
+          background: 'rgba(201,147,44,.08)', border: '1px solid rgba(201,147,44,.25)',
+          display: 'flex', alignItems: 'center', gap: 12,
+        }}>
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke={gold} strokeWidth="1.8">
+            <circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <div>
+            <div style={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#111827', fontSize: '.88rem', marginBottom: 2 }}>
+              {isAr ? 'لديك موعد محجوز بالفعل' : 'You already have a session booked'}
+            </div>
+            <div style={{ fontSize: '.78rem', color: isDark ? 'rgba(255,255,255,.45)' : '#6b7280' }}>
+              {isAr ? 'يمكنك حجز موعد واحد فقط لاختبار التحديد' : 'Only one placement test slot can be booked at a time'}
+            </div>
+          </div>
+        </div>
       )}
 
       {slotsLoading ? (
@@ -389,23 +496,29 @@ export default function PlacementTest({ user, isAr, isDark }) {
                         }}>
                           {avail ? (
                             <button
-                              onClick={() => handleSlotClick(d.date, slotMin, `${d.dayLabel}, ${d.monthDay}`)}
+                              onClick={() => !alreadyBooked && handleSlotClick(d.date, slotMin, `${d.dayLabel}, ${d.monthDay}`)}
+                              disabled={alreadyBooked}
                               style={{
                                 width: '100%', padding: '7px 4px', borderRadius: 8,
-                                background: 'rgba(16,185,129,.1)', border: '1px solid rgba(16,185,129,.3)',
-                                color: '#10b981', fontSize: '.73rem', fontWeight: 700, cursor: 'pointer',
+                                background: alreadyBooked ? (isDark ? 'rgba(255,255,255,.05)' : '#f3f4f6') : 'rgba(16,185,129,.1)',
+                                border: alreadyBooked ? `1px solid ${isDark ? 'rgba(255,255,255,.08)' : '#e5e7eb'}` : '1px solid rgba(16,185,129,.3)',
+                                color: alreadyBooked ? (isDark ? 'rgba(255,255,255,.2)' : '#9ca3af') : '#10b981',
+                                fontSize: '.73rem', fontWeight: 700,
+                                cursor: alreadyBooked ? 'not-allowed' : 'pointer',
                                 transition: 'all .15s', letterSpacing: '.02em',
                               }}
                               onMouseEnter={e => {
+                                if (alreadyBooked) return
                                 e.currentTarget.style.background = '#10b981'
                                 e.currentTarget.style.color = '#fff'
                               }}
                               onMouseLeave={e => {
+                                if (alreadyBooked) return
                                 e.currentTarget.style.background = 'rgba(16,185,129,.1)'
                                 e.currentTarget.style.color = '#10b981'
                               }}
                             >
-                              {isAr ? 'متاح' : 'Free'}
+                              {alreadyBooked ? '✓' : (isAr ? 'متاح' : 'Free')}
                             </button>
                           ) : (
                             <span style={{ color: isDark ? 'rgba(255,255,255,.15)' : '#d1d5db', fontSize: '.8rem' }}>—</span>

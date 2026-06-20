@@ -10,6 +10,9 @@ import AvailabilitySettings from '@/components/assessor/AvailabilitySettings'
 import WeeklySchedule from '@/components/assessor/WeeklySchedule'
 import WeeklyCalendar from '@/components/assessor/WeeklyCalendar'
 import SlotRequests from '@/components/assessor/SlotRequests'
+import AssignedStudents from '@/components/assessor/AssignedStudents'
+import MyAssessments from '@/components/assessor/MyAssessments'
+import UpcomingSession from '@/components/shared/UpcomingSession'
 import PortalTopbar from '@/components/portal/PortalTopbar'
 import NotificationBell from '@/components/ui/NotificationBell'
 
@@ -71,7 +74,7 @@ function ComingSoon({ tab, isAr, isDark }) {
 }
 
 /* ─── dashboard tab ──────────────────────────────────────────────────── */
-function DashboardTab({ user, isAr }) {
+function DashboardTab({ user, isAr, isDark }) {
   function greeting() {
     const h = new Date().getHours()
     if (isAr) return h < 12 ? 'صباح الخير' : h < 17 ? 'مساء الخير' : 'مساء النور'
@@ -88,6 +91,9 @@ function DashboardTab({ user, isAr }) {
 
   return (
     <div style={{ padding: '28px 24px', maxWidth: 960, margin: '0 auto' }}>
+      {/* Upcoming session widget */}
+      <UpcomingSession isAr={isAr} isDark={isDark} />
+
       {/* Welcome banner */}
       <div style={{ background: 'linear-gradient(135deg, #0a1b22 0%, #10222b 100%)', borderRadius: 16, padding: '28px 32px', marginBottom: 28, position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -60, right: -60, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,147,44,.18) 0%, transparent 65%)', pointerEvents: 'none' }} />
@@ -444,7 +450,11 @@ export default function AssessorPage() {
           {/* CONTENT */}
           <main className="as-content" key={activeTab}>
             {activeTab === 'dashboard'
-              ? <DashboardTab user={user} isAr={isAr} />
+              ? <DashboardTab user={user} isAr={isAr} isDark={isDark} />
+              : activeTab === 'assessments'
+              ? <MyAssessments user={user} isAr={isAr} isDark={isDark} />
+              : activeTab === 'students'
+              ? <AssignedStudents user={user} isAr={isAr} isDark={isDark} />
               : activeTab === 'avail'
               ? <AvailabilitySettings user={user} isAr={isAr} isDark={isDark} />
               : activeTab === 'schedule'

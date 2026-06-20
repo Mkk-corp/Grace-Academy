@@ -8,6 +8,7 @@ import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
 import AvailabilitySettings from '@/components/assessor/AvailabilitySettings'
 import PlacementTest from '@/components/student/PlacementTest'
+import UpcomingSession from '@/components/shared/UpcomingSession'
 import PortalTopbar from '@/components/portal/PortalTopbar'
 
 /* ── service icon map ─────────────────────────────────────────────── */
@@ -530,6 +531,9 @@ export default function PortalPage() {
           ) : activeNav === 'placement' ? (
             <PlacementTest user={user} isAr={isAr} isDark={isDark} />
           ) : (<>
+
+            {/* Upcoming session */}
+            <UpcomingSession isAr={isAr} isDark={isDark} />
 
             {/* Welcome */}
             <div className="pr-welcome">

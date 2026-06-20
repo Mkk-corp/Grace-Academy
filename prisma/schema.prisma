@@ -38,6 +38,12 @@ model User {
   city               String?
   nationalId         String?
   emergencyContact   String?
+  educationLevel     String?
+  coursesTaken       String?
+  expectedLevel      String?
+  isEmployed         Boolean?
+  jobTitle           String?
+  employer           String?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
   bookingsAsStudent  Booking[] @relation("StudentBookings")
@@ -60,6 +66,7 @@ model Booking {
   meetLink      String?
   calEventId    String?
   status        String   @default("confirmed")
+  reminderSent  Boolean  @default(false)
   createdAt     DateTime @default(now())
 }
 

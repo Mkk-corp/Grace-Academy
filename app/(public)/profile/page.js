@@ -43,6 +43,8 @@ function Icon({ name, size = 18, color = 'currentColor' }) {
     case 'id':         return <svg viewBox="0 0 24 24" {...s}><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
     case 'heart':      return <svg viewBox="0 0 24 24" {...s}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
     case 'check':      return <svg viewBox="0 0 24 24" {...s}><polyline points="20 6 9 17 4 12"/></svg>
+    case 'book':       return <svg viewBox="0 0 24 24" {...s}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    case 'briefcase':  return <svg viewBox="0 0 24 24" {...s}><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
     case 'sun':        return <svg viewBox="0 0 24 24" {...s}><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
     case 'moon':       return <svg viewBox="0 0 24 24" {...s}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     default:           return null
@@ -68,6 +70,8 @@ export default function ProfilePage() {
     name: '', username: '', phone: '', dob: '', gender: '',
     bio: '', country: '', city: '', nationalId: '', emergencyContact: '',
     avatar: 'user1',
+    educationLevel: '', coursesTaken: '', expectedLevel: '',
+    isEmployed: false, jobTitle: '', employer: '',
   })
 
   useEffect(() => {
@@ -89,6 +93,12 @@ export default function ProfilePage() {
         nationalId: data.nationalId || '',
         emergencyContact: data.emergencyContact || '',
         avatar: data.avatar || 'user1',
+        educationLevel: data.educationLevel || '',
+        coursesTaken: data.coursesTaken || '',
+        expectedLevel: data.expectedLevel || '',
+        isEmployed: data.isEmployed ?? false,
+        jobTitle: data.jobTitle || '',
+        employer: data.employer || '',
       })
       setLoading(false)
     }).catch(() => { router.replace('/login') })
@@ -140,10 +150,11 @@ export default function ProfilePage() {
   }
 
   const tabs = [
-    { id: 'personal', labelEn: 'Personal Info',  labelAr: 'المعلومات الشخصية', icon: 'user'    },
-    { id: 'contact',  labelEn: 'Contact',         labelAr: 'بيانات الاتصال',    icon: 'phone'   },
-    { id: 'avatar',   labelEn: 'Avatar',           labelAr: 'الصورة الرمزية',   icon: 'shield'  },
-    { id: 'account',  labelEn: 'Account',          labelAr: 'الحساب',            icon: 'info'    },
+    { id: 'personal', labelEn: 'Personal Info',  labelAr: 'المعلومات الشخصية', icon: 'user'      },
+    { id: 'contact',  labelEn: 'Contact',         labelAr: 'بيانات الاتصال',    icon: 'phone'     },
+    { id: 'academic', labelEn: 'Academic Info',   labelAr: 'المعلومات الأكاديمية', icon: 'book'  },
+    { id: 'avatar',   labelEn: 'Avatar',           labelAr: 'الصورة الرمزية',   icon: 'shield'    },
+    { id: 'account',  labelEn: 'Account',          labelAr: 'الحساب',            icon: 'info'      },
   ]
 
   return (
@@ -470,6 +481,84 @@ export default function ProfilePage() {
                         onChange={e => set('emergencyContact', e.target.value)}
                         placeholder={isAr ? 'الاسم ورقم الهاتف' : 'Name & phone number'} />
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ─── ACADEMIC ─── */}
+            {activeTab === 'academic' && (
+              <div className="pf-card">
+                <div className="pf-card-hd">
+                  <div className="pf-card-hd-icon"><Icon name="book" size={18} color="#c9932c" /></div>
+                  <div>
+                    <div className="pf-card-hd-title">{isAr ? 'المعلومات الأكاديمية' : 'Academic Information'}</div>
+                    <div className="pf-card-hd-sub">{isAr ? 'خلفيتك التعليمية ومستواك المتوقع' : 'Your educational background and expected level'}</div>
+                  </div>
+                </div>
+                <div className="pf-card-body">
+                  <div className="pf-grid">
+                    <div className="pf-field">
+                      <label className="pf-label">{isAr ? 'المستوى التعليمي' : 'Education Level'} *</label>
+                      <input className="pf-input" value={form.educationLevel}
+                        onChange={e => set('educationLevel', e.target.value)}
+                        placeholder={isAr ? 'مثال: بكالوريوس، ثانوية عامة…' : 'e.g. Bachelor\'s, High School…'} />
+                    </div>
+                    <div className="pf-field">
+                      <label className="pf-label">{isAr ? 'الدورات السابقة' : 'Prior Courses Taken'}</label>
+                      <input className="pf-input" value={form.coursesTaken}
+                        onChange={e => set('coursesTaken', e.target.value)}
+                        placeholder={isAr ? 'كم دورة أخذت من قبل؟' : 'How many courses have you taken?'} />
+                    </div>
+                    <div className="pf-field">
+                      <label className="pf-label">{isAr ? 'المستوى الإنجليزي المتوقع' : 'Expected English Level'}</label>
+                      <select className="pf-input pf-select" value={form.expectedLevel}
+                        onChange={e => set('expectedLevel', e.target.value)}>
+                        <option value="">{isAr ? 'اختر المستوى…' : 'Select level…'}</option>
+                        {['A1','A2','B1','B2','C1','C2'].map(l => (
+                          <option key={l} value={l}>{l}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="pf-field" style={{ gridColumn: '1 / -1' }}>
+                      <label className="pf-label">{isAr ? 'هل أنت موظف حالياً؟' : 'Currently Employed?'}</label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
+                        <button
+                          type="button"
+                          onClick={() => set('isEmployed', !form.isEmployed)}
+                          style={{
+                            width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer',
+                            background: form.isEmployed ? '#c9932c' : (isDark ? 'rgba(255,255,255,.15)' : '#d1d5db'),
+                            position: 'relative', transition: 'background .2s', flexShrink: 0,
+                          }}
+                        >
+                          <span style={{
+                            position: 'absolute', top: 3, left: form.isEmployed ? 23 : 3,
+                            width: 18, height: 18, borderRadius: '50%', background: '#fff',
+                            transition: 'left .2s', display: 'block',
+                          }}/>
+                        </button>
+                        <span style={{ fontSize: '.85rem', color: isDark ? 'rgba(255,255,255,.6)' : '#6b7280' }}>
+                          {form.isEmployed ? (isAr ? 'نعم، موظف' : 'Yes, employed') : (isAr ? 'لا' : 'No')}
+                        </span>
+                      </div>
+                    </div>
+                    {form.isEmployed && (
+                      <>
+                        <div className="pf-field">
+                          <label className="pf-label">{isAr ? 'المسمى الوظيفي' : 'Job Title'}</label>
+                          <input className="pf-input" value={form.jobTitle}
+                            onChange={e => set('jobTitle', e.target.value)}
+                            placeholder={isAr ? 'مثال: مهندس برمجيات' : 'e.g. Software Engineer'} />
+                        </div>
+                        <div className="pf-field">
+                          <label className="pf-label">{isAr ? 'جهة العمل' : 'Employer / Company'}</label>
+                          <input className="pf-input" value={form.employer}
+                            onChange={e => set('employer', e.target.value)}
+                            placeholder={isAr ? 'اسم الشركة أو المؤسسة' : 'Company or organization name'} />
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

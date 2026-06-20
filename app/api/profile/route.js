@@ -10,6 +10,8 @@ const SAFE_SELECT = {
   roleId: true, source: true, avatar: true, dob: true, gender: true,
   bio: true, country: true, city: true, nationalId: true,
   emergencyContact: true, createdAt: true, updatedAt: true,
+  educationLevel: true, coursesTaken: true, expectedLevel: true,
+  isEmployed: true, jobTitle: true, employer: true,
 }
 
 async function getUserId() {
@@ -34,7 +36,8 @@ export async function PUT(request) {
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json()
-  const allowed = ['name', 'phone', 'dob', 'gender', 'bio', 'country', 'city', 'nationalId', 'emergencyContact', 'avatar']
+  const allowed = ['name', 'phone', 'dob', 'gender', 'bio', 'country', 'city', 'nationalId', 'emergencyContact', 'avatar',
+    'educationLevel', 'coursesTaken', 'expectedLevel', 'isEmployed', 'jobTitle', 'employer']
 
   const updates = {}
   for (const key of allowed) {
