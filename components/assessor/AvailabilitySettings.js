@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const delay = ms => new Promise(r => setTimeout(r, ms))
 
@@ -254,39 +254,14 @@ function Step1({ googleOk, email, setEmail, emailErr, otpSent, otp, setOtp, otpE
   )
 }
 
-/* ─── Step 2 — Google Calendar ────────────────────────────────────────── */
-function Step2({ active, done, onDone, isAr, isDark }) {
-  const [marking, setMarking] = useState(false)
-  const EMAIL_SHARE = 'graceisforyou9@gmail.com'
-  const [copied, setCopied] = useState(false)
+/* ─── Step 2 — Google Calendar (OAuth connect) ───────────────────────── */
+function Step2({ active, done, isAr, isDark }) {
+  const [connecting, setConnecting] = useState(false)
 
-  async function copyEmail() {
-    await navigator.clipboard.writeText(EMAIL_SHARE).catch(() => {})
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  function handleConnect() {
+    setConnecting(true)
+    window.location.href = '/api/assessor/google-calendar/connect'
   }
-
-  async function handleDone() {
-    setMarking(true)
-    await delay(800)
-    onDone()
-  }
-
-  const steps = isAr ? [
-    'افتح Google Calendar على calendar.google.com وسجّل الدخول بحسابك المُتحقق منه',
-    'في الشريط الجانبي الأيسر، اضغط على أيقونة القائمة ⋮ بجانب اسم تقويمك تحت «تقاويمي»',
-    'اختر «الإعدادات والمشاركة»',
-    <>انتقل إلى قسم «المشاركة مع أشخاص أو مجموعات بعينها» واضغط <strong>«+ إضافة أشخاص»</strong></>,
-    <>أدخل عنوان البريد: <strong style={{ color: '#1a73e8', direction: 'ltr', display: 'inline-block' }}>{EMAIL_SHARE}</strong> — ثم اضبط الإذن على <strong>«رؤية جميع تفاصيل الأحداث»</strong></>,
-    'اضغط «إرسال» — سيحصل نظام الأكاديمية على صلاحية قراءة تقويمك',
-  ] : [
-    <>Open <strong>Google Calendar</strong> at <span style={{ color: '#1a73e8' }}>calendar.google.com</span> and sign in with the Gmail you verified</>,
-    'In the left sidebar, hover over your calendar under "My calendars" and click the three-dot menu ⋮',
-    'Select "Settings and sharing"',
-    <>Scroll to <strong>"Share with specific people or groups"</strong> and click <strong>"+ Add people"</strong></>,
-    <>Enter <strong style={{ color: '#1a73e8' }}>{EMAIL_SHARE}</strong> and set permission to <strong>"See all event details"</strong></>,
-    'Click "Send" — Grace Academy will receive read access to your calendar',
-  ]
 
   if (done) {
     return (
@@ -295,12 +270,14 @@ function Step2({ active, done, onDone, isAr, isDark }) {
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            <span style={{ fontSize: '.82rem', fontWeight: 700, color: '#10b981' }}>{isAr ? 'تم ربط Google Calendar' : 'Google Calendar Linked'}</span>
+            <span style={{ fontSize: '.82rem', fontWeight: 700, color: '#10b981' }}>{isAr ? 'تم ربط Google Calendar' : 'Google Calendar Connected'}</span>
           </div>
-          <div style={{ fontSize: '.76rem', color: 'var(--as-muted)', marginTop: 2 }}>{EMAIL_SHARE}</div>
+          <div style={{ fontSize: '.76rem', color: 'var(--as-muted)', marginTop: 2 }}>
+            {isAr ? 'أحداثك متزامنة وتظهر في تبويب التقويم.' : 'Your events are synced and visible in the Calendar tab.'}
+          </div>
         </div>
         <div style={{ fontSize: '.68rem', color: '#10b981', background: 'rgba(16,185,129,.1)', border: '1px solid rgba(16,185,129,.25)', borderRadius: 100, padding: '3px 10px', fontWeight: 700 }}>
-          {isAr ? 'متصل' : 'LINKED'}
+          {isAr ? 'متصل' : 'SYNCED'}
         </div>
       </div>
     )
@@ -329,35 +306,43 @@ function Step2({ active, done, onDone, isAr, isDark }) {
         <div>
           <div style={{ fontSize: '.72rem', fontWeight: 700, letterSpacing: isAr ? 0 : '.12em', color: '#1a73e8', marginBottom: 3 }}>{isAr ? 'الخطوة ٢' : 'STEP 2'}</div>
           <div style={{ fontSize: '.95rem', fontWeight: 800, color: 'var(--as-text)' }}>{isAr ? 'ربط Google Calendar' : 'Link Google Calendar'}</div>
-          <div style={{ fontSize: '.77rem', color: 'var(--as-muted)', marginTop: 2 }}>{isAr ? 'شارك تقويمك مع نظام الأكاديمية' : 'Share your calendar with Grace Academy'}</div>
+          <div style={{ fontSize: '.77rem', color: 'var(--as-muted)', marginTop: 2 }}>{isAr ? 'اربط تقويمك مباشرةً بحساب Google الخاص بك' : 'Connect your calendar directly via Google OAuth'}</div>
         </div>
       </div>
 
       <div style={{ padding: 22 }}>
-        <div style={{ marginBottom: 18 }}>
-          {steps.map((step, i) => (
-            <div key={i} style={{ display: 'flex', gap: 14, marginBottom: 14, animation: `asFadeUp .3s ease ${i * .06}s both` }}>
-              <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#1a73e8', color: 'white', fontSize: '.72rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{i + 1}</div>
-              <div style={{ fontSize: '.84rem', color: 'var(--as-text)', lineHeight: 1.65, paddingTop: 3 }}>{step}</div>
-            </div>
-          ))}
+        <div style={{ background: isDark ? 'rgba(26,115,232,.06)' : '#f0f4ff', border: '1px solid rgba(26,115,232,.15)', borderRadius: 12, padding: '14px 16px', marginBottom: 18 }}>
+          <div style={{ fontSize: '.84rem', color: 'var(--as-text)', lineHeight: 1.7 }}>
+            {isAr
+              ? 'اضغط على الزر أدناه للانتقال إلى Google وتأكيد صلاحية قراءة تقويمك. بعد التأكيد، ستُعاد التوجيه تلقائياً وستظهر أحداثك في تبويب التقويم.'
+              : 'Click below to go to Google and grant read access to your calendar. After confirming, you\'ll be redirected back and your events will appear in the Calendar tab.'
+            }
+          </div>
         </div>
 
-        {/* Copy email helper */}
-        <div style={{ background: isDark ? 'rgba(26,115,232,.07)' : '#e8f0fe', border: '1px solid rgba(26,115,232,.2)', borderRadius: 10, padding: '11px 14px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <span style={{ fontSize: '.78rem', color: '#1a73e8', flex: 1, direction: 'ltr' }}>{EMAIL_SHARE}</span>
-          <button onClick={copyEmail} style={{ padding: '4px 10px', background: copied ? '#10b981' : '#1a73e8', color: 'white', border: 'none', borderRadius: 7, fontSize: '.72rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .2s' }}>
-            {copied ? (isAr ? '✓ تم النسخ' : '✓ Copied') : (isAr ? 'نسخ' : 'Copy')}
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: isDark ? 'rgba(255,255,255,.03)' : '#f8fafc', border: `1px solid ${isDark ? 'rgba(255,255,255,.06)' : '#e5e7eb'}`, borderRadius: 10, marginBottom: 18 }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span style={{ fontSize: '.77rem', color: 'var(--as-muted)' }}>
+            {isAr ? 'الأذونات: قراءة الأحداث فقط — لا يمكننا التعديل أو الحذف.' : 'Permission: read-only — we cannot edit or delete your events.'}
+          </span>
         </div>
 
         <button
-          onClick={handleDone}
-          disabled={marking}
-          style={{ width: '100%', padding: '12px', background: marking ? '#10b981' : '#1a73e8', color: 'white', border: 'none', borderRadius: 10, fontSize: '.88rem', fontWeight: 700, cursor: marking ? 'default' : 'pointer', fontFamily: 'inherit', transition: 'all .25s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+          onClick={handleConnect}
+          disabled={connecting}
+          style={{
+            width: '100%', padding: '13px', border: 'none', borderRadius: 10,
+            background: connecting ? '#4285F4' : '#1a73e8',
+            color: 'white', fontSize: '.9rem', fontWeight: 700,
+            cursor: connecting ? 'default' : 'pointer', fontFamily: 'inherit',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+            transition: 'all .2s', opacity: connecting ? .8 : 1,
+          }}
         >
-          {marking ? <><Spinner color="white" />{isAr ? 'جارٍ الحفظ...' : 'Saving...'}</> : <>{isAr ? '✓ لقد أكملت هذه الخطوات' : '✓ I\'ve completed these steps'}</>}
+          {connecting
+            ? <><Spinner color="white" size={15} />{isAr ? 'جارٍ الانتقال إلى Google...' : 'Redirecting to Google...'}</>
+            : <><GoogleG size={18} />{isAr ? 'ربط Google Calendar' : 'Connect Google Calendar'}</>
+          }
         </button>
       </div>
     </div>
@@ -605,6 +590,19 @@ export default function AvailabilitySettings({ user, isAr, isDark }) {
   const meetOk   = cfg.meetDone
   const allOk    = googleOk && calOk && meetOk
 
+  // Check if Google Calendar is already OAuth-synced (e.g. after returning from OAuth redirect)
+  const [calSynced, setCalSynced] = useState(null)
+  useEffect(() => {
+    if (!googleOk) return
+    fetch('/api/assessor/google-calendar/status')
+      .then(r => r.json())
+      .then(d => {
+        if (d.synced && !cfg.calDone) save({ calDone: true })
+        setCalSynced(!!d.synced)
+      })
+      .catch(() => setCalSynced(false))
+  }, [googleOk]) // eslint-disable-line react-hooks/exhaustive-deps
+
   /* — Step 1 OTP state — */
   const [email,   setEmail]   = useState(cfg.googleEmail || '')
   const [emailErr,setEmailErr]= useState('')
@@ -749,7 +747,7 @@ export default function AvailabilitySettings({ user, isAr, isDark }) {
         <BounceArrow show={googleOk} />
 
         {/* Step 2 */}
-        <Step2 active={googleOk && !calOk} done={calOk} onDone={() => save({ calDone: true })} isAr={isAr} isDark={isDark} />
+        <Step2 active={googleOk && !calOk} done={calOk} isAr={isAr} isDark={isDark} />
 
         {/* Arrow 2→3 */}
         <BounceArrow show={calOk} />

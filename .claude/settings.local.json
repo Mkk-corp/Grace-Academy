@@ -15,7 +15,8 @@
       "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3000/admin/content/services\" -UseBasicParsing -TimeoutSec 10)",
       "Bash(copy \"design system\\\\logo.png\" \"public\\\\images\\\\logo.png\")",
       "Bash(copy \"design system\\\\Full logo.png\" \"public\\\\images\\\\full-logo.png\")",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "PowerShell(cd \"d:\\\\Grace academy\"; $env:DATABASE_URL=\"postgresql://postgres.hmnvyhkfcwrfshlafgsy:longwayhome3000!@aws-0-eu-west-1.pooler.supabase.com:5432/postgres\"; npx prisma generate 2>&1)"
     ]
   }
 }

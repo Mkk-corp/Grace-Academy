@@ -21,7 +21,10 @@ model User {
   email              String    @unique
   phone              String    @default("")
   password           String?
-  googleId           String?   @unique
+  googleId                   String?   @unique
+  googleCalendarAccessToken  String?
+  googleCalendarRefreshToken String?
+  googleCalendarSyncedAt     DateTime?
   avatar             String?
   roleId             String?
   role               Role?     @relation(fields: [roleId], references: [id])
