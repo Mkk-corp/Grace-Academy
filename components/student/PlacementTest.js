@@ -1,115 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-
-/* ─── Inline SVG Vectors ──────────────────────────────────────────── */
-function AIVector() {
-  return (
-    <svg viewBox="0 0 180 180" fill="none" style={{ width: '100%', height: '100%' }}>
-      <circle cx="90" cy="90" r="82" fill="rgba(201,147,44,.04)"/>
-      <circle cx="90" cy="90" r="60" fill="rgba(201,147,44,.06)"/>
-      {/* Hexagon (chip body) */}
-      <polygon points="90,22 128,44 128,88 90,110 52,88 52,44"
-        fill="rgba(201,147,44,.1)" stroke="#c9932c" strokeWidth="2"/>
-      {/* Corner dots */}
-      <circle cx="90" cy="22" r="4" fill="#c9932c"/>
-      <circle cx="128" cy="44" r="3.5" fill="#c9932c" opacity=".7"/>
-      <circle cx="128" cy="88" r="3.5" fill="#c9932c" opacity=".7"/>
-      <circle cx="90" cy="110" r="3.5" fill="#c9932c" opacity=".7"/>
-      <circle cx="52" cy="88" r="3.5" fill="#c9932c" opacity=".7"/>
-      <circle cx="52" cy="44" r="3.5" fill="#c9932c" opacity=".7"/>
-      {/* CPU chip */}
-      <rect x="68" y="48" width="44" height="40" rx="5"
-        fill="rgba(201,147,44,.18)" stroke="#c9932c" strokeWidth="1.8"/>
-      <rect x="75" y="55" width="30" height="26" rx="3" fill="rgba(201,147,44,.28)"/>
-      {/* Chip pins top */}
-      <line x1="79" y1="48" x2="79" y2="41" stroke="#c9932c" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="90" y1="48" x2="90" y2="41" stroke="#c9932c" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="101" y1="48" x2="101" y2="41" stroke="#c9932c" strokeWidth="1.5" strokeLinecap="round"/>
-      {/* Chip pins bottom */}
-      <line x1="79" y1="88" x2="79" y2="95" stroke="#c9932c" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="90" y1="88" x2="90" y2="95" stroke="#c9932c" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="101" y1="88" x2="101" y2="95" stroke="#c9932c" strokeWidth="1.5" strokeLinecap="round"/>
-      {/* Chip pins left */}
-      <line x1="68" y1="60" x2="61" y2="60" stroke="#c9932c" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="68" y1="74" x2="61" y2="74" stroke="#c9932c" strokeWidth="1.5" strokeLinecap="round"/>
-      {/* Chip pins right */}
-      <line x1="112" y1="60" x2="119" y2="60" stroke="#c9932c" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="112" y1="74" x2="119" y2="74" stroke="#c9932c" strokeWidth="1.5" strokeLinecap="round"/>
-      {/* Dots inside chip */}
-      <circle cx="83" cy="63" r="2.5" fill="#c9932c"/>
-      <circle cx="90" cy="63" r="2.5" fill="#c9932c" opacity=".7"/>
-      <circle cx="97" cy="63" r="2.5" fill="#c9932c" opacity=".5"/>
-      <line x1="81" y1="72" x2="99" y2="72" stroke="#c9932c" strokeWidth="1.5" strokeLinecap="round" opacity=".6"/>
-      <line x1="81" y1="78" x2="95" y2="78" stroke="#c9932c" strokeWidth="1.5" strokeLinecap="round" opacity=".4"/>
-      {/* Neural network nodes */}
-      <circle cx="90" cy="124" r="6" fill="#c9932c"/>
-      <circle cx="66" cy="138" r="5" fill="#c9932c" opacity=".7"/>
-      <circle cx="114" cy="138" r="5" fill="#c9932c" opacity=".7"/>
-      <circle cx="52" cy="155" r="4" fill="#c9932c" opacity=".45"/>
-      <circle cx="90" cy="158" r="4" fill="#c9932c" opacity=".35"/>
-      <circle cx="128" cy="155" r="4" fill="#c9932c" opacity=".45"/>
-      {/* Connection lines */}
-      <line x1="90" y1="118" x2="90" y2="110" stroke="#c9932c" strokeWidth="1.5"/>
-      <line x1="84" y1="127" x2="66" y2="138" stroke="rgba(201,147,44,.5)" strokeWidth="1.2"/>
-      <line x1="96" y1="127" x2="114" y2="138" stroke="rgba(201,147,44,.5)" strokeWidth="1.2"/>
-      <line x1="63" y1="143" x2="52" y2="155" stroke="rgba(201,147,44,.4)" strokeWidth="1"/>
-      <line x1="69" y1="143" x2="90" y2="158" stroke="rgba(201,147,44,.4)" strokeWidth="1"/>
-      <line x1="111" y1="143" x2="90" y2="158" stroke="rgba(201,147,44,.4)" strokeWidth="1"/>
-      <line x1="117" y1="143" x2="128" y2="155" stroke="rgba(201,147,44,.4)" strokeWidth="1"/>
-    </svg>
-  )
-}
-
-function HumanTeacherVector() {
-  return (
-    <svg viewBox="0 0 180 180" fill="none" style={{ width: '100%', height: '100%' }}>
-      <circle cx="90" cy="90" r="82" fill="rgba(201,147,44,.04)"/>
-      {/* Whiteboard */}
-      <rect x="16" y="28" width="96" height="68" rx="6"
-        fill="rgba(201,147,44,.08)" stroke="#c9932c" strokeWidth="1.8"/>
-      <rect x="16" y="28" width="96" height="14" rx="6" fill="rgba(201,147,44,.15)"/>
-      {/* Board legs */}
-      <line x1="46" y1="96" x2="36" y2="118" stroke="#c9932c" strokeWidth="2" strokeLinecap="round" opacity=".5"/>
-      <line x1="82" y1="96" x2="92" y2="118" stroke="#c9932c" strokeWidth="2" strokeLinecap="round" opacity=".5"/>
-      {/* Writing lines on board */}
-      <line x1="28" y1="56" x2="62" y2="56" stroke="#c9932c" strokeWidth="2" strokeLinecap="round" opacity=".8"/>
-      <line x1="28" y1="65" x2="52" y2="65" stroke="#c9932c" strokeWidth="2" strokeLinecap="round" opacity=".6"/>
-      <line x1="28" y1="74" x2="66" y2="74" stroke="#c9932c" strokeWidth="2" strokeLinecap="round" opacity=".5"/>
-      <line x1="28" y1="83" x2="46" y2="83" stroke="#c9932c" strokeWidth="2" strokeLinecap="round" opacity=".35"/>
-      {/* Checkmark on right side of board */}
-      <polyline points="74,60 80,68 98,46"
-        stroke="#c9932c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-      {/* Teacher head */}
-      <circle cx="148" cy="55" r="17" fill="rgba(201,147,44,.15)" stroke="#c9932c" strokeWidth="1.8"/>
-      {/* Graduation cap */}
-      <rect x="135" y="41" width="26" height="5" rx="2" fill="#c9932c"/>
-      <polygon points="148,33 164,41 132,41" fill="#c9932c"/>
-      <line x1="164" y1="41" x2="168" y2="52" stroke="#c9932c" strokeWidth="1.5"/>
-      <circle cx="168" cy="54" r="3" fill="#c9932c" opacity=".8"/>
-      {/* Face */}
-      <circle cx="142" cy="54" r="2" fill="#c9932c" opacity=".7"/>
-      <circle cx="154" cy="54" r="2" fill="#c9932c" opacity=".7"/>
-      <path d="M143 62 Q148 66 153 62" stroke="#c9932c" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity=".7"/>
-      {/* Body */}
-      <path d="M132,72 C130,86 129,107 129,122 L167,122 C167,107 166,86 164,72 Q157,80 148,80 Q139,80 132,72Z"
-        fill="rgba(201,147,44,.12)" stroke="#c9932c" strokeWidth="1.5"/>
-      {/* Arm pointing to board */}
-      <path d="M132,82 Q116,74 114,66" stroke="#c9932c" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-      <circle cx="113" cy="65" r="3.5" fill="#c9932c" opacity=".8"/>
-      {/* Legs */}
-      <line x1="137" y1="122" x2="134" y2="150" stroke="#c9932c" strokeWidth="3" strokeLinecap="round" opacity=".7"/>
-      <line x1="159" y1="122" x2="162" y2="150" stroke="#c9932c" strokeWidth="3" strokeLinecap="round" opacity=".7"/>
-      {/* Books stacked */}
-      <rect x="18" y="128" width="28" height="8" rx="2" fill="rgba(201,147,44,.2)" stroke="#c9932c" strokeWidth="1"/>
-      <rect x="20" y="120" width="24" height="8" rx="2" fill="rgba(201,147,44,.15)" stroke="#c9932c" strokeWidth="1"/>
-      {/* Sparkles */}
-      <circle cx="14" cy="95" r="2.5" fill="#c9932c" opacity=".25"/>
-      <circle cx="10" cy="68" r="2" fill="#c9932c" opacity=".2"/>
-      <circle cx="172" cy="88" r="2.5" fill="#c9932c" opacity=".25"/>
-    </svg>
-  )
-}
+import Image from 'next/image'
 
 /* ─── Helpers ─────────────────────────────────────────────────────── */
 function slotMinToLabel(min) {
@@ -251,8 +143,8 @@ export default function PlacementTest({ user, isAr, isDark }) {
           }}
         >
           {/* Gradient overlay on hover handled via inline style */}
-          <div style={{ width: 140, height: 140, margin: '0 auto 20px' }}>
-            <AIVector />
+          <div style={{ width: 140, height: 140, margin: '0 auto 20px', position: 'relative' }}>
+            <Image src="/images/ai-assessor.svg" alt="AI Assessor" fill style={{ objectFit: 'contain' }} />
           </div>
           <div style={{
             display: 'inline-block', fontSize: '.65rem', fontWeight: 700, letterSpacing: '.12em',
@@ -295,8 +187,8 @@ export default function PlacementTest({ user, isAr, isDark }) {
             e.currentTarget.style.boxShadow = isDark ? '0 4px 20px rgba(0,0,0,.35)' : '0 1px 8px rgba(0,0,0,.07)'
           }}
         >
-          <div style={{ width: 140, height: 140, margin: '0 auto 20px' }}>
-            <HumanTeacherVector />
+          <div style={{ width: 140, height: 140, margin: '0 auto 20px', position: 'relative' }}>
+            <Image src="/images/human-teacher.svg" alt="Human Assessor" fill style={{ objectFit: 'contain' }} />
           </div>
           <div style={{
             display: 'inline-block', fontSize: '.65rem', fontWeight: 700, letterSpacing: '.12em',
@@ -328,8 +220,8 @@ export default function PlacementTest({ user, isAr, isDark }) {
   if (step === 'ai') return (
     <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center' }}>
       <div style={{ ...surface, padding: '52px 40px' }}>
-        <div style={{ width: 160, height: 160, margin: '0 auto 32px' }}>
-          <AIVector />
+        <div style={{ width: 160, height: 160, margin: '0 auto 32px', position: 'relative' }}>
+          <Image src="/images/ai-assessor.svg" alt="AI Assessor" fill style={{ objectFit: 'contain' }} />
         </div>
         <div style={{
           display: 'inline-block', fontSize: '.65rem', fontWeight: 700, letterSpacing: '.14em',
