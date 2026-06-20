@@ -40,6 +40,27 @@ model User {
   emergencyContact   String?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
+  bookingsAsStudent  Booking[] @relation("StudentBookings")
+  bookingsAsAssessor Booking[] @relation("AssessorBookings")
+}
+
+model Booking {
+  id            String   @id @default(cuid())
+  studentId     String
+  student       User     @relation("StudentBookings",  fields: [studentId],  references: [id])
+  assessorId    String
+  assessor      User     @relation("AssessorBookings", fields: [assessorId], references: [id])
+  studentName   String
+  studentEmail  String
+  assessorName  String
+  assessorEmail String
+  date          String
+  dayKey        String
+  slotMin       Int
+  meetLink      String?
+  calEventId    String?
+  status        String   @default("confirmed")
+  createdAt     DateTime @default(now())
 }
 
 model OtpSession {

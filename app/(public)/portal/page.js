@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
 import AvailabilitySettings from '@/components/assessor/AvailabilitySettings'
+import PlacementTest from '@/components/student/PlacementTest'
 import PortalTopbar from '@/components/portal/PortalTopbar'
 
 /* ── service icon map ─────────────────────────────────────────────── */
@@ -50,13 +51,14 @@ function Icon({ name, size = 18, color = 'currentColor' }) {
 }
 
 const NAV_ITEMS = [
-  { id: 'dashboard', labelEn: 'Dashboard',      labelAr: 'الرئيسية',          icon: 'grid'     },
-  { id: 'courses',   labelEn: 'My Courses',      labelAr: 'دوراتي',            icon: 'book'     },
-  { id: 'live',      labelEn: 'Live Sessions',   labelAr: 'الجلسات المباشرة',  icon: 'video'    },
-  { id: 'certs',     labelEn: 'Certificates',    labelAr: 'الشهادات',          icon: 'award'    },
-  { id: 'schedule',  labelEn: 'Schedule',        labelAr: 'الجدول الزمني',     icon: 'calendar' },
-  { id: 'resources', labelEn: 'Resources',       labelAr: 'الموارد',           icon: 'folder'   },
-  { id: 'messages',  labelEn: 'Messages',        labelAr: 'الرسائل',           icon: 'mail'     },
+  { id: 'dashboard', labelEn: 'Dashboard',       labelAr: 'الرئيسية',           icon: 'grid'     },
+  { id: 'placement', labelEn: 'Placement Test',  labelAr: 'اختبار التحديد',     icon: 'award'    },
+  { id: 'courses',   labelEn: 'My Courses',      labelAr: 'دوراتي',             icon: 'book'     },
+  { id: 'live',      labelEn: 'Live Sessions',   labelAr: 'الجلسات المباشرة',   icon: 'video'    },
+  { id: 'certs',     labelEn: 'Certificates',    labelAr: 'الشهادات',           icon: 'award'    },
+  { id: 'schedule',  labelEn: 'Schedule',        labelAr: 'الجدول الزمني',      icon: 'calendar' },
+  { id: 'resources', labelEn: 'Resources',       labelAr: 'الموارد',            icon: 'folder'   },
+  { id: 'messages',  labelEn: 'Messages',        labelAr: 'الرسائل',            icon: 'mail'     },
 ]
 
 const QUICK_STATS = [
@@ -525,6 +527,8 @@ export default function PortalPage() {
 
           {activeNav === 'settings' ? (
             <AvailabilitySettings user={user} isAr={isAr} isDark={isDark} />
+          ) : activeNav === 'placement' ? (
+            <PlacementTest user={user} isAr={isAr} isDark={isDark} />
           ) : (<>
 
             {/* Welcome */}
