@@ -44,6 +44,11 @@ model User {
   isEmployed         Boolean?
   jobTitle           String?
   employer           String?
+  faculty            String?
+  university         String?
+  teachingExperience Boolean?
+  teachingWhere      String?
+  englishLevel       String?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
   bookingsAsStudent  Booking[] @relation("StudentBookings")

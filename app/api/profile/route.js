@@ -12,6 +12,9 @@ const SAFE_SELECT = {
   emergencyContact: true, createdAt: true, updatedAt: true,
   educationLevel: true, coursesTaken: true, expectedLevel: true,
   isEmployed: true, jobTitle: true, employer: true,
+  faculty: true, university: true, teachingExperience: true,
+  teachingWhere: true, englishLevel: true,
+  role: { select: { name: true } },
 }
 
 async function getUserId() {
@@ -28,7 +31,8 @@ export async function GET() {
 
   const user = await prisma.user.findUnique({ where: { id: userId }, select: SAFE_SELECT })
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  return NextResponse.json(user)
+  const { role, ...rest } = user
+  return NextResponse.json({ ...rest, roleName: role?.name || null })
 }
 
 export async function PUT(request) {
@@ -37,7 +41,8 @@ export async function PUT(request) {
 
   const body = await request.json()
   const allowed = ['name', 'phone', 'dob', 'gender', 'bio', 'country', 'city', 'nationalId', 'emergencyContact', 'avatar',
-    'educationLevel', 'coursesTaken', 'expectedLevel', 'isEmployed', 'jobTitle', 'employer']
+    'educationLevel', 'coursesTaken', 'expectedLevel', 'isEmployed', 'jobTitle', 'employer',
+    'faculty', 'university', 'teachingExperience', 'teachingWhere', 'englishLevel']
 
   const updates = {}
   for (const key of allowed) {
@@ -52,5 +57,6 @@ export async function PUT(request) {
   }
 
   const user = await prisma.user.update({ where: { id: userId }, data: updates, select: SAFE_SELECT })
-  return NextResponse.json(user)
+  const { role, ...rest } = user
+  return NextResponse.json({ ...rest, roleName: role?.name || null })
 }

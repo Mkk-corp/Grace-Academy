@@ -72,6 +72,7 @@ export default function ProfilePage() {
     avatar: 'user1',
     educationLevel: '', coursesTaken: '', expectedLevel: '',
     isEmployed: false, jobTitle: '', employer: '',
+    faculty: '', university: '', teachingExperience: false, teachingWhere: '', englishLevel: '',
   })
 
   useEffect(() => {
@@ -99,6 +100,11 @@ export default function ProfilePage() {
         isEmployed: data.isEmployed ?? false,
         jobTitle: data.jobTitle || '',
         employer: data.employer || '',
+        faculty: data.faculty || '',
+        university: data.university || '',
+        teachingExperience: data.teachingExperience ?? false,
+        teachingWhere: data.teachingWhere || '',
+        englishLevel: data.englishLevel || '',
       })
       setLoading(false)
     }).catch(() => { router.replace('/login') })
@@ -487,82 +493,201 @@ export default function ProfilePage() {
             )}
 
             {/* ─── ACADEMIC ─── */}
-            {activeTab === 'academic' && (
-              <div className="pf-card">
-                <div className="pf-card-hd">
-                  <div className="pf-card-hd-icon"><Icon name="book" size={18} color="#c9932c" /></div>
-                  <div>
-                    <div className="pf-card-hd-title">{isAr ? 'المعلومات الأكاديمية' : 'Academic Information'}</div>
-                    <div className="pf-card-hd-sub">{isAr ? 'خلفيتك التعليمية ومستواك المتوقع' : 'Your educational background and expected level'}</div>
+            {activeTab === 'academic' && (() => {
+              const isConsultant = user?.roleName?.toLowerCase().includes('consultant') || user?.roleName?.toLowerCase().includes('assessor')
+
+              /* reusable toggle */
+              function Toggle({ field, labelYesEn, labelYesAr, labelNoEn = 'No', labelNoAr = 'لا' }) {
+                const on = form[field]
+                return (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
+                    <button type="button" onClick={() => set(field, !on)} style={{
+                      width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer',
+                      background: on ? '#c9932c' : (isDark ? 'rgba(255,255,255,.15)' : '#d1d5db'),
+                      position: 'relative', transition: 'background .2s', flexShrink: 0,
+                    }}>
+                      <span style={{
+                        position: 'absolute', top: 3, left: on ? 23 : 3,
+                        width: 18, height: 18, borderRadius: '50%', background: '#fff',
+                        transition: 'left .2s', display: 'block',
+                      }} />
+                    </button>
+                    <span style={{ fontSize: '.85rem', color: isDark ? 'rgba(255,255,255,.6)' : '#6b7280' }}>
+                      {on ? (isAr ? labelYesAr : labelYesEn) : (isAr ? labelNoAr : labelNoEn)}
+                    </span>
                   </div>
-                </div>
-                <div className="pf-card-body">
-                  <div className="pf-grid">
-                    <div className="pf-field">
-                      <label className="pf-label">{isAr ? 'المستوى التعليمي' : 'Education Level'} *</label>
-                      <input className="pf-input" value={form.educationLevel}
-                        onChange={e => set('educationLevel', e.target.value)}
-                        placeholder={isAr ? 'مثال: بكالوريوس، ثانوية عامة…' : 'e.g. Bachelor\'s, High School…'} />
-                    </div>
-                    <div className="pf-field">
-                      <label className="pf-label">{isAr ? 'الدورات السابقة' : 'Prior Courses Taken'}</label>
-                      <input className="pf-input" value={form.coursesTaken}
-                        onChange={e => set('coursesTaken', e.target.value)}
-                        placeholder={isAr ? 'كم دورة أخذت من قبل؟' : 'How many courses have you taken?'} />
-                    </div>
-                    <div className="pf-field">
-                      <label className="pf-label">{isAr ? 'المستوى الإنجليزي المتوقع' : 'Expected English Level'}</label>
-                      <select className="pf-input pf-select" value={form.expectedLevel}
-                        onChange={e => set('expectedLevel', e.target.value)}>
-                        <option value="">{isAr ? 'اختر المستوى…' : 'Select level…'}</option>
-                        {['A1','A2','B1','B2','C1','C2'].map(l => (
-                          <option key={l} value={l}>{l}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="pf-field" style={{ gridColumn: '1 / -1' }}>
-                      <label className="pf-label">{isAr ? 'هل أنت موظف حالياً؟' : 'Currently Employed?'}</label>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
-                        <button
-                          type="button"
-                          onClick={() => set('isEmployed', !form.isEmployed)}
-                          style={{
-                            width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer',
-                            background: form.isEmployed ? '#c9932c' : (isDark ? 'rgba(255,255,255,.15)' : '#d1d5db'),
-                            position: 'relative', transition: 'background .2s', flexShrink: 0,
-                          }}
-                        >
-                          <span style={{
-                            position: 'absolute', top: 3, left: form.isEmployed ? 23 : 3,
-                            width: 18, height: 18, borderRadius: '50%', background: '#fff',
-                            transition: 'left .2s', display: 'block',
-                          }}/>
-                        </button>
-                        <span style={{ fontSize: '.85rem', color: isDark ? 'rgba(255,255,255,.6)' : '#6b7280' }}>
-                          {form.isEmployed ? (isAr ? 'نعم، موظف' : 'Yes, employed') : (isAr ? 'لا' : 'No')}
-                        </span>
+                )
+              }
+
+              const DEGREES = [
+                { en: 'High School / Secondary',  ar: 'ثانوية عامة' },
+                { en: 'Diploma',                   ar: 'دبلوم' },
+                { en: "Associate's Degree",        ar: 'درجة مساعد' },
+                { en: "Bachelor's Degree",         ar: 'بكالوريوس' },
+                { en: 'Postgraduate Diploma',      ar: 'دبلوم دراسات عليا' },
+                { en: "Master's Degree",           ar: 'ماجستير' },
+                { en: 'Doctorate (PhD)',            ar: 'دكتوراه' },
+                { en: 'Other',                     ar: 'أخرى' },
+              ]
+
+              const EN_LEVELS = ['A1','A2','B1','B2','C1','C2']
+
+              return (
+                <div className="pf-card">
+                  <div className="pf-card-hd">
+                    <div className="pf-card-hd-icon"><Icon name="book" size={18} color="#c9932c" /></div>
+                    <div>
+                      <div className="pf-card-hd-title">{isAr ? 'المعلومات الأكاديمية' : 'Academic Information'}</div>
+                      <div className="pf-card-hd-sub">
+                        {isConsultant
+                          ? (isAr ? 'مؤهلاتك وخبرتك المهنية' : 'Your qualifications and professional background')
+                          : (isAr ? 'خلفيتك التعليمية ومستواك المتوقع' : 'Your educational background and expected level')}
                       </div>
                     </div>
-                    {form.isEmployed && (
-                      <>
-                        <div className="pf-field">
-                          <label className="pf-label">{isAr ? 'المسمى الوظيفي' : 'Job Title'}</label>
-                          <input className="pf-input" value={form.jobTitle}
-                            onChange={e => set('jobTitle', e.target.value)}
-                            placeholder={isAr ? 'مثال: مهندس برمجيات' : 'e.g. Software Engineer'} />
-                        </div>
-                        <div className="pf-field">
-                          <label className="pf-label">{isAr ? 'جهة العمل' : 'Employer / Company'}</label>
-                          <input className="pf-input" value={form.employer}
-                            onChange={e => set('employer', e.target.value)}
-                            placeholder={isAr ? 'اسم الشركة أو المؤسسة' : 'Company or organization name'} />
-                        </div>
-                      </>
-                    )}
+                  </div>
+                  <div className="pf-card-body">
+                    <div className="pf-grid">
+
+                      {isConsultant ? (
+                        <>
+                          {/* ── ACADEMIC CONSULTANT FIELDS ── */}
+                          <div className="pf-field">
+                            <label className="pf-label">{isAr ? 'الدرجة العلمية' : 'Education Degree'}</label>
+                            <select className="pf-input pf-select" value={form.educationLevel}
+                              onChange={e => set('educationLevel', e.target.value)}>
+                              <option value="">{isAr ? 'اختر الدرجة…' : 'Select degree…'}</option>
+                              {DEGREES.map(d => (
+                                <option key={d.en} value={d.en}>{isAr ? d.ar : d.en}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="pf-field">
+                            <label className="pf-label">{isAr ? 'الكلية / التخصص' : 'Faculty / Major'}</label>
+                            <input className="pf-input" value={form.faculty}
+                              onChange={e => set('faculty', e.target.value)}
+                              placeholder={isAr ? 'مثال: كلية الآداب، علم اللغويات…' : 'e.g. Faculty of Arts, Linguistics…'} />
+                          </div>
+
+                          <div className="pf-field">
+                            <label className="pf-label">{isAr ? 'الجامعة / المعهد' : 'University / Institution'}</label>
+                            <input className="pf-input" value={form.university}
+                              onChange={e => set('university', e.target.value)}
+                              placeholder={isAr ? 'اسم الجامعة أو المعهد' : 'Name of university or institution'} />
+                          </div>
+
+                          <div className="pf-field" style={{ gridColumn: '1 / -1' }}>
+                            <label className="pf-label">{isAr ? 'هل لديك خبرة في التدريس؟' : 'Do you have teaching experience?'}</label>
+                            <Toggle field="teachingExperience"
+                              labelYesEn="Yes, I have teaching experience"
+                              labelYesAr="نعم، لدي خبرة في التدريس"
+                              labelNoEn="No teaching experience yet"
+                              labelNoAr="لا توجد خبرة تدريسية بعد" />
+                          </div>
+
+                          {form.teachingExperience && (
+                            <div className="pf-field" style={{ gridColumn: '1 / -1' }}>
+                              <label className="pf-label">{isAr ? 'أين درّست؟' : 'Where did you teach?'}</label>
+                              <input className="pf-input" value={form.teachingWhere}
+                                onChange={e => set('teachingWhere', e.target.value)}
+                                placeholder={isAr ? 'اسم المدرسة أو المؤسسة أو المنصة…' : 'School, institution, or platform name…'} />
+                            </div>
+                          )}
+
+                          <div className="pf-field" style={{ gridColumn: '1 / -1' }}>
+                            <label className="pf-label">{isAr ? 'هل أنت موظف حالياً؟' : 'Currently Employed?'}</label>
+                            <Toggle field="isEmployed"
+                              labelYesEn="Yes, employed"
+                              labelYesAr="نعم، موظف" />
+                          </div>
+
+                          {form.isEmployed && (
+                            <>
+                              <div className="pf-field">
+                                <label className="pf-label">{isAr ? 'المسمى الوظيفي' : 'Job Title'}</label>
+                                <input className="pf-input" value={form.jobTitle}
+                                  onChange={e => set('jobTitle', e.target.value)}
+                                  placeholder={isAr ? 'مثال: مدرّس لغة إنجليزية' : 'e.g. English Language Instructor'} />
+                              </div>
+                              <div className="pf-field">
+                                <label className="pf-label">{isAr ? 'جهة العمل' : 'Employer / Company'}</label>
+                                <input className="pf-input" value={form.employer}
+                                  onChange={e => set('employer', e.target.value)}
+                                  placeholder={isAr ? 'اسم الشركة أو المؤسسة' : 'Company or organization name'} />
+                              </div>
+                            </>
+                          )}
+
+                          <div className="pf-field">
+                            <label className="pf-label">{isAr ? 'مستوى اللغة الإنجليزية' : 'English Proficiency Level'}</label>
+                            <select className="pf-input pf-select" value={form.englishLevel}
+                              onChange={e => set('englishLevel', e.target.value)}>
+                              <option value="">{isAr ? 'اختر المستوى…' : 'Select level…'}</option>
+                              {EN_LEVELS.map(l => (
+                                <option key={l} value={l}>{l}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {/* ── STUDENT FIELDS ── */}
+                          <div className="pf-field">
+                            <label className="pf-label">{isAr ? 'المستوى التعليمي' : 'Education Level'} *</label>
+                            <input className="pf-input" value={form.educationLevel}
+                              onChange={e => set('educationLevel', e.target.value)}
+                              placeholder={isAr ? 'مثال: بكالوريوس، ثانوية عامة…' : "e.g. Bachelor's, High School…"} />
+                          </div>
+
+                          <div className="pf-field">
+                            <label className="pf-label">{isAr ? 'الدورات السابقة' : 'Prior English Courses Taken'}</label>
+                            <input className="pf-input" value={form.coursesTaken}
+                              onChange={e => set('coursesTaken', e.target.value)}
+                              placeholder={isAr ? 'كم دورة أخذت من قبل؟' : 'How many courses have you taken?'} />
+                          </div>
+
+                          <div className="pf-field">
+                            <label className="pf-label">{isAr ? 'المستوى الإنجليزي المتوقع' : 'Expected English Level'}</label>
+                            <select className="pf-input pf-select" value={form.expectedLevel}
+                              onChange={e => set('expectedLevel', e.target.value)}>
+                              <option value="">{isAr ? 'اختر المستوى…' : 'Select level…'}</option>
+                              {EN_LEVELS.map(l => (
+                                <option key={l} value={l}>{l}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="pf-field" style={{ gridColumn: '1 / -1' }}>
+                            <label className="pf-label">{isAr ? 'هل أنت موظف حالياً؟' : 'Currently Employed?'}</label>
+                            <Toggle field="isEmployed"
+                              labelYesEn="Yes, employed"
+                              labelYesAr="نعم، موظف" />
+                          </div>
+
+                          {form.isEmployed && (
+                            <>
+                              <div className="pf-field">
+                                <label className="pf-label">{isAr ? 'المسمى الوظيفي' : 'Job Title'}</label>
+                                <input className="pf-input" value={form.jobTitle}
+                                  onChange={e => set('jobTitle', e.target.value)}
+                                  placeholder={isAr ? 'مثال: مهندس برمجيات' : 'e.g. Software Engineer'} />
+                              </div>
+                              <div className="pf-field">
+                                <label className="pf-label">{isAr ? 'جهة العمل' : 'Employer / Company'}</label>
+                                <input className="pf-input" value={form.employer}
+                                  onChange={e => set('employer', e.target.value)}
+                                  placeholder={isAr ? 'اسم الشركة أو المؤسسة' : 'Company or organization name'} />
+                              </div>
+                            </>
+                          )}
+                        </>
+                      )}
+
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )
+            })()}
 
             {/* ─── AVATAR ─── */}
             {activeTab === 'avatar' && (
