@@ -19,6 +19,32 @@ function slotMinToTime(slotMin) {
   return `${h12}:${String(m).padStart(2, '0')} ${ampm}`
 }
 
+async function refreshAccessToken(assessorUser) {
+  try {
+    const res = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id:     process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        refresh_token: assessorUser.googleCalendarRefreshToken,
+        grant_type:    'refresh_token',
+      }),
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    const newToken = data.access_token
+    if (!newToken) return null
+    await prisma.user.update({
+      where: { id: assessorUser.id },
+      data:  { googleCalendarAccessToken: newToken },
+    })
+    return newToken
+  } catch {
+    return null
+  }
+}
+
 async function createMeetLink({ accessToken, date, slotMin, studentEmail, assessorEmail, studentName, assessorName }) {
   const h   = Math.floor(slotMin / 60)
   const min = slotMin % 60
@@ -69,6 +95,14 @@ export async function POST(req) {
   const student = await prisma.user.findUnique({ where: { id: payload.userId } })
   if (!student) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  // Prevent duplicate bookings for the same student
+  const existingBooking = await prisma.booking.findFirst({
+    where: { studentId: student.id, status: 'confirmed' },
+  })
+  if (existingBooking) {
+    return NextResponse.json({ error: 'You already have a confirmed placement session.' }, { status: 409 })
+  }
+
   const { date, slotMin } = await req.json()
   if (!date || slotMin == null) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
@@ -102,18 +136,27 @@ export async function POST(req) {
   const assessorEmail = assessorData.assessorEmail || assessorUser?.email || ''
   const assessorName  = assessorData.assessorName  || assessorUser?.name  || 'Academic Consultant'
 
-  // Try to create Google Meet link
+  // Try to create Google Meet link (with token refresh fallback)
   let meetLink   = null
   let calEventId = null
   if (assessorUser?.googleCalendarAccessToken) {
-    ;({ meetLink, calEventId } = await createMeetLink({
+    const meetArgs = {
       accessToken:  assessorUser.googleCalendarAccessToken,
       date, slotMin: slot,
       studentEmail: student.email,
       assessorEmail,
       studentName:  student.name,
       assessorName,
-    }))
+    }
+    ;({ meetLink, calEventId } = await createMeetLink(meetArgs))
+
+    // If access token was expired, try refreshing and retry once
+    if (!meetLink && assessorUser.googleCalendarRefreshToken) {
+      const refreshed = await refreshAccessToken(assessorUser)
+      if (refreshed) {
+        ;({ meetLink, calEventId } = await createMeetLink({ ...meetArgs, accessToken: refreshed }))
+      }
+    }
   }
 
   // Save booking to database

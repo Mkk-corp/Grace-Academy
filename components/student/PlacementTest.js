@@ -14,7 +14,7 @@ function slotMinToLabel(min) {
 }
 
 /* ─── Main Component ──────────────────────────────────────────────── */
-export default function PlacementTest({ user, isAr, isDark }) {
+export default function PlacementTest({ user, isAr, isDark, onBooked }) {
   const router = useRouter()
   const [step, setStep]                   = useState('choose') // 'choose' | 'ai' | 'slots' | 'confirm' | 'done'
   const [slots, setSlots]                 = useState(null)
@@ -86,6 +86,7 @@ export default function PlacementTest({ user, isAr, isDark }) {
       if (!res.ok) throw new Error(data.error || 'Booking failed')
       setBookingResult(data.booking)
       setStep('done')
+      onBooked?.()
     } catch (e) {
       setError(e.message)
     } finally {

@@ -27,6 +27,7 @@ export default function UpcomingSession({ isAr, isDark }) {
   const [status, setStatus]     = useState('upcoming') // 'upcoming' | 'soon' | 'now' | 'ended'
   const [canJoin, setCanJoin]   = useState(false)
   const reminderFiredRef        = useRef(false)
+  const emailReminderFiredRef   = useRef(false)
 
   useEffect(() => {
     fetch('/api/placement/upcoming')
@@ -47,13 +48,23 @@ export default function UpcomingSession({ isAr, isDark }) {
       const diff = Math.floor((sessionStart.getTime() - Date.now()) / 1000)
       setSecsLeft(diff)
 
-      if (diff > 180) {
+      if (diff > 300) {
         setStatus('upcoming')
         setCanJoin(false)
       } else if (diff > 0) {
         setStatus('soon')
         setCanJoin(true)
-        if (!reminderFiredRef.current && !booking.reminderSent) {
+        // 5-min email reminder
+        if (!emailReminderFiredRef.current && !booking.emailReminderSent) {
+          emailReminderFiredRef.current = true
+          fetch('/api/placement/reminder-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bookingId: booking.id }),
+          }).catch(() => {})
+        }
+        // 3-min in-app reminder
+        if (diff <= 180 && !reminderFiredRef.current && !booking.reminderSent) {
           reminderFiredRef.current = true
           fetch('/api/placement/reminder', {
             method: 'POST',

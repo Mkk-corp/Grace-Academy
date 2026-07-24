@@ -41,6 +41,7 @@ export async function GET() {
       studentName: upcoming.studentName,
       assessorName: upcoming.assessorName,
       reminderSent: upcoming.reminderSent,
+      emailReminderSent: upcoming.emailReminderSent,
     },
   })
 }

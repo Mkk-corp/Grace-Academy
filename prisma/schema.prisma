@@ -71,8 +71,9 @@ model Booking {
   meetLink      String?
   calEventId    String?
   status        String   @default("confirmed")
-  reminderSent  Boolean  @default(false)
-  createdAt     DateTime @default(now())
+  reminderSent       Boolean  @default(false)
+  emailReminderSent  Boolean  @default(false)
+  createdAt          DateTime @default(now())
 }
 
 model OtpSession {

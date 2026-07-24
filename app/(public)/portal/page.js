@@ -521,7 +521,13 @@ export default function PortalPage() {
           {activeNav === 'settings' ? (
             <AvailabilitySettings user={user} isAr={isAr} isDark={isDark} />
           ) : activeNav === 'placement' ? (
-            <PlacementTest user={user} isAr={isAr} isDark={isDark} />
+            <PlacementTest
+              user={user} isAr={isAr} isDark={isDark}
+              onBooked={() => {
+                setShowOnboarding(false)
+                setStats(s => ({ ...s, placement: 'confirmed' }))
+              }}
+            />
           ) : (<>
 
             {/* Upcoming session */}
