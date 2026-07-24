@@ -153,12 +153,15 @@ export default function AssessorPage() {
   const isAr  = lang === 'ar'
   const isDark = theme === 'dark'
 
-  const [user,           setUser]           = useState(null)
-  const [loading,        setLoading]        = useState(true)
-  const [sidebarOpen,    setSidebarOpen]    = useState(true)
-  const [activeTab,      setActiveTab]      = useState('dashboard')
-  const [search,         setSearch]         = useState('')
-  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [user,             setUser]             = useState(null)
+  const [loading,          setLoading]          = useState(true)
+  const [sidebarOpen,      setSidebarOpen]      = useState(true)
+  const [activeTab,        setActiveTab]        = useState('dashboard')
+  const [search,           setSearch]           = useState('')
+  const [showOnboarding,   setShowOnboarding]   = useState(false)
+  const [onboardingSlide,  setOnboardingSlide]  = useState(undefined) // undefined = let LS decide
+  const [onboardingDone,   setOnboardingDone]   = useState(false)
+  const [pendingStep,      setPendingStep]      = useState(null) // 2 | 3 | null
 
   useEffect(() => {
     if (window.innerWidth < 768) setSidebarOpen(false)
@@ -172,13 +175,25 @@ export default function AssessorPage() {
       if (!data.user.isAssessor && !data.user.hasAdminAccess)              { router.replace('/portal'); return }
       setUser(data.user)
 
-      // Show onboarding overlay until assessor has saved their schedule
+      // Show onboarding overlay until schedule + Google Calendar are both set up
       if (data.user.isAssessor) {
-        const schedRes   = await fetch('/api/assessor/schedule').catch(() => null)
-        const schedData  = schedRes ? await schedRes.json().catch(() => null) : null
-        const dayMap     = schedData?.schedule?.schedule
-        const hasSlots   = dayMap && Object.values(dayMap).some(arr => Array.isArray(arr) && arr.length > 0)
-        if (!hasSlots) setShowOnboarding(true)
+        const [schedRes, calRes] = await Promise.all([
+          fetch('/api/assessor/schedule').catch(() => null),
+          fetch('/api/assessor/google-calendar/status').catch(() => null),
+        ])
+        const schedData = schedRes ? await schedRes.json().catch(() => null) : null
+        const dayMap    = schedData?.schedule?.schedule
+        const hasSlots  = dayMap && Object.values(dayMap).some(arr => Array.isArray(arr) && arr.length > 0)
+        const calData   = calRes  ? await calRes.json().catch(() => null) : null
+        const calSynced = !!calData?.synced
+
+        if (hasSlots && calSynced) {
+          setOnboardingDone(true)
+        } else {
+          // Schedule done but calendar not → jump straight to slide 3
+          if (hasSlots && !calSynced) setOnboardingSlide(3)
+          setShowOnboarding(true)
+        }
       }
 
       setLoading(false)
@@ -189,6 +204,34 @@ export default function AssessorPage() {
   async function handleLogout() {
     await fetch('/api/logout', { method: 'POST' })
     router.push('/login')
+  }
+
+  function handleNavClick(tabId) {
+    if (onboardingDone) { setActiveTab(tabId); return }
+    // During step 2 (schedule setup): only allow schedule tab
+    if (pendingStep === 2 && tabId === 'schedule') { setActiveTab(tabId); return }
+    // During step 3 (calendar setup): only allow avail tab
+    if (pendingStep === 3 && tabId === 'avail') { setActiveTab(tabId); return }
+    // All other nav attempts re-show the overlay
+    setShowOnboarding(true)
+  }
+
+  function handleGoToSchedule() {
+    setPendingStep(2)
+    setShowOnboarding(false)
+    setActiveTab('schedule')
+  }
+
+  function handleGoToAvail() {
+    setPendingStep(3)
+    setShowOnboarding(false)
+    setActiveTab('avail')
+  }
+
+  function handleScheduleSaved() {
+    setPendingStep(null)
+    setOnboardingSlide(3)
+    setShowOnboarding(true)
   }
 
   const SW = sidebarOpen ? 264 : 68
@@ -402,7 +445,9 @@ export default function AssessorPage() {
           user={user}
           isAr={isAr}
           isDark={isDark}
-          onGoToSchedule={() => { setShowOnboarding(false); setActiveTab('schedule') }}
+          startSlide={onboardingSlide}
+          onGoToSchedule={handleGoToSchedule}
+          onGoToAvail={handleGoToAvail}
         />
       )}
 
@@ -430,7 +475,7 @@ export default function AssessorPage() {
               <button
                 key={item.id}
                 className={`as-ni${activeTab === item.id ? ' active' : ''}`}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => handleNavClick(item.id)}
                 title={sidebarOpen ? undefined : (isAr ? item.ar : item.en)}
               >
                 <Icon name={item.icon} size={17} color={activeTab === item.id ? 'var(--as-gold)' : 'currentColor'} />
@@ -480,7 +525,7 @@ export default function AssessorPage() {
               : activeTab === 'avail'
               ? <AvailabilitySettings user={user} isAr={isAr} isDark={isDark} />
               : activeTab === 'schedule'
-              ? <WeeklySchedule user={user} isAr={isAr} isDark={isDark} />
+              ? <WeeklySchedule user={user} isAr={isAr} isDark={isDark} onScheduleSaved={handleScheduleSaved} />
               : activeTab === 'calendar'
               ? <WeeklyCalendar user={user} isAr={isAr} isDark={isDark} />
               : activeTab === 'requests'

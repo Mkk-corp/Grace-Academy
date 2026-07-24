@@ -183,7 +183,7 @@ function ScheduleReadView({ scheduleData, isAr, isDark }) {
   )
 }
 
-export default function WeeklySchedule({ user, isAr, isDark }) {
+export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) {
   const [scheduleData, setScheduleData] = useState(undefined) // undefined=loading, null=none, obj=exists
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
@@ -240,7 +240,7 @@ export default function WeeklySchedule({ user, isAr, isDark }) {
   function validate(sched) {
     const errs = []
     const activeDays = DAYS.filter(d => (sched[d.key] || []).length > 0)
-    if (activeDays.length < 4) errs.push(isAr ? 'يجب تحديد 4 أيام على الأقل' : 'At least 4 days must have slots')
+    if (activeDays.length < 2) errs.push(isAr ? 'يجب تحديد يومين على الأقل' : 'At least 2 days must have slots')
     activeDays.forEach(d => {
       if ((sched[d.key] || []).length < 4) errs.push(isAr ? `${d.ar} يحتاج 4 خانات على الأقل` : `${d.en} needs at least 4 slots`)
     })
@@ -263,6 +263,7 @@ export default function WeeklySchedule({ user, isAr, isDark }) {
       const data = await res.json()
       if (!res.ok) { setError(data.error || 'Save failed'); return }
       await fetchData()
+      onScheduleSaved?.()
     } catch (e) {
       setError(isAr ? 'حدث خطأ، حاول مجدداً' : 'An error occurred. Please try again.')
     } finally {
