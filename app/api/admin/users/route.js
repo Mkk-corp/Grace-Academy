@@ -64,7 +64,7 @@ export async function POST(request) {
         name:     name || username,
         username,
         password,
-      }).catch(() => {})
+      }).catch(err => console.error('[mailer] welcome email failed:', err?.message))
     }
   }
 
