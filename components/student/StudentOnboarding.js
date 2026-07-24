@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+const LS_KEY = 'ga_student_onboard_slide'
+
 const SLIDES = {
   en: [
     {
@@ -53,8 +55,20 @@ const SLIDES = {
 }
 
 export default function StudentOnboarding({ user, isAr, isDark, onGoToPlacement }) {
-  const [slide, setSlide] = useState(0)
+  const [slide, setSlide] = useState(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem(LS_KEY) : null
+      if (saved === null) return 0
+      const n = parseInt(saved, 10)
+      return isNaN(n) || n < 1 || n > 2 ? 0 : n
+    } catch { return 0 }
+  })
   const router = useRouter()
+
+  function goToSlide(n) {
+    setSlide(n)
+    try { localStorage.setItem(LS_KEY, String(n)) } catch {}
+  }
 
   const lang   = isAr ? 'ar' : 'en'
   const slides = SLIDES[lang]
@@ -76,10 +90,12 @@ export default function StudentOnboarding({ user, isAr, isDark, onGoToPlacement 
 
   function handleCta() {
     if (slide === 0) {
-      setSlide(1)
+      goToSlide(1)
     } else if (slide === 1) {
+      goToSlide(2)
       router.push('/profile')
     } else {
+      try { localStorage.removeItem(LS_KEY) } catch {}
       onGoToPlacement()
     }
   }
@@ -199,7 +215,7 @@ export default function StudentOnboarding({ user, isAr, isDark, onGoToPlacement 
             {/* skip on step 2 (profile) only */}
             {slide === 1 && (
               <button
-                onClick={() => setSlide(2)}
+                onClick={() => goToSlide(2)}
                 style={{
                   display: 'block', width: '100%', marginTop: 10,
                   padding: '8px', background: 'none', border: 'none',

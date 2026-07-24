@@ -10,7 +10,7 @@ export async function GET() {
   }
 
   const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth')
-  authUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID)
+  authUrl.searchParams.set('client_id', process.env.GCAL_CLIENT_ID)
   authUrl.searchParams.set('redirect_uri', `${process.env.AUTH_URL}/api/assessor/google-calendar/callback`)
   authUrl.searchParams.set('response_type', 'code')
   authUrl.searchParams.set('scope', 'https://www.googleapis.com/auth/calendar openid email')

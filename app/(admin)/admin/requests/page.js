@@ -330,6 +330,113 @@ function RequestModal({ req, onClose, onApprove, onReject, onDelete, actionLoadi
   )
 }
 
+/* ─── Schedule limits config card ───────────────────────────────────── */
+function ScheduleLimitsCard({ isAr }) {
+  const [limits, setLimits] = useState({ minDays: 2, maxDays: 5, minSlots: 4, maxSlots: 32 })
+  const [open, setOpen] = useState(false)
+  const [draft, setDraft] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [msg, setMsg] = useState(null)
+
+  useEffect(() => {
+    fetch('/api/admin/schedule-limits')
+      .then(r => r.json())
+      .then(d => { if (d.limits) setLimits(d.limits) })
+      .catch(() => {})
+  }, [])
+
+  function openEdit() {
+    setDraft({ ...limits })
+    setMsg(null)
+    setOpen(true)
+  }
+
+  async function save() {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/admin/schedule-limits', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(draft),
+      })
+      const data = await res.json()
+      if (!res.ok) { setMsg({ text: data.error || 'Save failed', ok: false }); return }
+      setLimits(data.limits)
+      setOpen(false)
+      setMsg({ text: isAr ? 'تم الحفظ' : 'Saved', ok: true })
+      setTimeout(() => setMsg(null), 3000)
+    } catch {
+      setMsg({ text: isAr ? 'خطأ' : 'Error', ok: false })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const labelStyle = { fontSize: '.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-40)', marginBottom: 4 }
+  const valStyle   = { fontSize: '.88rem', fontWeight: 700, color: 'var(--text)' }
+
+  return (
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px', marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '.72rem', fontWeight: 700, letterSpacing: '.1em', color: 'var(--gold)' }}>
+            {isAr ? 'حدود الجدول' : 'SCHEDULE LIMITS'}
+          </span>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            {[
+              { l: isAr ? 'أيام (حد أدنى)' : 'Min Days',   v: limits.minDays  },
+              { l: isAr ? 'أيام (حد أقصى)' : 'Max Days',   v: limits.maxDays  },
+              { l: isAr ? 'خانات (حد أدنى)' : 'Min Slots', v: limits.minSlots },
+              { l: isAr ? 'خانات (حد أقصى)' : 'Max Slots', v: limits.maxSlots },
+            ].map(({ l, v }) => (
+              <div key={l} style={{ textAlign: 'center' }}>
+                <div style={labelStyle}>{l}</div>
+                <div style={valStyle}>{v}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <button className="admin-btn" onClick={openEdit}>
+          {isAr ? 'تعديل' : 'Edit'}
+        </button>
+      </div>
+
+      {msg && (
+        <div style={{ marginTop: 10, fontSize: '.8rem', fontWeight: 600, color: msg.ok ? '#10b981' : '#ef4444' }}>
+          {msg.text}
+        </div>
+      )}
+
+      {open && draft && (
+        <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(140px,1fr))', gap: 12 }}>
+          {[
+            { key: 'minDays',  label: isAr ? 'أيام (حد أدنى)' : 'Min Days'   },
+            { key: 'maxDays',  label: isAr ? 'أيام (حد أقصى)' : 'Max Days'   },
+            { key: 'minSlots', label: isAr ? 'خانات (حد أدنى)' : 'Min Slots' },
+            { key: 'maxSlots', label: isAr ? 'خانات (حد أقصى)' : 'Max Slots' },
+          ].map(({ key, label }) => (
+            <div key={key} className="admin-field">
+              <label>{label}</label>
+              <input
+                type="number"
+                min={1}
+                value={draft[key]}
+                onChange={e => setDraft(d => ({ ...d, [key]: parseInt(e.target.value, 10) || 1 }))}
+              />
+            </div>
+          ))}
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, gridColumn: '1 / -1' }}>
+            <button className="admin-btn admin-btn--primary" disabled={saving} onClick={save}>
+              {saving ? '…' : (isAr ? 'حفظ' : 'Save')}
+            </button>
+            <button className="admin-btn" onClick={() => setOpen(false)}>{isAr ? 'إلغاء' : 'Cancel'}</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 /* ─── Main page ─────────────────────────────────────────────────────── */
 export default function AdminRequestsPage() {
   const { lang } = useLang()
@@ -493,6 +600,9 @@ export default function AdminRequestsPage() {
           </h1>
         </div>
       </div>
+
+      {/* Schedule limits config */}
+      <ScheduleLimitsCard isAr={isAr} />
 
       {/* Filter tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 20, flexWrap: 'wrap' }}>

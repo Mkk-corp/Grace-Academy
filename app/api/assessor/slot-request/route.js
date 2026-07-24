@@ -27,13 +27,20 @@ async function getAuthUser() {
   return { ...user, permissions, hasAdminAccess, isAssessor }
 }
 
-function validateSchedule(schedule) {
+async function validateSchedule(schedule) {
   if (!schedule || typeof schedule !== 'object') return 'Invalid schedule format'
+  const raw = (await readContent('schedule_limits')) || {}
+  const minDays  = raw.minDays  ?? 2
+  const maxDays  = raw.maxDays  ?? 5
+  const minSlots = raw.minSlots ?? 4
+  const maxSlots = raw.maxSlots ?? 32
   const VALID_DAYS = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri']
   const activeDays = VALID_DAYS.filter(d => Array.isArray(schedule[d]) && schedule[d].length > 0)
-  if (activeDays.length < 4) return 'At least 4 days must have slots'
+  if (activeDays.length < minDays) return `At least ${minDays} days must have slots`
+  if (activeDays.length > maxDays) return `At most ${maxDays} days can have slots`
   for (const day of activeDays) {
-    if (schedule[day].length < 4) return `${day} must have at least 4 slots`
+    if (schedule[day].length < minSlots) return `${day} must have at least ${minSlots} slots`
+    if (schedule[day].length > maxSlots) return `${day} can have at most ${maxSlots} slots`
   }
   return null
 }
@@ -63,7 +70,7 @@ export async function POST(req) {
   const body = await req.json()
   const { proposedSchedule, reason } = body
 
-  const err = validateSchedule(proposedSchedule)
+  const err = await validateSchedule(proposedSchedule)
   if (err) return NextResponse.json({ error: err }, { status: 400 })
 
   if (!reason || !reason.trim()) {

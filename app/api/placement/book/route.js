@@ -25,8 +25,8 @@ async function refreshAccessToken(assessorUser) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        client_id:     process.env.GOOGLE_CLIENT_ID,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        client_id:     process.env.GCAL_CLIENT_ID,
+        client_secret: process.env.GCAL_CLIENT_SECRET,
         refresh_token: assessorUser.googleCalendarRefreshToken,
         grant_type:    'refresh_token',
       }),
@@ -184,11 +184,11 @@ export async function POST(req) {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     })
 
-    // Send emails (non-fatal)
-    Promise.all([
-      sendPlacementEmail({ to: student.email,  role: 'student',  studentName: student.name, assessorName, date: dateLabel, time: timeStr, meetLink }),
-      sendPlacementEmail({ to: assessorEmail,   role: 'assessor', studentName: student.name, assessorName, date: dateLabel, time: timeStr, meetLink }),
-    ]).catch(() => {})
+    // Send emails independently so one failure doesn't block the other
+    sendPlacementEmail({ to: student.email,  role: 'student',  studentName: student.name, assessorName, date: dateLabel, time: timeStr, meetLink })
+      .catch(err => console.error('[mailer] student placement email failed:', err?.message))
+    sendPlacementEmail({ to: assessorEmail,   role: 'assessor', studentName: student.name, assessorName, date: dateLabel, time: timeStr, meetLink })
+      .catch(err => console.error('[mailer] assessor placement email failed:', err?.message))
 
     // In-app notification for assessor (non-fatal)
     readContent('notifications').then(list => {

@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+const LS_KEY = 'ga_assessor_onboard_slide'
+
 const SLIDES = {
   en: [
     {
@@ -53,8 +55,20 @@ const SLIDES = {
 }
 
 export default function OnboardingOverlay({ user, isAr, isDark, onGoToSchedule }) {
-  const [slide, setSlide] = useState(0)
+  const [slide, setSlide] = useState(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem(LS_KEY) : null
+      if (saved === null) return 0
+      const n = parseInt(saved, 10)
+      return isNaN(n) || n < 1 || n > 2 ? 0 : n
+    } catch { return 0 }
+  })
   const router = useRouter()
+
+  function goToSlide(n) {
+    setSlide(n)
+    try { localStorage.setItem(LS_KEY, String(n)) } catch {}
+  }
 
   const lang   = isAr ? 'ar' : 'en'
   const slides = SLIDES[lang]
@@ -73,10 +87,12 @@ export default function OnboardingOverlay({ user, isAr, isDark, onGoToSchedule }
 
   function handleCta() {
     if (slide === 0) {
-      setSlide(1)
+      goToSlide(1)
     } else if (slide === 1) {
+      goToSlide(2)
       router.push('/profile')
     } else {
+      try { localStorage.removeItem(LS_KEY) } catch {}
       onGoToSchedule()
     }
   }
@@ -200,7 +216,7 @@ export default function OnboardingOverlay({ user, isAr, isDark, onGoToSchedule }
             {/* skip link — only on step slides */}
             {!isFirst && !isLast && (
               <button
-                onClick={() => setSlide(slide + 1)}
+                onClick={() => goToSlide(slide + 1)}
                 style={{
                   display: 'block', width: '100%', marginTop: 10,
                   padding: '8px', background: 'none', border: 'none',
