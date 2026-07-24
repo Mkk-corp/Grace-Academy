@@ -90,7 +90,7 @@ const CONTENT = {
       {
         title: '13. Contact',
         body: 'If you have any questions about these Terms, please contact us at:',
-        contact: { email: 'hello@graceacademys.com', label: 'Email' },
+        contact: { email: 'info@graceacademys.com', label: 'Email' },
       },
     ],
   },
@@ -180,58 +180,202 @@ const CONTENT = {
       {
         title: '١٣. تواصل معنا',
         body: 'إذا كانت لديك أي استفسارات حول هذه الشروط، يرجى التواصل معنا على:',
-        contact: { email: 'hello@graceacademys.com', label: 'البريد الإلكتروني' },
+        contact: { email: 'info@graceacademys.com', label: 'البريد الإلكتروني' },
       },
     ],
   },
 }
 
 export default function TermsPage() {
-  const { lang, t } = useLang()
+  const { lang } = useLang()
   const isAr = lang === 'ar'
   const c = CONTENT[lang] || CONTENT.en
 
   return (
     <>
       <style>{`
+        .legal-hero {
+          background: linear-gradient(150deg, #061014 0%, #0a1b22 50%, #0f2330 100%);
+          padding: 72px 0 80px;
+          position: relative;
+          overflow: hidden;
+        }
+        .legal-hero::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(ellipse 60% 80% at 80% 20%, rgba(201,147,44,.13) 0%, transparent 60%),
+            radial-gradient(ellipse 50% 60% at 20% 80%, rgba(201,147,44,.07) 0%, transparent 60%);
+          pointer-events: none;
+        }
+        .legal-hero__inner {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          align-items: center;
+          gap: 56px;
+        }
+        .legal-hero__text {
+          flex: 1;
+          min-width: 0;
+          text-align: ${isAr ? 'right' : 'left'};
+        }
+        .legal-hero__visual {
+          flex: 0 0 auto;
+          width: clamp(220px, 36vw, 400px);
+        }
+        .legal-hero__badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 5px 14px;
+          background: rgba(201,147,44,.12);
+          border: 1px solid rgba(201,147,44,.3);
+          border-radius: 100px;
+          font-size: .68rem;
+          font-weight: 800;
+          letter-spacing: .12em;
+          color: #c9932c;
+          margin-bottom: 22px;
+        }
+        .legal-hero__bread {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: .75rem;
+          color: rgba(255,255,255,.35);
+          margin-bottom: 20px;
+          flex-wrap: wrap;
+          justify-content: ${isAr ? 'flex-end' : 'flex-start'};
+        }
+        .legal-hero__bread a { color: rgba(255,255,255,.35); text-decoration: none; transition: color .15s; }
+        .legal-hero__bread a:hover { color: #c9932c; }
+        .legal-hero__sep { color: rgba(255,255,255,.2); }
+        .legal-hero__title {
+          font-size: clamp(2.2rem, 5vw, 3.4rem);
+          font-weight: 900;
+          color: #fff;
+          line-height: 1.1;
+          margin-bottom: 16px;
+          letter-spacing: -.02em;
+        }
+        .legal-hero__title span { color: #c9932c; }
+        .legal-hero__sub {
+          font-size: .88rem;
+          color: rgba(255,255,255,.38);
+        }
         .legal-page { padding: 80px 0 120px; }
-        .legal-hero { background: linear-gradient(135deg,#0a1b22 0%,#10222b 100%); padding: 80px 0 60px; text-align: center; position: relative; overflow: hidden; }
-        .legal-hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 40% 0%, rgba(201,147,44,.13) 0%, transparent 65%); pointer-events:none; }
-        .legal-hero__bread { display:flex; align-items:center; justify-content:center; gap:8px; font-size:.75rem; color:rgba(255,255,255,.4); margin-bottom:20px; flex-wrap:wrap; }
-        .legal-hero__bread a { color:rgba(255,255,255,.4); text-decoration:none; transition:color .15s; }
-        .legal-hero__bread a:hover { color:#c9932c; }
-        .legal-hero__sep { color:rgba(255,255,255,.2); }
-        .legal-hero__title { font-size:clamp(2rem,5vw,3rem); font-weight:900; color:#fff; margin-bottom:12px; letter-spacing:-.02em; }
-        .legal-hero__sub { font-size:.9rem; color:rgba(255,255,255,.4); }
-        .legal-body { max-width:820px; margin:0 auto; padding:0 24px; }
-        .legal-intro { font-size:1rem; line-height:1.8; color:var(--text-secondary,#4b5563); margin:56px 0 48px; padding:24px 28px; background:rgba(201,147,44,.06); border-left:3px solid #c9932c; border-radius:0 10px 10px 0; }
-        [dir="rtl"] .legal-intro { border-left:none; border-right:3px solid #c9932c; border-radius:10px 0 0 10px; }
-        .legal-section { margin-bottom:44px; }
-        .legal-section__title { font-size:1.1rem; font-weight:800; color:var(--text-primary,#111827); margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border,#e5e7eb); }
-        .legal-section__body { font-size:.92rem; line-height:1.85; color:var(--text-secondary,#4b5563); margin-bottom:14px; }
-        .legal-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
-        .legal-list li { display:flex; gap:10px; font-size:.92rem; line-height:1.75; color:var(--text-secondary,#4b5563); align-items:flex-start; }
-        .legal-list li::before { content:''; width:6px; height:6px; border-radius:50%; background:#c9932c; flex-shrink:0; margin-top:9px; }
-        .legal-list li strong { color:var(--text-primary,#111827); margin-inline-end:4px; }
-        .legal-contact { display:inline-flex; align-items:center; gap:8px; margin-top:10px; padding:10px 18px; background:rgba(201,147,44,.08); border:1px solid rgba(201,147,44,.25); border-radius:8px; font-size:.88rem; color:#c9932c; font-weight:600; text-decoration:none; transition:background .15s; }
-        .legal-contact:hover { background:rgba(201,147,44,.15); }
-        @media(max-width:600px){ .legal-hero { padding:60px 0 40px; } .legal-page { padding:60px 0 80px; } }
+        .legal-body { max-width: 820px; margin: 0 auto; padding: 0 24px; }
+        .legal-intro {
+          font-size: 1rem;
+          line-height: 1.85;
+          color: var(--text-secondary, #4b5563);
+          margin: 56px 0 48px;
+          padding: 24px 28px;
+          background: rgba(201,147,44,.06);
+          border-inline-start: 3px solid #c9932c;
+          border-radius: 0 10px 10px 0;
+        }
+        [dir="rtl"] .legal-intro { border-radius: 10px 0 0 10px; }
+        .legal-section { margin-bottom: 44px; }
+        .legal-section__title {
+          font-size: 1.08rem;
+          font-weight: 800;
+          color: var(--text-primary, #111827);
+          margin-bottom: 14px;
+          padding-bottom: 10px;
+          border-bottom: 1px solid var(--border, #e5e7eb);
+        }
+        .legal-section__body {
+          font-size: .92rem;
+          line-height: 1.85;
+          color: var(--text-secondary, #4b5563);
+          margin-bottom: 14px;
+        }
+        .legal-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+        .legal-list li {
+          display: flex;
+          gap: 12px;
+          font-size: .92rem;
+          line-height: 1.75;
+          color: var(--text-secondary, #4b5563);
+          align-items: flex-start;
+        }
+        .legal-list li::before {
+          content: '';
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #c9932c;
+          flex-shrink: 0;
+          margin-top: 10px;
+        }
+        .legal-list li strong { color: var(--text-primary, #111827); margin-inline-end: 4px; }
+        .legal-contact {
+          display: inline-flex;
+          align-items: center;
+          gap: 9px;
+          margin-top: 14px;
+          padding: 11px 20px;
+          background: rgba(201,147,44,.08);
+          border: 1px solid rgba(201,147,44,.28);
+          border-radius: 10px;
+          font-size: .88rem;
+          color: #c9932c;
+          font-weight: 700;
+          text-decoration: none;
+          transition: background .15s, transform .15s;
+        }
+        .legal-contact:hover { background: rgba(201,147,44,.16); transform: translateY(-1px); }
+        @media (max-width: 768px) {
+          .legal-hero__inner { flex-direction: column-reverse; gap: 32px; text-align: center; }
+          .legal-hero__text { text-align: center; }
+          .legal-hero__bread { justify-content: center; }
+          .legal-hero__visual { width: clamp(180px, 55vw, 280px); }
+          .legal-page { padding: 56px 0 80px; }
+        }
       `}</style>
 
-      {/* Hero */}
+      {/* ── Hero ── */}
       <div className="legal-hero">
-        <div className="container" style={{ position: 'relative', zIndex: 1 }}>
-          <div className="legal-hero__bread">
-            <Link href="/">{c.breadHome}</Link>
-            <span className="legal-hero__sep">/</span>
-            <span>{c.breadCurrent}</span>
+        <div className="container">
+          <div className="legal-hero__inner">
+
+            {/* Text side */}
+            <div className="legal-hero__text">
+              <div className="legal-hero__bread">
+                <Link href="/">{c.breadHome}</Link>
+                <span className="legal-hero__sep">/</span>
+                <span>{c.breadCurrent}</span>
+              </div>
+
+              <div className="legal-hero__badge">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                {isAr ? 'الشروط والأحكام' : 'TERMS & CONDITIONS'}
+              </div>
+
+              <h1 className="legal-hero__title">
+                {isAr ? <>استخدم المنصة<br /><span>بثقة وشفافية</span></> : <>Clear terms,<br /><span>fair agreement.</span></>}
+              </h1>
+
+              <p className="legal-hero__sub">{c.heroSub}</p>
+            </div>
+
+            {/* SVG side */}
+            <div className="legal-hero__visual">
+              <img
+                src="/images/terms.svg"
+                alt="Terms and Conditions"
+                style={{ width: '100%', maxWidth: 440, height: 'auto', display: 'block' }}
+              />
+            </div>
+
           </div>
-          <h1 className="legal-hero__title">{c.heroTitle}</h1>
-          <p className="legal-hero__sub">{c.heroSub}</p>
         </div>
       </div>
 
-      {/* Body */}
+      {/* ── Body ── */}
       <div className="legal-page">
         <div className="legal-body">
           <p className="legal-intro">{c.intro}</p>
@@ -245,7 +389,7 @@ export default function TermsPage() {
                   {sec.items.map((item, j) => (
                     <li key={j}>
                       <span>
-                        {item.sub && <strong>{item.sub}:</strong>}
+                        {item.sub && <strong>{item.sub}: </strong>}
                         {item.text}
                       </span>
                     </li>
