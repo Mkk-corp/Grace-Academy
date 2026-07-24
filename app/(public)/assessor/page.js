@@ -13,6 +13,7 @@ import SlotRequests from '@/components/assessor/SlotRequests'
 import AssignedStudents from '@/components/assessor/AssignedStudents'
 import MyAssessments from '@/components/assessor/MyAssessments'
 import UpcomingSession from '@/components/shared/UpcomingSession'
+import OnboardingOverlay from '@/components/assessor/OnboardingOverlay'
 import PortalTopbar from '@/components/portal/PortalTopbar'
 import NotificationBell from '@/components/ui/NotificationBell'
 
@@ -152,11 +153,12 @@ export default function AssessorPage() {
   const isAr  = lang === 'ar'
   const isDark = theme === 'dark'
 
-  const [user,        setUser]        = useState(null)
-  const [loading,     setLoading]     = useState(true)
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [activeTab,   setActiveTab]   = useState('dashboard')
-  const [search,      setSearch]      = useState('')
+  const [user,           setUser]           = useState(null)
+  const [loading,        setLoading]        = useState(true)
+  const [sidebarOpen,    setSidebarOpen]    = useState(true)
+  const [activeTab,      setActiveTab]      = useState('dashboard')
+  const [search,         setSearch]         = useState('')
+  const [showOnboarding, setShowOnboarding] = useState(false)
 
   useEffect(() => {
     if (window.innerWidth < 768) setSidebarOpen(false)
@@ -169,6 +171,16 @@ export default function AssessorPage() {
       if (!data.user)                                                      { router.replace('/login');  return }
       if (!data.user.isAssessor && !data.user.hasAdminAccess)              { router.replace('/portal'); return }
       setUser(data.user)
+
+      // Show onboarding overlay until assessor has saved their schedule
+      if (data.user.isAssessor) {
+        const schedRes   = await fetch('/api/assessor/schedule').catch(() => null)
+        const schedData  = schedRes ? await schedRes.json().catch(() => null) : null
+        const dayMap     = schedData?.schedule?.schedule
+        const hasSlots   = dayMap && Object.values(dayMap).some(arr => Array.isArray(arr) && arr.length > 0)
+        if (!hasSlots) setShowOnboarding(true)
+      }
+
       setLoading(false)
     }
     init()
@@ -383,6 +395,16 @@ export default function AssessorPage() {
           .as-content>div{padding-left:16px !important;padding-right:16px !important}
         }
       `}</style>
+
+      {/* ── Onboarding overlay (blocks all interaction until schedule is set) ── */}
+      {showOnboarding && (
+        <OnboardingOverlay
+          user={user}
+          isAr={isAr}
+          isDark={isDark}
+          onComplete={() => setShowOnboarding(false)}
+        />
+      )}
 
       <div className="as-root">
 
