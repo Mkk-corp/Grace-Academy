@@ -37,8 +37,11 @@ export default function PlacementTest({ user, isAr, isDark, onBooked }) {
         fetch('/api/placement/upcoming'),
       ])
       if (!slotsRes.ok) throw new Error()
-      const slotsData    = await slotsRes.json()
-      const upcomingData = upcomingRes.ok ? await upcomingRes.json() : null
+      let slotsData = null
+      try { slotsData = await slotsRes.json() } catch { throw new Error() }
+      if (!slotsData) throw new Error()
+      let upcomingData = null
+      try { upcomingData = upcomingRes.ok ? await upcomingRes.json() : null } catch {}
       if (upcomingData?.booking) setAlreadyBooked(true)
       setSlots(slotsData)
     } catch {
@@ -82,8 +85,9 @@ export default function PlacementTest({ user, isAr, isDark, onBooked }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ date: selectedSlot.date, slotMin: selectedSlot.slotMin }),
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Booking failed')
+      let data = {}
+      try { data = await res.json() } catch {}
+      if (!res.ok) throw new Error(data.error || 'Booking failed. Please try again.')
       setBookingResult(data.booking)
       setStep('done')
       onBooked?.()
