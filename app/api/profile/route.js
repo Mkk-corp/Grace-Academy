@@ -40,7 +40,7 @@ export async function PUT(request) {
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json()
-  const allowed = ['name', 'phone', 'dob', 'gender', 'bio', 'country', 'city', 'nationalId', 'emergencyContact', 'avatar',
+  const allowed = ['name', 'username', 'phone', 'dob', 'gender', 'bio', 'country', 'city', 'nationalId', 'emergencyContact', 'avatar',
     'educationLevel', 'coursesTaken', 'expectedLevel', 'isEmployed', 'jobTitle', 'employer',
     'faculty', 'university', 'teachingExperience', 'teachingWhere', 'englishLevel']
 

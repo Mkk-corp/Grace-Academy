@@ -10,6 +10,7 @@ import AvailabilitySettings from '@/components/assessor/AvailabilitySettings'
 import PlacementTest from '@/components/student/PlacementTest'
 import UpcomingSession from '@/components/shared/UpcomingSession'
 import PortalTopbar from '@/components/portal/PortalTopbar'
+import StudentOnboarding from '@/components/student/StudentOnboarding'
 
 /* ── service icon map ─────────────────────────────────────────────── */
 function SvcIcon({ slug, size = 18 }) {
@@ -62,12 +63,6 @@ const NAV_ITEMS = [
   { id: 'messages',  labelEn: 'Messages',        labelAr: 'الرسائل',            icon: 'mail'     },
 ]
 
-const QUICK_STATS = [
-  { labelEn: 'Enrolled Courses', labelAr: 'الدورات المسجلة',  value: '3',  icon: 'book',     color: '#3b82f6' },
-  { labelEn: 'Live Sessions',    labelAr: 'جلسات مباشرة',     value: '2',  icon: 'video',    color: '#8b5cf6' },
-  { labelEn: 'Certificates',     labelAr: 'الشهادات',         value: '1',  icon: 'award',    color: '#c9932c' },
-  { labelEn: 'Study Hours',      labelAr: 'ساعات الدراسة',    value: '24', icon: 'calendar', color: '#10b981' },
-]
 
 /* ── main portal component ────────────────────────────────────────── */
 export default function PortalPage() {
@@ -77,12 +72,13 @@ export default function PortalPage() {
   const isAr = lang === 'ar'
   const isDark = theme === 'dark'
 
-  const [user, setUser] = useState(null)
-  const [services, setServices] = useState([])
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [activeNav, setActiveNav] = useState('dashboard')
-  const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
+  const [user,           setUser]           = useState(null)
+  const [sidebarOpen,    setSidebarOpen]    = useState(true)
+  const [activeNav,      setActiveNav]      = useState('dashboard')
+  const [search,         setSearch]         = useState('')
+  const [loading,        setLoading]        = useState(true)
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [stats,          setStats]          = useState({ placement: null, courses: 0, certificates: 0, hours: 0 })
 
   function greeting() {
     const h = new Date().getHours()
@@ -104,14 +100,14 @@ export default function PortalPage() {
 
       setUser(me.user)
 
-      // Load services
+      // Check placement booking → gate onboarding
       try {
-        const svcRes = await fetch('/api/services')
-        if (svcRes.ok) {
-          const svcData = await svcRes.json()
-          setServices(Array.isArray(svcData) ? svcData : [])
-        }
-      } catch { /* use empty */ }
+        const placRes  = await fetch('/api/placement/upcoming')
+        const placData = await placRes.json()
+        const hasBooking = !!placData?.booking
+        setStats(s => ({ ...s, placement: hasBooking ? 'confirmed' : null }))
+        if (!hasBooking) setShowOnboarding(true)
+      } catch { setShowOnboarding(true) }
 
       setLoading(false)
     }
@@ -421,6 +417,16 @@ export default function PortalPage() {
         }
       `}</style>
 
+      {/* ── Student onboarding gate (blocks until placement test is booked) ── */}
+      {showOnboarding && (
+        <StudentOnboarding
+          user={user}
+          isAr={isAr}
+          isDark={isDark}
+          onGoToPlacement={() => { setShowOnboarding(false); setActiveNav('placement') }}
+        />
+      )}
+
       <div className="pr-root">
 
         {/* Mobile backdrop */}
@@ -454,20 +460,6 @@ export default function PortalPage() {
               </div>
             ))}
 
-            {/* Divider before services */}
-            <div className="pr-sb-divider" />
-            {sidebarOpen && <div className="pr-sb-sec">{isAr ? 'الخدمات' : 'Services'}</div>}
-
-            {services.map(svc => (
-              <div
-                key={svc.id}
-                className="pr-ni pr-ni-svc"
-                title={!sidebarOpen ? (isAr ? svc.title?.ar : svc.title?.en) : undefined}
-              >
-                <SvcIcon slug={svc.iconSlug} size={17} />
-                <span className="pr-ni-lbl">{isAr ? svc.title?.ar : svc.title?.en}</span>
-              </div>
-            ))}
           </nav>
 
           {/* Sidebar illustration */}
@@ -549,38 +541,41 @@ export default function PortalPage() {
             </div>
 
             {/* Stats */}
-            <div className="pr-stats">
-              {QUICK_STATS.map(s => (
-                <div key={s.labelEn} className="pr-stat">
-                  <div className="pr-stat-ic" style={{ background: `${s.color}18`, border: `1px solid ${s.color}30` }}>
-                    <Icon name={s.icon} size={20} color={s.color} />
-                  </div>
-                  <div>
-                    <div className="pr-stat-val">{s.value}</div>
-                    <div className="pr-stat-lbl">{isAr ? s.labelAr : s.labelEn}</div>
-                  </div>
+            {(() => {
+              const placementColor = stats.placement === 'confirmed' ? '#10b981' : '#ef4444'
+              const STAT_ITEMS = [
+                {
+                  labelEn: 'Placement Test',
+                  labelAr: 'اختبار التحديد',
+                  value: stats.placement === 'confirmed'
+                    ? (isAr ? 'محجوز' : 'Booked')
+                    : (isAr ? 'غير محجوز' : 'Not Booked'),
+                  icon: 'award',
+                  color: placementColor,
+                  small: true,
+                },
+                { labelEn: 'My Courses',    labelAr: 'دوراتي',          value: stats.courses,      icon: 'book',     color: '#3b82f6' },
+                { labelEn: 'Certificates',  labelAr: 'الشهادات',        value: stats.certificates, icon: 'award',    color: '#c9932c' },
+                { labelEn: 'Study Hours',   labelAr: 'ساعات الدراسة',   value: stats.hours,        icon: 'calendar', color: '#8b5cf6' },
+              ]
+              return (
+                <div className="pr-stats">
+                  {STAT_ITEMS.map(s => (
+                    <div key={s.labelEn} className="pr-stat">
+                      <div className="pr-stat-ic" style={{ background: `${s.color}18`, border: `1px solid ${s.color}30` }}>
+                        <Icon name={s.icon} size={20} color={s.color} />
+                      </div>
+                      <div>
+                        <div className="pr-stat-val" style={s.small ? { fontSize: '1rem', marginTop: 2 } : {}}>
+                          {s.value}
+                        </div>
+                        <div className="pr-stat-lbl">{isAr ? s.labelAr : s.labelEn}</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-
-            {/* Services */}
-            <div className="pr-sec-hd">
-              <div className="pr-sec-title">{isAr ? 'الخدمات المتاحة' : 'Available Services'}</div>
-              <span className="pr-sec-link">{isAr ? 'عرض الكل' : 'View all'}</span>
-            </div>
-            <div className="pr-svcs">
-              {services.map(svc => (
-                <div key={svc.id} className="pr-svc">
-                  <div className="pr-svc-ico"><SvcIcon slug={svc.iconSlug} size={20} /></div>
-                  <div className="pr-svc-tag">{isAr ? svc.tag?.ar : svc.tag?.en}</div>
-                  <div className="pr-svc-title">{isAr ? svc.title?.ar : svc.title?.en}</div>
-                  <div className="pr-svc-body">{isAr ? svc.body?.ar : svc.body?.en}</div>
-                  <span className="pr-svc-arr">
-                    <Icon name={isAr ? 'chevronL' : 'chevron'} size={15} color="#c9932c" />
-                  </span>
-                </div>
-              ))}
-            </div>
+              )
+            })()}
 
             {/* Recent Activity */}
             <div className="pr-sec-hd">
