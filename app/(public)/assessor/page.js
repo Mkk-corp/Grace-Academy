@@ -80,7 +80,7 @@ function DashboardTab({ user, isAr, isDark }) {
     if (isAr) return h < 12 ? 'صباح الخير' : h < 17 ? 'مساء الخير' : 'مساء النور'
     return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
   }
-  const firstName = user?.name?.split(' ')[0] || (isAr ? 'مقيّم' : 'Assessor')
+  const firstName = user?.name?.split(' ')[0] || (isAr ? 'مستشار أكاديمي' : 'Academic Consultant')
 
   const STATS = [
     { icon: 'students',  en: 'Assigned Students', ar: 'الطلاب المعيّنون', value: '—', color: '#3b82f6' },
@@ -99,7 +99,7 @@ function DashboardTab({ user, isAr, isDark }) {
         <div style={{ position: 'absolute', top: -60, right: -60, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,147,44,.18) 0%, transparent 65%)', pointerEvents: 'none' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ fontSize: '.75rem', fontWeight: 600, letterSpacing: isAr ? 0 : '.12em', color: 'rgba(201,147,44,.7)', marginBottom: 6 }}>
-            {isAr ? 'بوابة المقيّم' : 'ASSESSOR PORTAL'}
+            {isAr ? 'بوابة المستشار الأكاديمي' : 'ACADEMIC CONSULTANT PORTAL'}
           </div>
           <h1 style={{ fontSize: 'clamp(1.2rem, 2.5vw, 1.7rem)', fontWeight: 900, color: '#fff', lineHeight: 1.2, marginBottom: 8 }}>
             {greeting()}, <span style={{ color: '#c9932c' }}>{firstName}</span>
@@ -181,7 +181,7 @@ export default function AssessorPage() {
 
   const SW = sidebarOpen ? 264 : 68
   const avatarSrc = `/images/avatar-${user?.avatar || 'user1'}.svg`
-  const firstName = user?.name?.split(' ')[0] || (isAr ? 'مقيّم' : 'Assessor')
+  const firstName = user?.name?.split(' ')[0] || (isAr ? 'مستشار أكاديمي' : 'Academic Consultant')
 
   /* — loading — */
   if (loading) {
@@ -398,7 +398,7 @@ export default function AssessorPage() {
             </div>
             <div className="as-sb-lbl">
               <div className="as-sb-name">GRACE ACADEMY</div>
-              <div className="as-sb-tag">{isAr ? 'بوابة المقيّم' : 'ASSESSOR PORTAL'}</div>
+              <div className="as-sb-tag">{isAr ? 'بوابة المستشار الأكاديمي' : 'ACADEMIC CONSULTANT PORTAL'}</div>
             </div>
           </div>
 

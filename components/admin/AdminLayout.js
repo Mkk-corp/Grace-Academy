@@ -65,7 +65,7 @@ const USERS_NAV = (isAr) => [
 const PORTALS_NAV = (isAr) => [
   { href: '/portal',   label: isAr ? 'بوابة الطالب'   : 'Student Portal',  icon: 'student',  color: '#c9932c' },
   { href: '/teacher',  label: isAr ? 'بوابة المعلم'   : 'Teacher Portal',  icon: 'teacher',  color: '#c9932c' },
-  { href: '/assessor', label: isAr ? 'بوابة المُقيّم' : 'Assessor Portal', icon: 'assessor', color: '#00897B' },
+  { href: '/assessor', label: isAr ? 'بوابة المستشار الأكاديمي' : 'Academic Consultant Portal', icon: 'assessor', color: '#00897B' },
 ]
 
 export default function AdminLayout({ children }) {

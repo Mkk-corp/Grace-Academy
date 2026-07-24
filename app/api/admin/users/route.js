@@ -58,7 +58,7 @@ export async function POST(request) {
   // Send welcome email if the assigned role is an assessor role
   if (roleId) {
     const role = await prisma.role.findUnique({ where: { id: roleId } }).catch(() => null)
-    if (role?.name?.toLowerCase().includes('assessor')) {
+    if (role?.name?.toLowerCase().includes('assessor') || role?.name?.toLowerCase().includes('academic consultant')) {
       sendAssessorWelcomeEmail({
         to:       email,
         name:     name || username,

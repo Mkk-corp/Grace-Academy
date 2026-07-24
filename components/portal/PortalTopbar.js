@@ -6,7 +6,7 @@ import Link from 'next/link'
 /* ─── Role badge config ───────────────────────────────────────────── */
 const ROLES = {
   Student:        { text: '#c9932c', bg: 'rgba(201,147,44,.12)',  bd: 'rgba(201,147,44,.3)',  en: 'STUDENT',   ar: 'طالب'    },
-  Assessor:       { text: '#00897B', bg: 'rgba(0,137,123,.1)',    bd: 'rgba(0,137,123,.3)',   en: 'ASSESSOR',  ar: 'مقيّم'   },
+  'Academic Consultant': { text: '#00897B', bg: 'rgba(0,137,123,.1)',    bd: 'rgba(0,137,123,.3)',   en: 'ACADEMIC CONSULTANT',  ar: 'مستشار أكاديمي'   },
   Teacher:        { text: '#c9932c', bg: 'rgba(201,147,44,.12)',  bd: 'rgba(201,147,44,.3)',  en: 'TEACHER',   ar: 'معلّم'   },
   Administrator:  { text: '#ef4444', bg: 'rgba(239,68,68,.08)',   bd: 'rgba(239,68,68,.25)',  en: 'ADMIN',     ar: 'مدير'    },
   'Content Editor':{ text:'#3b82f6', bg: 'rgba(59,130,246,.08)', bd: 'rgba(59,130,246,.25)', en: 'EDITOR',    ar: 'محرر'    },

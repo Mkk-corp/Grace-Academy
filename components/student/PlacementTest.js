@@ -170,7 +170,7 @@ export default function PlacementTest({ user, isAr, isDark }) {
         >
           {/* Gradient overlay on hover handled via inline style */}
           <div style={{ width: 140, height: 140, margin: '0 auto 20px', position: 'relative' }}>
-            <Image src="/images/ai-assessor.svg" alt="AI Assessor" fill style={{ objectFit: 'contain' }} />
+            <Image src="/images/ai-assessor.svg" alt="AI Academic Consultant" fill style={{ objectFit: 'contain' }} />
           </div>
           <div style={{
             display: 'inline-block', fontSize: '.65rem', fontWeight: 700, letterSpacing: '.12em',
@@ -180,7 +180,7 @@ export default function PlacementTest({ user, isAr, isDark }) {
             {isAr ? 'ذكاء اصطناعي' : 'AI POWERED'}
           </div>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: isDark ? '#f1f5f9' : '#111827', margin: '0 0 8px' }}>
-            {isAr ? 'المُقيّم الذكي' : 'AI Assessor'}
+            {isAr ? 'المستشار الأكاديمي الذكي' : 'AI Academic Consultant'}
           </h3>
           <p style={{ fontSize: '.82rem', color: isDark ? 'rgba(255,255,255,.45)' : '#6b7280', lineHeight: 1.6, margin: 0 }}>
             {isAr
@@ -214,7 +214,7 @@ export default function PlacementTest({ user, isAr, isDark }) {
           }}
         >
           <div style={{ width: 140, height: 140, margin: '0 auto 20px', position: 'relative' }}>
-            <Image src="/images/human-teacher.svg" alt="Human Assessor" fill style={{ objectFit: 'contain' }} />
+            <Image src="/images/human-teacher.svg" alt="Human Academic Consultant" fill style={{ objectFit: 'contain' }} />
           </div>
           <div style={{
             display: 'inline-block', fontSize: '.65rem', fontWeight: 700, letterSpacing: '.12em',
@@ -224,12 +224,12 @@ export default function PlacementTest({ user, isAr, isDark }) {
             {isAr ? 'معلم بشري' : 'HUMAN TEACHER'}
           </div>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: isDark ? '#f1f5f9' : '#111827', margin: '0 0 8px' }}>
-            {isAr ? 'المُقيّم البشري' : 'Human Assessor'}
+            {isAr ? 'المستشار الأكاديمي البشري' : 'Human Academic Consultant'}
           </h3>
           <p style={{ fontSize: '.82rem', color: isDark ? 'rgba(255,255,255,.45)' : '#6b7280', lineHeight: 1.6, margin: 0 }}>
             {isAr
-              ? 'احجز جلسة شخصية مع مُقيّم معتمد وخبير في قياس مستويات اللغة.'
-              : 'Book a one-on-one session with a certified assessor for a personal evaluation.'}
+              ? 'احجز جلسة شخصية مع مستشار أكاديمي معتمد وخبير في قياس مستويات اللغة.'
+              : 'Book a one-on-one session with a certified academic consultant for a personal evaluation.'}
           </p>
           <div style={{ marginTop: 20, fontSize: '.8rem', fontWeight: 600, color: gold, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
             {isAr ? 'احجز موعدًا' : 'Book a Slot'}
@@ -247,7 +247,7 @@ export default function PlacementTest({ user, isAr, isDark }) {
     <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center' }}>
       <div style={{ ...surface, padding: '52px 40px' }}>
         <div style={{ width: 160, height: 160, margin: '0 auto 32px', position: 'relative' }}>
-          <Image src="/images/ai-assessor.svg" alt="AI Assessor" fill style={{ objectFit: 'contain' }} />
+          <Image src="/images/ai-assessor.svg" alt="AI Academic Consultant" fill style={{ objectFit: 'contain' }} />
         </div>
         <div style={{
           display: 'inline-block', fontSize: '.65rem', fontWeight: 700, letterSpacing: '.14em',
@@ -261,8 +261,8 @@ export default function PlacementTest({ user, isAr, isDark }) {
         </h2>
         <p style={{ fontSize: '.9rem', color: isDark ? 'rgba(255,255,255,.45)' : '#6b7280', lineHeight: 1.7, maxWidth: 380, margin: '0 auto 32px' }}>
           {isAr
-            ? 'نظام التقييم بالذكاء الاصطناعي قيد التطوير. سيكون متاحًا قريبًا. في هذه الأثناء، يمكنك الاستمرار مع مُقيّم بشري.'
-            : 'Our AI assessment system is under development and will be available soon. In the meantime, you can continue with a human assessor.'}
+            ? 'نظام التقييم بالذكاء الاصطناعي قيد التطوير. سيكون متاحًا قريبًا. في هذه الأثناء، يمكنك الاستمرار مع مستشار أكاديمي بشري.'
+            : 'Our AI assessment system is under development and will be available soon. In the meantime, you can continue with a human academic consultant.'}
         </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button
@@ -283,7 +283,7 @@ export default function PlacementTest({ user, isAr, isDark }) {
               color: '#fff', fontWeight: 700, fontSize: '.87rem', cursor: 'pointer',
             }}
           >
-            {isAr ? 'احجز مع مُقيّم بشري' : 'Book Human Assessor'}
+            {isAr ? 'احجز مع مستشار أكاديمي بشري' : 'Book Human Academic Consultant'}
           </button>
         </div>
       </div>

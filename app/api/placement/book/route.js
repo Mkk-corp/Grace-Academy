@@ -100,7 +100,7 @@ export async function POST(req) {
 
   const assessorUser = await prisma.user.findUnique({ where: { id: assessorId } }).catch(() => null)
   const assessorEmail = assessorData.assessorEmail || assessorUser?.email || ''
-  const assessorName  = assessorData.assessorName  || assessorUser?.name  || 'Assessor'
+  const assessorName  = assessorData.assessorName  || assessorUser?.name  || 'Academic Consultant'
 
   // Try to create Google Meet link
   let meetLink   = null

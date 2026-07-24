@@ -9,7 +9,7 @@ const ROLES = [
   { id: 'r_editor',   name: 'Content Editor', description: 'Can manage website content and media',                  permissions: ['manage_content','manage_blog','manage_services','manage_portfolio','manage_faq','manage_pricing','manage_stats'] },
   { id: 'r_viewer',   name: 'Viewer',         description: 'Can view contact messages only',                        permissions: ['view_messages'] },
   { id: 'r_student',  name: 'Student',        description: 'Enrolled students with access to the student portal',   permissions: ['access_student_portal'] },
-  { id: 'r_assessor', name: 'Assessor',       description: 'Placement assessors who conduct and manage assessments',permissions: ['access_assessor_portal'] },
+  { id: 'r_assessor', name: 'Academic Consultant', description: 'Academic consultants who conduct and manage assessments', permissions: ['access_assessor_portal'] },
   { id: 'r_teacher',  name: 'Teacher',        description: 'Teachers who deliver courses and manage student learning',permissions: ['access_teacher_portal'] },
 ]
 
