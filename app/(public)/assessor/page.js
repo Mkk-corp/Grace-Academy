@@ -402,7 +402,7 @@ export default function AssessorPage() {
           user={user}
           isAr={isAr}
           isDark={isDark}
-          onComplete={() => setShowOnboarding(false)}
+          onGoToSchedule={() => { setShowOnboarding(false); setActiveTab('schedule') }}
         />
       )}
 
