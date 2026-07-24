@@ -111,6 +111,7 @@ export default function PlacementTest({ user, isAr, isDark, onBooked }) {
   function isAvailable(date, slotMin) {
     const count = slots?.availability?.[date]?.[slotMin] || 0
     if (count === 0) return false
+    if (date < todayStr) return false
     if (date === todayStr && slotMin <= nowMin + 30) return false
     return true
   }
