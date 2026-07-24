@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { hashPassword } from '@/lib/password'
+import { sendAssessorWelcomeEmail } from '@/lib/mailer'
 
 async function requireAdmin() {
   const jar = await cookies()
@@ -53,6 +54,19 @@ export async function POST(request) {
     },
     select: SAFE_SELECT,
   })
+
+  // Send welcome email if the assigned role is an assessor role
+  if (roleId) {
+    const role = await prisma.role.findUnique({ where: { id: roleId } }).catch(() => null)
+    if (role?.name?.toLowerCase().includes('assessor')) {
+      sendAssessorWelcomeEmail({
+        to:       email,
+        name:     name || username,
+        username,
+        password,
+      }).catch(() => {})
+    }
+  }
 
   return NextResponse.json(user, { status: 201 })
 }
