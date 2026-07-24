@@ -53,6 +53,19 @@ export default function Footer() {
 
         <div className="footer__bottom">
           <span>{t('footerCopy')}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Link href="/privacy-policy" style={{ fontSize: '.78rem', color: 'var(--text-muted, #9ca3af)', textDecoration: 'none', transition: 'color .15s' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#c9932c'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted, #9ca3af)'}>
+              {t('footerPrivacy')}
+            </Link>
+            <span style={{ color: 'var(--text-muted, #9ca3af)', fontSize: '.78rem' }}>·</span>
+            <Link href="/terms" style={{ fontSize: '.78rem', color: 'var(--text-muted, #9ca3af)', textDecoration: 'none', transition: 'color .15s' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#c9932c'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted, #9ca3af)'}>
+              {t('footerTerms')}
+            </Link>
+          </div>
           <div className="footer__dev">
             <span>{t('footerDev')}</span>
             <img src="/images/dev-logo.png" alt="Developer" className="footer__dev-logo" />
