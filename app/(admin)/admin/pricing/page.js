@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 import { useLang } from '@/context/LangContext'
+import { useTheme } from '@/context/ThemeContext'
+import Select from '@/components/ui/Select'
 
 const S = {
   en: {
@@ -90,6 +92,10 @@ export default function AdminPricingPage() {
 }
 
 function PricingModal({ plan, onSave, onClose, s }) {
+  const { lang } = useLang()
+  const { theme } = useTheme()
+  const isAr  = lang === 'ar'
+  const isDark = theme === 'dark'
   const [form, setForm] = useState(plan)
   const set = (path, val) => {
     const [a, b] = path.split('.')
@@ -116,10 +122,12 @@ function PricingModal({ plan, onSave, onClose, s }) {
         ))}
         <div className="admin-field">
           <label>{s.popularLabel}</label>
-          <select value={form.popular ? 'yes' : 'no'} onChange={e => set('popular', e.target.value === 'yes')}>
-            <option value="no">{s.no}</option>
-            <option value="yes">{s.yes}</option>
-          </select>
+          <Select
+            value={form.popular ? 'yes' : 'no'}
+            onChange={v => set('popular', v === 'yes')}
+            options={[{ value: 'no', label: s.no, labelAr: s.no }, { value: 'yes', label: s.yes, labelAr: s.yes }]}
+            isAr={isAr} isDark={isDark}
+          />
         </div>
         <div className="admin-actions">
           <button className="admin-btn" onClick={onClose}>{s.cancel}</button>

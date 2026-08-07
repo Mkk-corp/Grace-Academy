@@ -2,25 +2,29 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { COUNTRIES, DEFAULT_COUNTRY } from '@/lib/countries'
+import flags from 'country-flag-icons/react/3x2'
 
-// flagcdn.com only serves these exact widths
-const CDN_SIZES = [16, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96, 128, 160, 192, 256]
-function snapSize(n) {
-  return CDN_SIZES.reduce((prev, cur) => Math.abs(cur - n) < Math.abs(prev - n) ? cur : prev)
-}
-
-function Flag({ code, size = 20 }) {
-  const iso = code.toLowerCase()
-  const w   = snapSize(size)
-  const w2x = snapSize(size * 2)
+function Flag({ code, width = 22 }) {
+  const Svg = flags[code]
+  if (!Svg) return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      width, height: Math.round(width * 0.67),
+      background: '#e5e7eb', borderRadius: 2,
+      fontSize: 9, fontWeight: 700, color: '#6b7280', flexShrink: 0,
+    }}>{code}</span>
+  )
   return (
-    <img
-      src={`https://flagcdn.com/w${w}/${iso}.png`}
-      srcSet={`https://flagcdn.com/w${w2x}/${iso}.png 2x`}
-      width={size}
-      height={Math.round(size * 0.75)}
-      alt={code}
-      style={{ objectFit: 'cover', borderRadius: 2, display: 'block', flexShrink: 0 }}
+    <Svg
+      title={code}
+      style={{
+        width,
+        height: Math.round(width * 0.67),
+        borderRadius: 2,
+        display: 'block',
+        flexShrink: 0,
+        boxShadow: '0 0 0 1px rgba(0,0,0,.08)',
+      }}
     />
   )
 }
@@ -136,7 +140,7 @@ export default function PhoneInput({
             opacity: disabled ? .55 : 1,
           }}
         >
-          <Flag code={sel.code} size={20} />
+          <Flag code={sel.code} width={22} />
           <span style={{ color: '#c9932c', fontWeight: 700, fontSize: '.82rem', letterSpacing: 0 }}>{sel.dial}</span>
           <svg viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2.5" width="10" height="10"
             style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s', flexShrink: 0 }}>
@@ -274,7 +278,7 @@ export default function PhoneInput({
                   onMouseLeave={e => { e.currentTarget.style.background = isSelected ? activeBg : 'transparent' }}
                 >
                   {/* Flag */}
-                  <Flag code={c.code} size={24} />
+                  <Flag code={c.code} width={26} />
 
                   {/* Name */}
                   <span style={{

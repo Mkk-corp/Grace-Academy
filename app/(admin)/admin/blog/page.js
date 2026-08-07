@@ -5,6 +5,8 @@ import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 import Modal from '@/components/ui/Modal'
 import EmptyState from '@/components/ui/EmptyState'
 import { useLang } from '@/context/LangContext'
+import { useTheme } from '@/context/ThemeContext'
+import Select from '@/components/ui/Select'
 
 const S = {
   en: {
@@ -98,6 +100,10 @@ export default function AdminBlogPage() {
 }
 
 function BlogModal({ item, onSave, onClose, s }) {
+  const { lang } = useLang()
+  const { theme } = useTheme()
+  const isAr  = lang === 'ar'
+  const isDark = theme === 'dark'
   const [form, setForm] = useState(item)
   const set = (path, val) => {
     const [a, b] = path.split('.')
@@ -126,10 +132,12 @@ function BlogModal({ item, onSave, onClose, s }) {
         ))}
         <div className="admin-field">
           <label>{s.labelPublished}</label>
-          <select value={form.published ? 'yes' : 'no'} onChange={e => set('published', e.target.value === 'yes')}>
-            <option value="yes">{s.optYes}</option>
-            <option value="no">{s.optNo}</option>
-          </select>
+          <Select
+            value={form.published ? 'yes' : 'no'}
+            onChange={v => set('published', v === 'yes')}
+            options={[{ value: 'yes', label: s.optYes, labelAr: s.optYes }, { value: 'no', label: s.optNo, labelAr: s.optNo }]}
+            isAr={isAr} isDark={isDark}
+          />
         </div>
         <div className="admin-actions">
           <button className="admin-btn" onClick={onClose}>{s.cancel}</button>

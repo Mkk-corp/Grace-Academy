@@ -6,6 +6,8 @@ import Modal from '@/components/ui/Modal'
 import EmptyState from '@/components/ui/EmptyState'
 import { useLang } from '@/context/LangContext'
 import PhoneInput from '@/components/ui/PhoneInput'
+import Select from '@/components/ui/Select'
+import { useTheme } from '@/context/ThemeContext'
 import { DEFAULT_COUNTRY, parsePhone } from '@/lib/countries'
 
 const S = {
@@ -166,7 +168,9 @@ export default function AdminUsersPage() {
 
 function UserModal({ user, roles, onSave, onClose, s }) {
   const { lang } = useLang()
-  const isAr = lang === 'ar'
+  const { theme } = useTheme()
+  const isAr  = lang === 'ar'
+  const isDark = theme === 'dark'
   const [form, setForm] = useState(user)
   const isNew = user.id.startsWith('new')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
@@ -227,10 +231,15 @@ function UserModal({ user, roles, onSave, onClose, s }) {
           </div>
           <div className="admin-field">
             <label>{s.fldRole}</label>
-            <select value={form.roleId || ''} onChange={e => set('roleId', e.target.value || null)}>
-              <option value="">{s.noRole}</option>
-              {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-            </select>
+            <Select
+              value={form.roleId || ''}
+              onChange={v => set('roleId', v || null)}
+              options={[
+                { value: '', label: s.noRole, labelAr: s.noRole },
+                ...roles.map(r => ({ value: r.id, label: r.name, labelAr: r.name })),
+              ]}
+              isAr={isAr} isDark={isDark}
+            />
           </div>
         </div>
 
