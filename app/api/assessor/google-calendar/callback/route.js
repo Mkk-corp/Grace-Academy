@@ -19,7 +19,7 @@ export async function GET(req) {
   const base  = process.env.AUTH_URL
 
   if (error || !code) {
-    return NextResponse.redirect(`${base}/portal/assessor`)
+    return NextResponse.redirect(`${base}/assessor`)
   }
 
   const user = await getAuthUser()
@@ -40,12 +40,12 @@ export async function GET(req) {
   })
 
   if (!tokenRes.ok) {
-    return NextResponse.redirect(`${base}/portal/assessor`)
+    return NextResponse.redirect(`${base}/assessor`)
   }
 
   const { access_token, refresh_token } = await tokenRes.json()
   if (!access_token) {
-    return NextResponse.redirect(`${base}/portal/assessor`)
+    return NextResponse.redirect(`${base}/assessor`)
   }
 
   const isFirstSync = !user.googleCalendarSyncedAt
@@ -76,5 +76,5 @@ export async function GET(req) {
     await writeContent('notifications', notifications)
   }
 
-  return NextResponse.redirect(`${base}/portal/assessor`)
+  return NextResponse.redirect(`${base}/assessor?onboarding=complete`)
 }

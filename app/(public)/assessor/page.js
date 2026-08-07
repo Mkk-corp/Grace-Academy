@@ -162,6 +162,7 @@ export default function AssessorPage() {
   const [onboardingSlide,  setOnboardingSlide]  = useState(undefined) // undefined = let LS decide
   const [onboardingDone,   setOnboardingDone]   = useState(false)
   const [pendingStep,      setPendingStep]      = useState(null) // 2 | 3 | null
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
 
   useEffect(() => {
     if (window.innerWidth < 768) setSidebarOpen(false)
@@ -189,6 +190,12 @@ export default function AssessorPage() {
 
         if (hasSlots && calSynced) {
           setOnboardingDone(true)
+          // Show celebration modal when redirected back from Google OAuth
+          const urlParams = new URLSearchParams(window.location.search)
+          if (urlParams.get('onboarding') === 'complete') {
+            setShowSuccessModal(true)
+            window.history.replaceState({}, '', '/assessor')
+          }
         } else {
           // Schedule done but calendar not → jump straight to slide 3
           if (hasSlots && !calSynced) setOnboardingSlide(3)
@@ -438,6 +445,88 @@ export default function AssessorPage() {
           .as-content>div{padding-left:16px !important;padding-right:16px !important}
         }
       `}</style>
+
+      {/* ── Onboarding complete success modal ── */}
+      {showSuccessModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          {/* Backdrop */}
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.65)', backdropFilter: 'blur(6px)' }} />
+          {/* Card */}
+          <div style={{
+            position: 'relative', zIndex: 1,
+            background: isDark ? '#10222b' : '#ffffff',
+            borderRadius: 24, padding: '48px 40px',
+            maxWidth: 480, width: '100%',
+            textAlign: 'center',
+            boxShadow: '0 24px 80px rgba(0,0,0,.35)',
+            border: `1.5px solid ${isDark ? 'rgba(255,255,255,.08)' : '#e5e7eb'}`,
+            animation: 'smBounceIn .45s cubic-bezier(.34,1.56,.64,1) both',
+          }}>
+            <style>{`
+              @keyframes smBounceIn{from{opacity:0;transform:scale(.82) translateY(24px)}to{opacity:1;transform:none}}
+              @keyframes smRing{0%,100%{transform:scale(1)}30%{transform:scale(1.15)}60%{transform:scale(.95)}}
+              @keyframes smSpin{from{stroke-dashoffset:120}to{stroke-dashoffset:0}}
+            `}</style>
+
+            {/* Trophy / check ring */}
+            <div style={{ width: 88, height: 88, borderRadius: '50%', background: 'linear-gradient(135deg, #c9932c 0%, #f0b429 100%)', margin: '0 auto 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 12px rgba(201,147,44,.12)', animation: 'smRing 1s ease .45s both' }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" style={{ strokeDasharray: 120, strokeDashoffset: 0, animation: 'smSpin .5s ease .55s both' }} />
+              </svg>
+            </div>
+
+            {/* Headline */}
+            <div style={{ fontSize: '.72rem', fontWeight: 700, letterSpacing: isAr ? 0 : '.14em', color: '#c9932c', marginBottom: 10 }}>
+              {isAr ? 'اكتمل الإعداد بنجاح' : 'ALL STEPS COMPLETE'}
+            </div>
+            <h2 style={{ fontSize: 'clamp(1.3rem, 3vw, 1.7rem)', fontWeight: 900, color: isDark ? '#f1f5f9' : '#111827', lineHeight: 1.2, marginBottom: 14 }}>
+              {isAr ? 'أنت جاهز للعمل! 🎉' : "You're Ready to Work! 🎉"}
+            </h2>
+            <p style={{ fontSize: '.9rem', color: isDark ? 'rgba(255,255,255,.55)' : '#6b7280', lineHeight: 1.7, marginBottom: 10 }}>
+              {isAr
+                ? 'لقد أكملت جميع خطوات الإعداد بنجاح — الجدول الزمني وتزامن Google Calendar.'
+                : 'You've successfully completed all onboarding steps — your schedule and Google Calendar are both set up.'}
+            </p>
+            <p style={{ fontSize: '.84rem', color: isDark ? 'rgba(255,255,255,.4)' : '#9ca3af', lineHeight: 1.65, marginBottom: 32 }}>
+              {isAr
+                ? 'منصتك جاهزة الآن بالكامل. يمكنك البدء في استقبال جلسات التقييم وإدارة طلاب الأكاديمية.'
+                : 'Your platform is fully operational. You can now start receiving assessment sessions and managing Academy students.'}
+            </p>
+
+            {/* Checklist */}
+            <div style={{ textAlign: isAr ? 'right' : 'left', marginBottom: 32, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[
+                { en: 'Schedule configured', ar: 'الجدول الزمني مُعدّ' },
+                { en: 'Google Calendar synced', ar: 'Google Calendar مُزامَن' },
+                { en: 'Google Meet ready', ar: 'Google Meet جاهز' },
+              ].map(item => (
+                <div key={item.en} style={{ display: 'flex', alignItems: 'center', gap: 10, flexDirection: isAr ? 'row-reverse' : 'row' }}>
+                  <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(16,185,129,.12)', border: '1.5px solid #10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <span style={{ fontSize: '.84rem', color: isDark ? 'rgba(255,255,255,.7)' : '#374151', fontWeight: 500 }}>{isAr ? item.ar : item.en}</span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setShowSuccessModal(false)}
+              style={{
+                width: '100%', padding: '14px', border: 'none', borderRadius: 12,
+                background: 'linear-gradient(135deg, #c9932c 0%, #f0b429 100%)',
+                color: 'white', fontSize: '.95rem', fontWeight: 800,
+                cursor: 'pointer', fontFamily: 'inherit',
+                boxShadow: '0 4px 18px rgba(201,147,44,.35)',
+                transition: 'transform .15s, box-shadow .15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 24px rgba(201,147,44,.45)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 18px rgba(201,147,44,.35)' }}
+            >
+              {isAr ? 'انتقل إلى لوحة التحكم' : 'Go to Dashboard'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Onboarding overlay (blocks all interaction until schedule is set) ── */}
       {showOnboarding && (
