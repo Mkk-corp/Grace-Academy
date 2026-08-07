@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useLang } from '@/context/LangContext'
@@ -221,17 +222,39 @@ function SectionHeader({ icon, titleEn, titleAr, subEn, subAr, isAr, isDark }) {
   )
 }
 
-/* ── topics multi-select dropdown ───────────────────────────────── */
+/* ── topics multi-select dropdown (portal-based to escape overflow:hidden) ── */
 function TopicsDropdown({ topics, selected, onChange, onCreateRequest, isAr, isDark, C }) {
-  const [open,   setOpen]   = useState(false)
-  const [search, setSearch] = useState('')
-  const wrapRef = useRef(null)
+  const [open,    setOpen]    = useState(false)
+  const [search,  setSearch]  = useState('')
+  const [mounted, setMounted] = useState(false)
+  const [pos,     setPos]     = useState({ top: 0, left: 0, width: 300 })
+  const triggerRef = useRef(null)
+  const dropRef    = useRef(null)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
-    function h(e) { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false) }
-    document.addEventListener('mousedown', h)
-    return () => document.removeEventListener('mousedown', h)
-  }, [])
+    if (!open) return
+    function reposition() {
+      if (triggerRef.current) {
+        const r = triggerRef.current.getBoundingClientRect()
+        setPos({ top: r.bottom + 4, left: r.left, width: r.width })
+      }
+    }
+    reposition()
+    function onOutside(e) {
+      if (dropRef.current?.contains(e.target) || triggerRef.current?.contains(e.target)) return
+      setOpen(false)
+    }
+    document.addEventListener('mousedown', onOutside)
+    window.addEventListener('scroll', reposition, true)
+    window.addEventListener('resize', reposition)
+    return () => {
+      document.removeEventListener('mousedown', onOutside)
+      window.removeEventListener('scroll', reposition, true)
+      window.removeEventListener('resize', reposition)
+    }
+  }, [open])
 
   const selectedObjects = topics.filter(t => selected.includes(t.id))
   const filtered = search.trim()
@@ -247,8 +270,97 @@ function TopicsDropdown({ topics, selected, onChange, onCreateRequest, isAr, isD
   const hoverBg = isDark ? 'rgba(255,255,255,.06)' : '#f1f5f9'
   const divider = isDark ? 'rgba(255,255,255,.04)' : '#f8fafc'
 
+  const dropdown = open && mounted && createPortal(
+    <div ref={dropRef} style={{
+      position: 'fixed',
+      top: pos.top,
+      left: pos.left,
+      width: pos.width,
+      zIndex: 9999,
+      background: dropBg,
+      border: `1.5px solid ${dropBd}`,
+      borderRadius: 12,
+      overflow: 'hidden',
+      boxShadow: '0 16px 48px rgba(0,0,0,.28)',
+    }}>
+      <div style={{ padding: '8px 8px 6px', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,.07)' : '#f0f4f8'}` }}>
+        <div style={{ position: 'relative' }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke={C.xmuted} strokeWidth="2" width="13" height="13"
+            style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input value={search} onChange={e => setSearch(e.target.value)} autoFocus
+            placeholder={isAr ? 'ابحث عن موضوع…' : 'Search topics…'}
+            style={{
+              width: '100%', padding: '7px 9px 7px 28px',
+              background: isDark ? 'rgba(255,255,255,.06)' : '#f9fafb',
+              border: `1px solid ${isDark ? 'rgba(255,255,255,.1)' : '#e2e8f0'}`,
+              borderRadius: 7, color: C.text, fontSize: '.82rem', fontFamily: 'inherit', outline: 'none',
+            }}
+          />
+        </div>
+      </div>
+
+      <div style={{ maxHeight: 240, overflowY: 'auto' }}>
+        {filtered.length === 0
+          ? <div style={{ padding: '14px', textAlign: 'center', color: C.xmuted, fontSize: '.82rem' }}>
+              {isAr ? 'لا توجد نتائج' : 'No topics found'}
+            </div>
+          : filtered.map(t => {
+              const isSel = selected.includes(t.id)
+              return (
+                <button key={t.id} type="button" onClick={() => toggle(t.id)} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  width: '100%', padding: '9px 13px',
+                  background: isSel ? 'rgba(201,147,44,.08)' : 'transparent',
+                  border: 'none', borderBottom: `1px solid ${divider}`,
+                  cursor: 'pointer', color: C.text, fontFamily: 'inherit', fontSize: '.84rem',
+                  textAlign: isAr ? 'right' : 'left', transition: 'background .1s',
+                }}
+                  onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = hoverBg }}
+                  onMouseLeave={e => { e.currentTarget.style.background = isSel ? 'rgba(201,147,44,.08)' : 'transparent' }}
+                >
+                  <div style={{
+                    width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+                    border: `1.5px solid ${isSel ? '#c9932c' : isDark ? 'rgba(255,255,255,.25)' : '#d1d5db'}`,
+                    background: isSel ? '#c9932c' : 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'all .12s',
+                  }}>
+                    {isSel && <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" width="10" height="10"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </div>
+                  {isAr ? t.nameAr : t.nameEn}
+                </button>
+              )
+            })}
+      </div>
+
+      <div style={{ borderTop: `1px solid ${isDark ? 'rgba(255,255,255,.07)' : '#f0f4f8'}`, padding: '6px 8px' }}>
+        <button type="button" onClick={() => { setOpen(false); onCreateRequest(search) }} style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          width: '100%', padding: '8px 10px',
+          background: 'none', border: `1px dashed ${isDark ? 'rgba(201,147,44,.3)' : 'rgba(201,147,44,.4)'}`,
+          borderRadius: 8, cursor: 'pointer', color: '#c9932c', fontSize: '.82rem', fontFamily: 'inherit',
+          transition: 'background .12s',
+        }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,147,44,.07)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'none'}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          {isAr
+            ? `إنشاء موضوع جديد${search.trim() ? ` "${search.trim()}"` : ''}`
+            : `Create new topic${search.trim() ? ` "${search.trim()}"` : ''}`
+          }
+        </button>
+      </div>
+    </div>,
+    document.body
+  )
+
   return (
-    <div ref={wrapRef} style={{ position: 'relative', width: '100%' }}>
+    <div style={{ position: 'relative', width: '100%' }}>
       {selectedObjects.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
           {selectedObjects.map(t => (
@@ -272,7 +384,7 @@ function TopicsDropdown({ topics, selected, onChange, onCreateRequest, isAr, isD
         </div>
       )}
 
-      <button type="button" onClick={() => { setOpen(v => !v); setSearch('') }} style={{
+      <button ref={triggerRef} type="button" onClick={() => { setOpen(v => !v); setSearch('') }} style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 9,
         width: '100%', padding: '10px 13px',
         background: C.inputBg, border: `1px solid ${open ? 'rgba(201,147,44,.6)' : C.inputBd}`,
@@ -292,87 +404,7 @@ function TopicsDropdown({ topics, selected, onChange, onCreateRequest, isAr, isD
         </svg>
       </button>
 
-      {open && (
-        <div style={{
-          position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 200,
-          background: dropBg, border: `1.5px solid ${dropBd}`,
-          borderRadius: 12, overflow: 'hidden',
-          boxShadow: '0 16px 48px rgba(0,0,0,.28)',
-        }}>
-          <div style={{ padding: '8px 8px 6px', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,.07)' : '#f0f4f8'}` }}>
-            <div style={{ position: 'relative' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke={C.xmuted} strokeWidth="2" width="13" height="13"
-                style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-              <input value={search} onChange={e => setSearch(e.target.value)} autoFocus
-                placeholder={isAr ? 'ابحث عن موضوع…' : 'Search topics…'}
-                style={{
-                  width: '100%', padding: '7px 9px 7px 28px',
-                  background: isDark ? 'rgba(255,255,255,.06)' : '#f9fafb',
-                  border: `1px solid ${isDark ? 'rgba(255,255,255,.1)' : '#e2e8f0'}`,
-                  borderRadius: 7, color: C.text, fontSize: '.82rem', fontFamily: 'inherit', outline: 'none',
-                }}
-              />
-            </div>
-          </div>
-
-          <div style={{ maxHeight: 240, overflowY: 'auto' }}>
-            {filtered.length === 0
-              ? <div style={{ padding: '14px', textAlign: 'center', color: C.xmuted, fontSize: '.82rem' }}>
-                  {isAr ? 'لا توجد نتائج' : 'No topics found'}
-                </div>
-              : filtered.map(t => {
-                  const isSel = selected.includes(t.id)
-                  return (
-                    <button key={t.id} type="button" onClick={() => toggle(t.id)} style={{
-                      display: 'flex', alignItems: 'center', gap: 10,
-                      width: '100%', padding: '9px 13px',
-                      background: isSel ? 'rgba(201,147,44,.08)' : 'transparent',
-                      border: 'none', borderBottom: `1px solid ${divider}`,
-                      cursor: 'pointer', color: C.text, fontFamily: 'inherit', fontSize: '.84rem',
-                      textAlign: isAr ? 'right' : 'left', transition: 'background .1s',
-                    }}
-                      onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = hoverBg }}
-                      onMouseLeave={e => { e.currentTarget.style.background = isSel ? 'rgba(201,147,44,.08)' : 'transparent' }}
-                    >
-                      <div style={{
-                        width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-                        border: `1.5px solid ${isSel ? '#c9932c' : isDark ? 'rgba(255,255,255,.25)' : '#d1d5db'}`,
-                        background: isSel ? '#c9932c' : 'transparent',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        transition: 'all .12s',
-                      }}>
-                        {isSel && <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" width="10" height="10"><polyline points="20 6 9 17 4 12"/></svg>}
-                      </div>
-                      {isAr ? t.nameAr : t.nameEn}
-                    </button>
-                  )
-                })}
-          </div>
-
-          <div style={{ borderTop: `1px solid ${isDark ? 'rgba(255,255,255,.07)' : '#f0f4f8'}`, padding: '6px 8px' }}>
-            <button type="button" onClick={() => { setOpen(false); onCreateRequest(search) }} style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              width: '100%', padding: '8px 10px',
-              background: 'none', border: `1px dashed ${isDark ? 'rgba(201,147,44,.3)' : 'rgba(201,147,44,.4)'}`,
-              borderRadius: 8, cursor: 'pointer', color: '#c9932c', fontSize: '.82rem', fontFamily: 'inherit',
-              transition: 'background .12s',
-            }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,147,44,.07)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'none'}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14">
-                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
-              {isAr
-                ? `إنشاء موضوع جديد${search.trim() ? ` "${search.trim()}"` : ''}`
-                : `Create new topic${search.trim() ? ` "${search.trim()}"` : ''}`
-              }
-            </button>
-          </div>
-        </div>
-      )}
+      {dropdown}
     </div>
   )
 }
