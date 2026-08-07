@@ -26,21 +26,23 @@ async function getAuthUser(req) {
   return { ...user, permissions, hasAdminAccess, isAssessor }
 }
 
-async function validateSchedule(schedule) {
+const REQUIRED_TOTAL = 16
+const VALID_SLOT_SET = new Set(Array.from({ length: 30 }, (_, i) => 540 + i * 30)) // 9:00 AM – 11:30 PM
+
+function validateSchedule(schedule) {
   if (!schedule || typeof schedule !== 'object') return 'Invalid schedule format'
-  const raw = (await readContent('schedule_limits')) || {}
-  const minDays  = raw.minDays  ?? 2
-  const maxDays  = raw.maxDays  ?? 5
-  const minSlots = raw.minSlots ?? 4
-  const maxSlots = raw.maxSlots ?? 32
   const VALID_DAYS = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri']
-  const activeDays = VALID_DAYS.filter(d => Array.isArray(schedule[d]) && schedule[d].length > 0)
-  if (activeDays.length < minDays) return `At least ${minDays} days must have slots`
-  if (activeDays.length > maxDays) return `At most ${maxDays} days can have slots`
-  for (const day of activeDays) {
-    if (schedule[day].length < minSlots) return `${day} must have at least ${minSlots} slots`
-    if (schedule[day].length > maxSlots) return `${day} can have at most ${maxSlots} slots`
+  let total = 0
+  for (const day of VALID_DAYS) {
+    const slots = schedule[day]
+    if (!slots) continue
+    if (!Array.isArray(slots)) return 'Invalid schedule format'
+    for (const slot of slots) {
+      if (!VALID_SLOT_SET.has(Number(slot))) return `Invalid slot time: ${slot}. Slots must be between 9:00 AM and 11:30 PM`
+    }
+    total += slots.length
   }
+  if (total !== REQUIRED_TOTAL) return `Schedule must have exactly ${REQUIRED_TOTAL} slots (currently has ${total})`
   return null
 }
 
@@ -72,7 +74,7 @@ export async function POST(req) {
   const body = await req.json()
   const { schedule } = body
 
-  const err = await validateSchedule(schedule)
+  const err = validateSchedule(schedule)
   if (err) return NextResponse.json({ error: err }, { status: 400 })
 
   schedules[user.id] = {
