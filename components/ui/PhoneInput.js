@@ -3,12 +3,20 @@
 import { useState, useRef, useEffect } from 'react'
 import { COUNTRIES, DEFAULT_COUNTRY } from '@/lib/countries'
 
+// flagcdn.com only serves these exact widths
+const CDN_SIZES = [16, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96, 128, 160, 192, 256]
+function snapSize(n) {
+  return CDN_SIZES.reduce((prev, cur) => Math.abs(cur - n) < Math.abs(prev - n) ? cur : prev)
+}
+
 function Flag({ code, size = 20 }) {
   const iso = code.toLowerCase()
+  const w   = snapSize(size)
+  const w2x = snapSize(size * 2)
   return (
     <img
-      src={`https://flagcdn.com/w${size}/${iso}.png`}
-      srcSet={`https://flagcdn.com/w${size * 2}/${iso}.png 2x`}
+      src={`https://flagcdn.com/w${w}/${iso}.png`}
+      srcSet={`https://flagcdn.com/w${w2x}/${iso}.png 2x`}
       width={size}
       height={Math.round(size * 0.75)}
       alt={code}
@@ -266,7 +274,7 @@ export default function PhoneInput({
                   onMouseLeave={e => { e.currentTarget.style.background = isSelected ? activeBg : 'transparent' }}
                 >
                   {/* Flag */}
-                  <Flag code={c.code} size={22} />
+                  <Flag code={c.code} size={24} />
 
                   {/* Name */}
                   <span style={{
