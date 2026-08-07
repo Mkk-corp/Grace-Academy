@@ -117,6 +117,64 @@ export default function HomeClient({ stats }) {
         </div>
       </div>
 
+      {/* PLATFORM — purpose statement for Google OAuth review */}
+      <section id="platform" style={{ padding: '72px 0', background: 'var(--platf-bg, #f0f4ff)', borderTop: '1px solid var(--platf-bd, #dde5f7)', borderBottom: '1px solid var(--platf-bd, #dde5f7)' }}>
+        <style>{`
+          [data-theme="dark"] { --platf-bg: rgba(26,115,232,.04); --platf-bd: rgba(26,115,232,.12); --platf-card: rgba(255,255,255,.03); --platf-card-bd: rgba(255,255,255,.07); }
+          :root { --platf-bg: #f0f4ff; --platf-bd: #dde5f7; --platf-card: #fff; --platf-card-bd: #dde5f7; }
+        `}</style>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: 48 }} data-reveal>
+            <span className="label">{t('platfLabel')}</span>
+            <h2 className="section-title" style={{ marginBottom: 16 }}>{t('platfTitle')}</h2>
+            <p style={{ fontSize: '1rem', color: 'var(--text-muted, #6b7280)', maxWidth: 680, margin: '0 auto', lineHeight: 1.75 }}>
+              {t('platfDesc')}
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 28, marginBottom: 40 }}>
+            {/* Capabilities card */}
+            <div style={{ background: 'var(--platf-card)', border: '1px solid var(--platf-card-bd)', borderRadius: 18, padding: '28px 30px' }} data-reveal>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
+                <div style={{ width: 42, height: 42, borderRadius: 12, background: '#1a73e810', border: '1px solid #1a73e830', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary, #111827)', margin: 0 }}>{t('platfCapLabel')}</h3>
+              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {['platfCap1','platfCap2','platfCap3','platfCap4','platfCap5'].map(key => (
+                  <li key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                    <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#1a73e810', border: '1px solid #1a73e840', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </span>
+                    <span style={{ fontSize: '.88rem', color: 'var(--text-secondary, #374151)', lineHeight: 1.6 }}>{t(key)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Google Calendar card */}
+            <div style={{ background: 'var(--platf-card)', border: '1px solid var(--platf-card-bd)', borderRadius: 18, padding: '28px 30px' }} data-reveal="right">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
+                <div style={{ width: 42, height: 42, borderRadius: 12, background: '#0f9d5810', border: '1px solid #0f9d5830', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0f9d58" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary, #111827)', margin: 0 }}>{t('platfGcalTitle')}</h3>
+              </div>
+              <p style={{ fontSize: '.88rem', color: 'var(--text-secondary, #374151)', lineHeight: 1.75, marginBottom: 14, margin: '0 0 14px' }}>{t('platfGcalDesc1')}</p>
+              <p style={{ fontSize: '.88rem', color: 'var(--text-secondary, #374151)', lineHeight: 1.75, margin: 0 }}>{t('platfGcalDesc2')}</p>
+            </div>
+          </div>
+
+          {/* Legal links */}
+          <div style={{ textAlign: 'center' }}>
+            <Link href="/privacy-policy" style={{ fontSize: '.82rem', color: '#1a73e8', textDecoration: 'none', fontWeight: 600 }}>{t('platfPrivacy')}</Link>
+            <span style={{ margin: '0 12px', color: 'var(--text-muted, #9ca3af)' }}>·</span>
+            <Link href="/terms" style={{ fontSize: '.82rem', color: '#1a73e8', textDecoration: 'none', fontWeight: 600 }}>{t('platfTerms')}</Link>
+          </div>
+        </div>
+      </section>
+
       {/* ABOUT */}
       <section className="section" id="about">
         <div className="container">
