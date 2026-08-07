@@ -485,7 +485,7 @@ export default function AssessorPage() {
             <p style={{ fontSize: '.9rem', color: isDark ? 'rgba(255,255,255,.55)' : '#6b7280', lineHeight: 1.7, marginBottom: 10 }}>
               {isAr
                 ? 'لقد أكملت جميع خطوات الإعداد بنجاح — الجدول الزمني وتزامن Google Calendar.'
-                : 'You've successfully completed all onboarding steps — your schedule and Google Calendar are both set up.'}
+                : "You've successfully completed all onboarding steps — your schedule and Google Calendar are both set up."}
             </p>
             <p style={{ fontSize: '.84rem', color: isDark ? 'rgba(255,255,255,.4)' : '#9ca3af', lineHeight: 1.65, marginBottom: 32 }}>
               {isAr
