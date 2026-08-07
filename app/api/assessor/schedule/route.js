@@ -42,7 +42,7 @@ function validateSchedule(schedule) {
     }
     total += slots.length
   }
-  if (total !== REQUIRED_TOTAL) return `Schedule must have exactly ${REQUIRED_TOTAL} slots (currently has ${total})`
+  if (total < REQUIRED_TOTAL) return `Schedule must have at least ${REQUIRED_TOTAL} slots (currently has ${total})`
   return null
 }
 

@@ -34,6 +34,8 @@ function ErrorModal({ total, onClose, isAr, isDark }) {
   const GOLD = '#c9932c'
   const diff = total - REQUIRED
 
+  const need = REQUIRED - total
+
   let icon, titleEn, titleAr, bodyEn, bodyAr
   if (total === 0) {
     icon = (
@@ -41,25 +43,11 @@ function ErrorModal({ total, onClose, isAr, isDark }) {
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
       </svg>
     )
-    titleEn = 'Pick Your 16 Slots!'
-    titleAr = 'اختر 16 خانة!'
-    bodyEn = `No slots selected yet. Choose exactly ${REQUIRED} slots spread across the week to continue.`
-    bodyAr = `لم تختر أي خانة بعد. اختر ${REQUIRED} خانة موزعة على الأسبوع للمتابعة.`
-  } else if (diff > 0) {
-    icon = (
-      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#c9932c" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
-        <line x1="20" y1="4" x2="8.12" y2="15.88"/>
-        <line x1="14.47" y1="14.48" x2="20" y2="20"/>
-        <line x1="8.12" y1="8.12" x2="12" y2="12"/>
-      </svg>
-    )
-    titleEn = 'A Bit Too Many!'
-    titleAr = 'خانات أكثر من اللازم!'
-    bodyEn = `You selected ${total} slots — that's ${diff} too many. Remove ${diff} slot${diff !== 1 ? 's' : ''} to hit the magic number of ${REQUIRED}. You've got this!`
-    bodyAr = `اخترت ${total} خانة — زادت ${diff}. احذف ${diff} خانة للوصول إلى العدد السحري ${REQUIRED}. أنت قادر على ذلك!`
+    titleEn = 'Pick Your Slots!'
+    titleAr = 'اختر خاناتك!'
+    bodyEn = `No slots selected yet. Pick at least ${REQUIRED} slots spread across the week to continue — you can always add more!`
+    bodyAr = `لم تختر أي خانة بعد. اختر ${REQUIRED} خانة على الأقل موزعة على الأسبوع للمتابعة — يمكنك دائماً إضافة المزيد!`
   } else {
-    const need = REQUIRED - total
     icon = (
       <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#c9932c" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
@@ -70,8 +58,8 @@ function ErrorModal({ total, onClose, isAr, isDark }) {
     )
     titleEn = 'Almost There!'
     titleAr = 'اقتربت من الهدف!'
-    bodyEn = `You have ${total} slot${total !== 1 ? 's' : ''} — just ${need} more to go! Keep selecting to reach exactly ${REQUIRED}. You're doing great!`
-    bodyAr = `لديك ${total} خانة — تحتاج ${need} خانة أخرى فقط! استمر حتى تصل إلى ${REQUIRED} بالضبط. أنت رائع!`
+    bodyEn = `You have ${total} slot${total !== 1 ? 's' : ''} — just ${need} more to go! You need at least ${REQUIRED} slots to save. Keep going!`
+    bodyAr = `لديك ${total} خانة — تحتاج ${need} خانة أخرى فقط! تحتاج ${REQUIRED} خانة على الأقل للحفظ. استمر!`
   }
 
   return createPortal(
@@ -80,6 +68,7 @@ function ErrorModal({ total, onClose, isAr, isDark }) {
         @keyframes wsOverlayIn{from{opacity:0}to{opacity:1}}
         @keyframes wsModalIn{from{opacity:0;transform:scale(.82) translateY(24px)}to{opacity:1;transform:scale(1) translateY(0)}}
       `}</style>
+      {/* only shown when total < REQUIRED */}
       <div
         style={{
           position: 'fixed', inset: 0, zIndex: 10000,
@@ -153,14 +142,14 @@ function ErrorModal({ total, onClose, isAr, isDark }) {
                 <div style={{
                   height: '100%', borderRadius: 4,
                   width: `${Math.min((total / REQUIRED) * 100, 100)}%`,
-                  background: diff > 0 ? '#ef4444' : GOLD,
+                  background: GOLD,
                   transition: 'width .4s ease',
                 }} />
               </div>
               <div style={{
                 fontSize: '.9rem', fontWeight: 900, flexShrink: 0,
-                color: diff > 0 ? '#ef4444' : GOLD,
-              }}>{total} / {REQUIRED}</div>
+                color: GOLD,
+              }}>{total} / {REQUIRED} {isAr ? 'كحد أدنى' : 'minimum'}</div>
             </div>
           </div>
 
@@ -398,7 +387,7 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
 
   function validate(sched) {
     const total = Object.values(sched).reduce((s, v) => s + (v?.length || 0), 0)
-    return total === REQUIRED ? [] : [total]
+    return total >= REQUIRED ? [] : [total]
   }
 
   async function handleSave() {
@@ -465,7 +454,7 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
   const pendingRequest  = requests.find(r => r.status === 'pending')
 
   // Progress colour for stats bar
-  const progressColor = totalSlots === REQUIRED ? '#10b981' : totalSlots > REQUIRED ? '#ef4444' : GOLD
+  const progressColor = totalSlots >= REQUIRED ? '#10b981' : GOLD
   const progressPct   = Math.min((totalSlots / REQUIRED) * 100, 100)
 
   if (loading) {
@@ -512,8 +501,8 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
           {!scheduleData && (
             <p style={{ fontSize: '.84rem', color: 'var(--as-muted)', lineHeight: 1.6, maxWidth: 540 }}>
               {isAr
-                ? `اختر ${REQUIRED} خانة متاحة (30 دقيقة لكل خانة) موزعة على أسبوعك. الخانات متاحة من 9:00 صباحاً حتى منتصف الليل. بعد الحفظ يصبح الجدول مقفلاً — استخدم طلب تغيير لتعديله.`
-                : `Pick exactly ${REQUIRED} available 30-min slots spread across your week. Slots run 9:00 AM – 12:00 AM. Once saved, the schedule is locked — use a change request to modify it.`}
+                ? `اختر ${REQUIRED} خانة متاحة على الأقل (30 دقيقة لكل خانة) موزعة على أسبوعك — يمكنك إضافة المزيد بلا حدود. الخانات متاحة من 9:00 صباحاً حتى منتصف الليل. بعد الحفظ يصبح الجدول مقفلاً — استخدم طلب تغيير لتعديله.`
+                : `Pick at least ${REQUIRED} available 30-min slots spread across your week — you can add as many as you like. Slots run 9:00 AM – 12:00 AM. Once saved, the schedule is locked — use a change request to modify it.`}
             </p>
           )}
         </div>
@@ -620,9 +609,9 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: isAr ? 0 : '.1em', color: 'var(--as-xmuted)', textTransform: 'uppercase' }}>
-                        {isAr ? `الخانات المقترحة (${REQUIRED} مطلوبة)` : `PROPOSED SLOTS (${REQUIRED} required)`}
+                        {isAr ? `الخانات المقترحة (${REQUIRED} كحد أدنى)` : `PROPOSED SLOTS (min ${REQUIRED})`}
                       </div>
-                      <div style={{ fontSize: '.85rem', fontWeight: 900, color: proposedTotal === REQUIRED ? '#10b981' : proposedTotal > REQUIRED ? '#ef4444' : GOLD }}>
+                      <div style={{ fontSize: '.85rem', fontWeight: 900, color: proposedTotal >= REQUIRED ? '#10b981' : GOLD }}>
                         {proposedTotal} / {REQUIRED}
                       </div>
                     </div>
@@ -630,7 +619,7 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
                       <div style={{
                         height: '100%', borderRadius: 3,
                         width: `${Math.min((proposedTotal / REQUIRED) * 100, 100)}%`,
-                        background: proposedTotal === REQUIRED ? '#10b981' : proposedTotal > REQUIRED ? '#ef4444' : GOLD,
+                        background: proposedTotal >= REQUIRED ? '#10b981' : GOLD,
                         transition: 'width .25s ease, background .25s',
                       }} />
                     </div>
@@ -734,7 +723,7 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: isAr ? 0 : '.1em', color: 'var(--as-xmuted)', textTransform: 'uppercase' }}>
-                    {isAr ? `الخانات (${REQUIRED} مطلوبة)` : `SLOTS (${REQUIRED} required)`}
+                    {isAr ? `الخانات (${REQUIRED} كحد أدنى)` : `SLOTS (min ${REQUIRED})`}
                   </div>
                   <div style={{ fontSize: '.9rem', fontWeight: 900, color: progressColor, lineHeight: 1 }}>
                     {totalSlots} / {REQUIRED}
@@ -815,19 +804,19 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
               {/* Slot count reminder */}
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                fontSize: '.8rem', color: totalSlots === REQUIRED ? '#10b981' : 'var(--as-muted)',
-                fontWeight: totalSlots === REQUIRED ? 700 : 400,
+                fontSize: '.8rem', color: totalSlots >= REQUIRED ? '#10b981' : 'var(--as-muted)',
+                fontWeight: totalSlots >= REQUIRED ? 700 : 400,
                 transition: 'color .2s',
               }}>
-                {totalSlots === REQUIRED ? (
+                {totalSlots >= REQUIRED ? (
                   <>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                    {isAr ? 'ممتاز! لديك 16 خانة — جاهز للحفظ!' : 'Perfect! You have 16 slots — ready to save!'}
+                    {isAr ? `رائع! لديك ${totalSlots} خانة — جاهز للحفظ!` : `Great! You have ${totalSlots} slots — ready to save!`}
                   </>
                 ) : (
                   isAr
-                    ? `${totalSlots} / ${REQUIRED} خانة محددة`
-                    : `${totalSlots} / ${REQUIRED} slots selected`
+                    ? `${totalSlots} / ${REQUIRED} خانة — تحتاج ${REQUIRED} على الأقل`
+                    : `${totalSlots} / ${REQUIRED} slots — need at least ${REQUIRED}`
                 )}
               </div>
 
@@ -836,17 +825,17 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
                 disabled={saving}
                 style={{
                   padding: '14px 28px', borderRadius: 14, border: 'none',
-                  background: totalSlots === REQUIRED
+                  background: totalSlots >= REQUIRED
                     ? (saving ? 'rgba(201,147,44,.7)' : GOLD)
                     : (isDark ? 'rgba(255,255,255,.08)' : '#f3f4f6'),
-                  color: totalSlots === REQUIRED ? '#fff' : (isDark ? 'rgba(255,255,255,.35)' : '#9ca3af'),
+                  color: totalSlots >= REQUIRED ? '#fff' : (isDark ? 'rgba(255,255,255,.35)' : '#9ca3af'),
                   fontWeight: 700, fontSize: '1rem',
                   cursor: saving ? 'default' : 'pointer',
                   fontFamily: 'inherit', transition: 'all .2s',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
-                  boxShadow: totalSlots === REQUIRED ? '0 6px 24px rgba(201,147,44,.38)' : 'none',
+                  boxShadow: totalSlots >= REQUIRED ? '0 6px 24px rgba(201,147,44,.38)' : 'none',
                 }}
-                onMouseEnter={e => { if (totalSlots === REQUIRED && !saving) e.currentTarget.style.opacity = '.88' }}
+                onMouseEnter={e => { if (totalSlots >= REQUIRED && !saving) e.currentTarget.style.opacity = '.88' }}
                 onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
               >
                 {saving ? (
