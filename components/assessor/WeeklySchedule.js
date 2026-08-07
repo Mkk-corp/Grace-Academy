@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 
 const DAYS = [
   { key: 'sat', en: 'Saturday',  ar: 'السبت'   },
@@ -12,8 +13,9 @@ const DAYS = [
   { key: 'fri', en: 'Friday',    ar: 'الجمعة'   },
 ]
 
-// 32 slots per day: 420 to 1350 minutes from midnight (7:00 AM to 10:30 PM)
-const SLOTS = Array.from({ length: 32 }, (_, i) => 420 + i * 30)
+// 30 slots: 9:00 AM (540 min) → 11:30 PM (1410 min), 30 min each
+const SLOTS = Array.from({ length: 30 }, (_, i) => 540 + i * 30)
+const REQUIRED = 16
 
 function minutesToLabel(m) {
   const h = Math.floor(m / 60)
@@ -23,6 +25,173 @@ function minutesToLabel(m) {
   return `${h12}:${min.toString().padStart(2, '0')} ${p}`
 }
 
+// ─── Playful error modal ───────────────────────────────────────────────────
+function ErrorModal({ total, onClose, isAr, isDark }) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+  if (!mounted) return null
+
+  const GOLD = '#c9932c'
+  const diff = total - REQUIRED
+
+  let icon, titleEn, titleAr, bodyEn, bodyAr
+  if (total === 0) {
+    icon = (
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#c9932c" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>
+    )
+    titleEn = 'Pick Your 16 Slots!'
+    titleAr = 'اختر 16 خانة!'
+    bodyEn = `No slots selected yet. Choose exactly ${REQUIRED} slots spread across the week to continue.`
+    bodyAr = `لم تختر أي خانة بعد. اختر ${REQUIRED} خانة موزعة على الأسبوع للمتابعة.`
+  } else if (diff > 0) {
+    icon = (
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#c9932c" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
+        <line x1="20" y1="4" x2="8.12" y2="15.88"/>
+        <line x1="14.47" y1="14.48" x2="20" y2="20"/>
+        <line x1="8.12" y1="8.12" x2="12" y2="12"/>
+      </svg>
+    )
+    titleEn = 'A Bit Too Many!'
+    titleAr = 'خانات أكثر من اللازم!'
+    bodyEn = `You selected ${total} slots — that's ${diff} too many. Remove ${diff} slot${diff !== 1 ? 's' : ''} to hit the magic number of ${REQUIRED}. You've got this!`
+    bodyAr = `اخترت ${total} خانة — زادت ${diff}. احذف ${diff} خانة للوصول إلى العدد السحري ${REQUIRED}. أنت قادر على ذلك!`
+  } else {
+    const need = REQUIRED - total
+    icon = (
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#c9932c" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+        <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+        <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
+        <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+      </svg>
+    )
+    titleEn = 'Almost There!'
+    titleAr = 'اقتربت من الهدف!'
+    bodyEn = `You have ${total} slot${total !== 1 ? 's' : ''} — just ${need} more to go! Keep selecting to reach exactly ${REQUIRED}. You're doing great!`
+    bodyAr = `لديك ${total} خانة — تحتاج ${need} خانة أخرى فقط! استمر حتى تصل إلى ${REQUIRED} بالضبط. أنت رائع!`
+  }
+
+  return createPortal(
+    <>
+      <style>{`
+        @keyframes wsOverlayIn{from{opacity:0}to{opacity:1}}
+        @keyframes wsModalIn{from{opacity:0;transform:scale(.82) translateY(24px)}to{opacity:1;transform:scale(1) translateY(0)}}
+      `}</style>
+      <div
+        style={{
+          position: 'fixed', inset: 0, zIndex: 10000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(0,0,0,.55)', backdropFilter: 'blur(8px)',
+          animation: 'wsOverlayIn .2s ease',
+        }}
+        onClick={e => e.target === e.currentTarget && onClose()}
+      >
+        <div style={{
+          width: '90%', maxWidth: 390,
+          background: isDark ? '#0d1f2d' : '#ffffff',
+          border: '2px solid rgba(201,147,44,.35)',
+          borderRadius: 28, padding: '36px 28px 28px',
+          textAlign: 'center',
+          animation: 'wsModalIn .3s cubic-bezier(.34,1.4,.64,1) both',
+          boxShadow: '0 40px 100px rgba(0,0,0,.5)',
+          position: 'relative',
+          direction: isAr ? 'rtl' : 'ltr',
+        }}>
+          {/* Close X */}
+          <button
+            onClick={onClose}
+            style={{
+              position: 'absolute', top: 14,
+              ...(isAr ? { left: 14 } : { right: 14 }),
+              width: 28, height: 28, borderRadius: '50%', border: 'none',
+              background: isDark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)',
+              color: isDark ? 'rgba(255,255,255,.5)' : '#9ca3af',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 18, lineHeight: 1, fontFamily: 'inherit',
+            }}
+          >×</button>
+
+          {/* Icon badge */}
+          <div style={{
+            width: 76, height: 76, borderRadius: 22, margin: '0 auto 22px',
+            background: 'rgba(201,147,44,.1)', border: '2px solid rgba(201,147,44,.25)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 8px 24px rgba(201,147,44,.15)',
+          }}>{icon}</div>
+
+          {/* Title */}
+          <div style={{ fontSize: '1.22rem', fontWeight: 900, color: GOLD, marginBottom: 10 }}>
+            {isAr ? titleAr : titleEn}
+          </div>
+
+          {/* Body */}
+          <div style={{
+            fontSize: '.87rem', color: isDark ? 'rgba(255,255,255,.62)' : '#4b5563',
+            lineHeight: 1.7, marginBottom: 22,
+          }}>
+            {isAr ? bodyAr : bodyEn}
+          </div>
+
+          {/* Progress bar */}
+          <div style={{
+            background: isDark ? 'rgba(201,147,44,.07)' : 'rgba(201,147,44,.05)',
+            border: '1.5px solid rgba(201,147,44,.2)',
+            borderRadius: 14, padding: '14px 16px', marginBottom: 22,
+          }}>
+            <div style={{
+              fontSize: '.68rem', fontWeight: 700,
+              letterSpacing: isAr ? 0 : '.1em', textTransform: 'uppercase',
+              color: 'rgba(201,147,44,.55)', marginBottom: 8,
+            }}>
+              {isAr ? 'التقدم الحالي' : 'CURRENT PROGRESS'}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ flex: 1, height: 7, borderRadius: 4, background: isDark ? 'rgba(255,255,255,.08)' : '#e5e7eb', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%', borderRadius: 4,
+                  width: `${Math.min((total / REQUIRED) * 100, 100)}%`,
+                  background: diff > 0 ? '#ef4444' : GOLD,
+                  transition: 'width .4s ease',
+                }} />
+              </div>
+              <div style={{
+                fontSize: '.9rem', fontWeight: 900, flexShrink: 0,
+                color: diff > 0 ? '#ef4444' : GOLD,
+              }}>{total} / {REQUIRED}</div>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <button
+            onClick={onClose}
+            style={{
+              width: '100%', padding: '13px', borderRadius: 14, border: 'none',
+              background: GOLD, color: '#fff', fontWeight: 700, fontSize: '.92rem',
+              cursor: 'pointer', fontFamily: 'inherit',
+              boxShadow: '0 4px 20px rgba(201,147,44,.4)',
+              transition: 'opacity .15s',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.opacity = '.88' }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
+          >
+            {isAr ? 'حسناً، سأصلح ذلك!' : "Got it, I'll fix it!"}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3z"/>
+              <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </>,
+    document.body
+  )
+}
+
+// ─── Day card ──────────────────────────────────────────────────────────────
 function DayCard({ day, slots, onToggleSlot, onToggleDay, isAr, isDark, readOnly }) {
   const daySlots = slots || []
   const selectedCount = daySlots.length
@@ -36,9 +205,7 @@ function DayCard({ day, slots, onToggleSlot, onToggleDay, isAr, isDark, readOnly
     <div style={{
       background: surface,
       border: `1px solid ${selectedCount > 0 ? (isDark ? 'rgba(201,147,44,.28)' : 'rgba(201,147,44,.3)') : border}`,
-      borderRadius: 16,
-      overflow: 'hidden',
-      transition: 'border-color .2s',
+      borderRadius: 16, overflow: 'hidden', transition: 'border-color .2s',
     }}>
       <div style={{
         display: 'flex', alignItems: 'center',
@@ -47,8 +214,7 @@ function DayCard({ day, slots, onToggleSlot, onToggleDay, isAr, isDark, readOnly
           ? (isDark ? 'rgba(201,147,44,.08)' : 'rgba(201,147,44,.05)')
           : (isDark ? 'rgba(255,255,255,.02)' : '#f9fafb'),
         borderBottom: `1px solid ${border}`,
-        gap: 12,
-        cursor: readOnly ? 'default' : 'pointer',
+        gap: 12, cursor: readOnly ? 'default' : 'pointer',
       }} onClick={() => !readOnly && onToggleDay && onToggleDay(day.key)}>
         {!readOnly && (
           <div style={{
@@ -74,7 +240,7 @@ function DayCard({ day, slots, onToggleSlot, onToggleDay, isAr, isDark, readOnly
         </div>
         {selectedCount > 0 && (
           <div style={{ fontSize: '.68rem', fontWeight: 700, padding: '3px 10px', background: 'rgba(201,147,44,.12)', border: '1px solid rgba(201,147,44,.25)', borderRadius: 100, color: GOLD }}>
-            {selectedCount} / {SLOTS.length}
+            {selectedCount}
           </div>
         )}
       </div>
@@ -88,20 +254,16 @@ function DayCard({ day, slots, onToggleSlot, onToggleDay, isAr, isDark, readOnly
               onClick={() => !readOnly && onToggleSlot && onToggleSlot(day.key, slot)}
               disabled={readOnly}
               style={{
-                padding: '5px 3px',
-                borderRadius: 7,
+                padding: '5px 3px', borderRadius: 7,
                 border: `1.5px solid ${on ? GOLD : (isDark ? 'rgba(255,255,255,.1)' : '#e5e7eb')}`,
                 background: on
                   ? (isDark ? 'rgba(201,147,44,.18)' : 'rgba(201,147,44,.1)')
                   : (isDark ? 'rgba(255,255,255,.03)' : '#f9fafb'),
                 color: on ? GOLD : 'var(--as-muted)',
-                fontSize: '.68rem',
-                fontWeight: on ? 700 : 500,
+                fontSize: '.68rem', fontWeight: on ? 700 : 500,
                 cursor: readOnly ? 'default' : 'pointer',
-                transition: 'all .14s',
-                fontFamily: 'inherit',
-                lineHeight: 1.2,
-                textAlign: 'center',
+                transition: 'all .14s', fontFamily: 'inherit',
+                lineHeight: 1.2, textAlign: 'center',
               }}
               onMouseEnter={e => {
                 if (!readOnly && !on) {
@@ -125,6 +287,7 @@ function DayCard({ day, slots, onToggleSlot, onToggleDay, isAr, isDark, readOnly
   )
 }
 
+// ─── Read-only schedule view (locked state) ────────────────────────────────
 function ScheduleReadView({ scheduleData, isAr, isDark }) {
   const GOLD = '#c9932c'
   const activeDays = DAYS.filter(d => (scheduleData?.schedule?.[d.key] || []).length > 0)
@@ -135,13 +298,8 @@ function ScheduleReadView({ scheduleData, isAr, isDark }) {
     const ranges = []
     let start = sorted[0], prev = sorted[0]
     for (let i = 1; i < sorted.length; i++) {
-      if (sorted[i] === prev + 30) {
-        prev = sorted[i]
-      } else {
-        ranges.push({ from: start, to: prev + 30 })
-        start = sorted[i]
-        prev = sorted[i]
-      }
+      if (sorted[i] === prev + 30) { prev = sorted[i] }
+      else { ranges.push({ from: start, to: prev + 30 }); start = sorted[i]; prev = sorted[i] }
     }
     ranges.push({ from: start, to: prev + 30 })
     return ranges
@@ -183,20 +341,21 @@ function ScheduleReadView({ scheduleData, isAr, isDark }) {
   )
 }
 
+// ─── Main component ────────────────────────────────────────────────────────
 export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) {
-  const [scheduleData, setScheduleData] = useState(undefined) // undefined=loading, null=none, obj=exists
-  const [requests, setRequests] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-  const [schedule, setSchedule] = useState({}) // for initial setup
+  const [scheduleData, setScheduleData] = useState(undefined)
+  const [requests, setRequests]         = useState([])
+  const [loading, setLoading]           = useState(true)
+  const [saving, setSaving]             = useState(false)
+  const [error, setError]               = useState('')
+  const [schedule, setSchedule]         = useState({})
   const [showRequestForm, setShowRequestForm] = useState(false)
-  const [proposed, setProposed] = useState({}) // for change request
-  const [reason, setReason] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [submitError, setSubmitError] = useState('')
+  const [proposed, setProposed]         = useState({})
+  const [reason, setReason]             = useState('')
+  const [submitting, setSubmitting]     = useState(false)
+  const [submitError, setSubmitError]   = useState('')
   const [submitSuccess, setSubmitSuccess] = useState(false)
-  const [validationErrors, setValidationErrors] = useState([])
+  const [errorModal, setErrorModal]     = useState(null) // { total: number } | null
 
   const GOLD = '#c9932c'
 
@@ -207,7 +366,7 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
         fetch('/api/assessor/slot-request'),
       ])
       const schedJson = await schedRes.json()
-      const reqJson = await reqRes.json()
+      const reqJson   = await reqRes.json()
       setScheduleData(schedJson.schedule || null)
       setRequests(reqJson.requests || [])
     } catch (e) {
@@ -222,7 +381,7 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
   function toggleSlot(dayKey, slot, target = 'setup') {
     const setter = target === 'proposed' ? setProposed : setSchedule
     setter(prev => {
-      const cur = prev[dayKey] || []
+      const cur  = prev[dayKey] || []
       const next = cur.includes(slot) ? cur.filter(s => s !== slot) : [...cur, slot].sort((a, b) => a - b)
       return { ...prev, [dayKey]: next }
     })
@@ -231,31 +390,27 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
   function toggleDay(dayKey, target = 'setup') {
     const setter = target === 'proposed' ? setProposed : setSchedule
     setter(prev => {
-      const cur = prev[dayKey] || []
+      const cur   = prev[dayKey] || []
       const allOn = SLOTS.every(s => cur.includes(s))
       return { ...prev, [dayKey]: allOn ? [] : [...SLOTS] }
     })
   }
 
   function validate(sched) {
-    const errs = []
-    const activeDays = DAYS.filter(d => (sched[d.key] || []).length > 0)
-    if (activeDays.length < 2) errs.push(isAr ? 'يجب تحديد يومين على الأقل' : 'At least 2 days must have slots')
-    activeDays.forEach(d => {
-      if ((sched[d.key] || []).length < 4) errs.push(isAr ? `${d.ar} يحتاج 4 خانات على الأقل` : `${d.en} needs at least 4 slots`)
-    })
-    return errs
+    const total = Object.values(sched).reduce((s, v) => s + (v?.length || 0), 0)
+    return total === REQUIRED ? [] : [total]
   }
 
   async function handleSave() {
     setError('')
     const errs = validate(schedule)
-    setValidationErrors(errs)
-    if (errs.length > 0) return
-
+    if (errs.length > 0) {
+      setErrorModal({ total: errs[0] })
+      return
+    }
     setSaving(true)
     try {
-      const res = await fetch('/api/assessor/schedule', {
+      const res  = await fetch('/api/assessor/schedule', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ schedule }),
@@ -264,7 +419,7 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
       if (!res.ok) { setError(data.error || 'Save failed'); return }
       await fetchData()
       onScheduleSaved?.()
-    } catch (e) {
+    } catch {
       setError(isAr ? 'حدث خطأ، حاول مجدداً' : 'An error occurred. Please try again.')
     } finally {
       setSaving(false)
@@ -274,16 +429,17 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
   async function handleSubmitRequest() {
     setSubmitError('')
     const errs = validate(proposed)
-    setValidationErrors(errs)
-    if (errs.length > 0) return
+    if (errs.length > 0) {
+      setErrorModal({ total: errs[0] })
+      return
+    }
     if (!reason.trim()) {
       setSubmitError(isAr ? 'الرجاء كتابة سبب الطلب' : 'Please provide a reason for the change')
       return
     }
-
     setSubmitting(true)
     try {
-      const res = await fetch('/api/assessor/slot-request', {
+      const res  = await fetch('/api/assessor/slot-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ proposedSchedule: proposed, reason }),
@@ -295,18 +451,22 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
       setProposed({})
       setReason('')
       await fetchData()
-    } catch (e) {
+    } catch {
       setSubmitError(isAr ? 'حدث خطأ، حاول مجدداً' : 'An error occurred. Please try again.')
     } finally {
       setSubmitting(false)
     }
   }
 
-  const totalSlots = Object.values(schedule).reduce((s, v) => s + (v?.length || 0), 0)
+  const totalSlots      = Object.values(schedule).reduce((s, v) => s + (v?.length || 0), 0)
   const activeDaysCount = DAYS.filter(d => (schedule[d.key] || []).length > 0).length
-  const proposedTotal = Object.values(proposed).reduce((s, v) => s + (v?.length || 0), 0)
-  const proposedDays = DAYS.filter(d => (proposed[d.key] || []).length > 0).length
-  const pendingRequest = requests.find(r => r.status === 'pending')
+  const proposedTotal   = Object.values(proposed).reduce((s, v) => s + (v?.length || 0), 0)
+  const proposedDays    = DAYS.filter(d => (proposed[d.key] || []).length > 0).length
+  const pendingRequest  = requests.find(r => r.status === 'pending')
+
+  // Progress colour for stats bar
+  const progressColor = totalSlots === REQUIRED ? '#10b981' : totalSlots > REQUIRED ? '#ef4444' : GOLD
+  const progressPct   = Math.min((totalSlots / REQUIRED) * 100, 100)
 
   if (loading) {
     return (
@@ -326,11 +486,22 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
       <style>{`
         @keyframes scFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
         @keyframes scSlideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+        @keyframes spin{to{transform:rotate(360deg)}}
       `}</style>
+
+      {/* Error modal (portal) */}
+      {errorModal && (
+        <ErrorModal
+          total={errorModal.total}
+          onClose={() => setErrorModal(null)}
+          isAr={isAr}
+          isDark={isDark}
+        />
+      )}
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 20px 60px', animation: 'scFadeUp .28s ease' }}>
 
-        {/* ─── Header ─── */}
+        {/* ─── Page header ─── */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ fontSize: '.72rem', fontWeight: 700, letterSpacing: isAr ? 0 : '.14em', color: GOLD, marginBottom: 5 }}>
             {isAr ? 'إعداد الجدول الأسبوعي' : 'WEEKLY SCHEDULE SETUP'}
@@ -341,8 +512,8 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
           {!scheduleData && (
             <p style={{ fontSize: '.84rem', color: 'var(--as-muted)', lineHeight: 1.6, maxWidth: 540 }}>
               {isAr
-                ? 'حدّد الأيام والخانات الزمنية (30 دقيقة لكل خانة) التي تكون فيها متاحاً. يجب اختيار 4 أيام على الأقل بـ 4 خانات في كل منها. بعد الحفظ يصبح الجدول مقفلاً.'
-                : 'Pick the days and 30-min slots you\'re available. Minimum 4 days with at least 4 slots each. Once saved, the schedule is locked — use change requests to modify.'}
+                ? `اختر ${REQUIRED} خانة متاحة (30 دقيقة لكل خانة) موزعة على أسبوعك. الخانات متاحة من 9:00 صباحاً حتى منتصف الليل. بعد الحفظ يصبح الجدول مقفلاً — استخدم طلب تغيير لتعديله.`
+                : `Pick exactly ${REQUIRED} available 30-min slots spread across your week. Slots run 9:00 AM – 12:00 AM. Once saved, the schedule is locked — use a change request to modify it.`}
             </p>
           )}
         </div>
@@ -350,7 +521,6 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
         {/* ─── LOCKED VIEW ─── */}
         {scheduleData && (
           <>
-            {/* Lock badge */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, flexWrap: 'wrap', justifyContent: 'space-between' }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(16,185,129,.1)', border: '1px solid rgba(16,185,129,.3)', borderRadius: 100, padding: '6px 16px' }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -378,7 +548,6 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
               )}
             </div>
 
-            {/* Success banner */}
             {submitSuccess && (
               <div style={{ background: 'rgba(16,185,129,.1)', border: '1px solid rgba(16,185,129,.3)', borderRadius: 12, padding: '14px 18px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -388,7 +557,6 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
               </div>
             )}
 
-            {/* Pending request banner */}
             {pendingRequest && !showRequestForm && (
               <div style={{
                 background: isDark ? 'rgba(217,119,6,.08)' : 'rgba(217,119,6,.05)',
@@ -414,7 +582,6 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
               </div>
             )}
 
-            {/* Current schedule read-only view */}
             <div style={{ marginBottom: showRequestForm ? 28 : 0 }}>
               <div style={{ fontSize: '.74rem', fontWeight: 700, letterSpacing: isAr ? 0 : '.1em', color: 'var(--as-xmuted)', textTransform: 'uppercase', marginBottom: 12 }}>
                 {isAr ? 'الجدول الحالي' : 'CURRENT SCHEDULE'}
@@ -426,7 +593,6 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
             {showRequestForm && (
               <div style={{ marginTop: 32, animation: 'scSlideDown .22s ease' }}>
                 <div style={{ height: 1, background: border, marginBottom: 28 }} />
-
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ fontSize: '.72rem', fontWeight: 700, letterSpacing: isAr ? 0 : '.14em', color: GOLD, marginBottom: 5 }}>
                     {isAr ? 'طلب تغيير الجدول' : 'PROPOSE NEW SCHEDULE'}
@@ -435,11 +601,13 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
                     {isAr ? 'الجدول المقترح' : 'Propose New Schedule'}
                   </h3>
                   <p style={{ fontSize: '.82rem', color: 'var(--as-muted)', maxWidth: 520, lineHeight: 1.55 }}>
-                    {isAr ? 'اختر الجدول الجديد المقترح وأضف سبباً للتغيير. سيقوم المسؤول بمراجعة طلبك.' : 'Select your desired new schedule and provide a reason. An admin will review and approve or reject your request.'}
+                    {isAr
+                      ? `اختر ${REQUIRED} خانة كجدول جديد مقترح وأضف سبباً للتغيير. سيقوم المسؤول بمراجعة طلبك.`
+                      : `Propose your new ${REQUIRED}-slot schedule and explain why you need the change. An admin will review it shortly.`}
                   </p>
                 </div>
 
-                {/* Proposed schedule stats bar */}
+                {/* Proposed stats bar */}
                 <div style={{
                   position: 'sticky', top: 0, zIndex: 40,
                   background: isDark ? 'rgba(13,27,36,.94)' : 'rgba(248,250,252,.94)',
@@ -449,33 +617,33 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
                   display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20,
                   boxShadow: '0 4px 24px rgba(0,0,0,.09)',
                 }}>
-                  <div style={{ flex: 1, display: 'flex', gap: 20 }}>
-                    {[
-                      { label: isAr ? 'الخانات' : 'SLOTS', value: proposedTotal },
-                      { label: isAr ? 'الأيام' : 'DAYS', value: proposedDays },
-                    ].map(s => (
-                      <div key={s.label}>
-                        <div style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: isAr ? 0 : '.1em', color: 'var(--as-xmuted)', textTransform: 'uppercase' }}>{s.label}</div>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 900, color: s.value > 0 ? GOLD : 'var(--as-muted)', lineHeight: 1 }}>{s.value}</div>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: isAr ? 0 : '.1em', color: 'var(--as-xmuted)', textTransform: 'uppercase' }}>
+                        {isAr ? `الخانات المقترحة (${REQUIRED} مطلوبة)` : `PROPOSED SLOTS (${REQUIRED} required)`}
                       </div>
-                    ))}
+                      <div style={{ fontSize: '.85rem', fontWeight: 900, color: proposedTotal === REQUIRED ? '#10b981' : proposedTotal > REQUIRED ? '#ef4444' : GOLD }}>
+                        {proposedTotal} / {REQUIRED}
+                      </div>
+                    </div>
+                    <div style={{ height: 5, borderRadius: 3, background: isDark ? 'rgba(255,255,255,.06)' : '#e5e7eb', overflow: 'hidden' }}>
+                      <div style={{
+                        height: '100%', borderRadius: 3,
+                        width: `${Math.min((proposedTotal / REQUIRED) * 100, 100)}%`,
+                        background: proposedTotal === REQUIRED ? '#10b981' : proposedTotal > REQUIRED ? '#ef4444' : GOLD,
+                        transition: 'width .25s ease, background .25s',
+                      }} />
+                    </div>
                   </div>
                   {proposedTotal > 0 && (
-                    <button onClick={() => setProposed({})} style={{ padding: '7px 13px', background: 'none', border: `1px solid ${isDark ? 'rgba(255,255,255,.12)' : '#e5e7eb'}`, borderRadius: 9, color: 'var(--as-muted)', fontSize: '.78rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    <button
+                      onClick={() => setProposed({})}
+                      style={{ padding: '7px 13px', background: 'none', border: `1px solid ${isDark ? 'rgba(255,255,255,.12)' : '#e5e7eb'}`, borderRadius: 9, color: 'var(--as-muted)', fontSize: '.78rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}
+                    >
                       {isAr ? 'مسح' : 'Clear'}
                     </button>
                   )}
                 </div>
-
-                {validationErrors.length > 0 && (
-                  <div style={{ background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.25)', borderRadius: 10, padding: '12px 16px', marginBottom: 16 }}>
-                    {validationErrors.map((e, i) => (
-                      <div key={i} style={{ fontSize: '.82rem', color: '#ef4444', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span>•</span> {e}
-                      </div>
-                    ))}
-                  </div>
-                )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
                   {DAYS.map(day => (
@@ -510,8 +678,8 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
                       fontFamily: 'inherit', outline: 'none', transition: 'border-color .15s',
                       lineHeight: 1.65,
                     }}
-                    onFocus={e => e.target.style.borderColor = GOLD}
-                    onBlur={e => e.target.style.borderColor = isDark ? 'rgba(255,255,255,.1)' : '#d1d5db'}
+                    onFocus={e => { e.target.style.borderColor = GOLD }}
+                    onBlur={e => { e.target.style.borderColor = isDark ? 'rgba(255,255,255,.1)' : '#d1d5db' }}
                   />
                   {submitError && (
                     <div style={{ fontSize: '.78rem', color: '#ef4444', marginTop: 6 }}>{submitError}</div>
@@ -521,7 +689,7 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: 10, justifyContent: isAr ? 'flex-start' : 'flex-end' }}>
                   <button
-                    onClick={() => { setShowRequestForm(false); setSubmitError(''); setValidationErrors([]) }}
+                    onClick={() => { setShowRequestForm(false); setSubmitError('') }}
                     style={{ padding: '10px 20px', background: 'none', border: `1px solid ${isDark ? 'rgba(255,255,255,.12)' : '#e5e7eb'}`, borderRadius: 10, color: 'var(--as-muted)', fontSize: '.84rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
                   >
                     {isAr ? 'إلغاء' : 'Cancel'}
@@ -552,72 +720,59 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
         {/* ─── INITIAL SETUP MODE ─── */}
         {scheduleData === null && (
           <>
-            {/* Sticky action bar */}
+            {/* Sticky stats bar — no save button here */}
             <div style={{
               position: 'sticky', top: 0, zIndex: 40,
               background: isDark ? 'rgba(13,27,36,.92)' : 'rgba(248,250,252,.92)',
               backdropFilter: 'blur(12px)',
               border: `1px solid ${isDark ? 'rgba(255,255,255,.07)' : '#e5e7eb'}`,
               borderRadius: 14, padding: '12px 16px',
-              display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20,
+              display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20,
               boxShadow: '0 4px 24px rgba(0,0,0,.09)',
             }}>
-              <div style={{ flex: 1, display: 'flex', gap: 20 }}>
-                <div>
-                  <div style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: isAr ? 0 : '.1em', color: 'var(--as-xmuted)', textTransform: 'uppercase' }}>{isAr ? 'الخانات' : 'SLOTS'}</div>
-                  <div style={{ fontSize: '1.15rem', fontWeight: 900, color: totalSlots > 0 ? GOLD : 'var(--as-muted)', lineHeight: 1 }}>{totalSlots}</div>
+              {/* Slot progress */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: isAr ? 0 : '.1em', color: 'var(--as-xmuted)', textTransform: 'uppercase' }}>
+                    {isAr ? `الخانات (${REQUIRED} مطلوبة)` : `SLOTS (${REQUIRED} required)`}
+                  </div>
+                  <div style={{ fontSize: '.9rem', fontWeight: 900, color: progressColor, lineHeight: 1 }}>
+                    {totalSlots} / {REQUIRED}
+                  </div>
                 </div>
-                <div style={{ width: 1, background: 'var(--as-border)' }} />
-                <div>
-                  <div style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: isAr ? 0 : '.1em', color: 'var(--as-xmuted)', textTransform: 'uppercase' }}>{isAr ? 'الأيام' : 'DAYS'}</div>
-                  <div style={{ fontSize: '1.15rem', fontWeight: 900, color: activeDaysCount > 0 ? GOLD : 'var(--as-muted)', lineHeight: 1 }}>{activeDaysCount}</div>
+                <div style={{ height: 5, borderRadius: 3, background: isDark ? 'rgba(255,255,255,.06)' : '#e5e7eb', overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%', borderRadius: 3,
+                    width: `${progressPct}%`,
+                    background: progressColor,
+                    transition: 'width .25s ease, background .25s',
+                  }} />
                 </div>
               </div>
+
+              <div style={{ width: 1, height: 32, background: 'var(--as-border)', flexShrink: 0 }} />
+
+              {/* Days count */}
+              <div style={{ flexShrink: 0 }}>
+                <div style={{ fontSize: '.6rem', fontWeight: 700, letterSpacing: isAr ? 0 : '.1em', color: 'var(--as-xmuted)', textTransform: 'uppercase', marginBottom: 2 }}>
+                  {isAr ? 'الأيام' : 'DAYS'}
+                </div>
+                <div style={{ fontSize: '.9rem', fontWeight: 900, color: activeDaysCount > 0 ? GOLD : 'var(--as-muted)', lineHeight: 1 }}>
+                  {activeDaysCount}
+                </div>
+              </div>
+
               {totalSlots > 0 && (
                 <button
                   onClick={() => setSchedule({})}
-                  style={{ padding: '8px 14px', background: 'none', border: `1px solid ${isDark ? 'rgba(255,255,255,.12)' : '#e5e7eb'}`, borderRadius: 9, color: 'var(--as-muted)', fontSize: '.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s' }}
+                  style={{ padding: '8px 14px', background: 'none', border: `1px solid ${isDark ? 'rgba(255,255,255,.12)' : '#e5e7eb'}`, borderRadius: 9, color: 'var(--as-muted)', fontSize: '.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s', flexShrink: 0 }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444' }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = isDark ? 'rgba(255,255,255,.12)' : '#e5e7eb'; e.currentTarget.style.color = 'var(--as-muted)' }}
                 >
                   {isAr ? 'مسح الكل' : 'Clear All'}
                 </button>
               )}
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                style={{
-                  padding: '9px 20px', borderRadius: 10, border: 'none',
-                  background: GOLD, color: '#fff', fontWeight: 700, fontSize: '.85rem',
-                  cursor: saving ? 'default' : 'pointer', fontFamily: 'inherit', transition: 'all .2s',
-                  display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0,
-                  opacity: saving ? .7 : 1,
-                }}
-              >
-                {saving ? (
-                  <>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" style={{ animation: 'spin 1s linear infinite' }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" strokeLinecap="round"/></svg>
-                    {isAr ? 'جارٍ الحفظ...' : 'Saving...'}
-                  </>
-                ) : (
-                  <>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                    {isAr ? 'حفظ الجدول' : 'Save Schedule'}
-                  </>
-                )}
-              </button>
             </div>
-
-            {/* Validation errors */}
-            {validationErrors.length > 0 && (
-              <div style={{ background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.25)', borderRadius: 10, padding: '12px 16px', marginBottom: 16 }}>
-                {validationErrors.map((e, i) => (
-                  <div key={i} style={{ fontSize: '.82rem', color: '#ef4444', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span>•</span> {e}
-                  </div>
-                ))}
-              </div>
-            )}
 
             {error && (
               <div style={{ background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.25)', borderRadius: 10, padding: '12px 16px', marginBottom: 16, fontSize: '.84rem', color: '#ef4444' }}>
@@ -653,6 +808,59 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
                   isDark={isDark}
                 />
               ))}
+            </div>
+
+            {/* ─── Save button at bottom ─── */}
+            <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 10 }}>
+              {/* Slot count reminder */}
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                fontSize: '.8rem', color: totalSlots === REQUIRED ? '#10b981' : 'var(--as-muted)',
+                fontWeight: totalSlots === REQUIRED ? 700 : 400,
+                transition: 'color .2s',
+              }}>
+                {totalSlots === REQUIRED ? (
+                  <>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    {isAr ? 'ممتاز! لديك 16 خانة — جاهز للحفظ!' : 'Perfect! You have 16 slots — ready to save!'}
+                  </>
+                ) : (
+                  isAr
+                    ? `${totalSlots} / ${REQUIRED} خانة محددة`
+                    : `${totalSlots} / ${REQUIRED} slots selected`
+                )}
+              </div>
+
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                style={{
+                  padding: '14px 28px', borderRadius: 14, border: 'none',
+                  background: totalSlots === REQUIRED
+                    ? (saving ? 'rgba(201,147,44,.7)' : GOLD)
+                    : (isDark ? 'rgba(255,255,255,.08)' : '#f3f4f6'),
+                  color: totalSlots === REQUIRED ? '#fff' : (isDark ? 'rgba(255,255,255,.35)' : '#9ca3af'),
+                  fontWeight: 700, fontSize: '1rem',
+                  cursor: saving ? 'default' : 'pointer',
+                  fontFamily: 'inherit', transition: 'all .2s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
+                  boxShadow: totalSlots === REQUIRED ? '0 6px 24px rgba(201,147,44,.38)' : 'none',
+                }}
+                onMouseEnter={e => { if (totalSlots === REQUIRED && !saving) e.currentTarget.style.opacity = '.88' }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
+              >
+                {saving ? (
+                  <>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: 'spin 1s linear infinite' }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" strokeLinecap="round"/></svg>
+                    {isAr ? 'جارٍ الحفظ...' : 'Saving...'}
+                  </>
+                ) : (
+                  <>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    {isAr ? 'حفظ الجدول' : 'Save Schedule'}
+                  </>
+                )}
+              </button>
             </div>
           </>
         )}
