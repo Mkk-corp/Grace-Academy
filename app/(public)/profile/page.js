@@ -6,6 +6,8 @@ import Image from 'next/image'
 import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
 import DatePicker from '@/components/ui/DatePicker'
+import PhoneInput from '@/components/ui/PhoneInput'
+import { DEFAULT_COUNTRY, parsePhone } from '@/lib/countries'
 
 const AVATARS = [
   { id: 'user1', label: 'Avatar 1' },
@@ -64,6 +66,8 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState('personal')
+  const [phoneCountry, setPhoneCountry] = useState(DEFAULT_COUNTRY)
+  const [phoneNumber,  setPhoneNumber]  = useState('')
 
   // Form state
   const [form, setForm] = useState({
@@ -82,6 +86,9 @@ export default function ProfilePage() {
     }).then(r => r?.json()).then(data => {
       if (!data) return
       setUser(data)
+      const parsedPhone = parsePhone(data.phone)
+      setPhoneCountry(parsedPhone.country)
+      setPhoneNumber(parsedPhone.number)
       setForm({
         name: data.name || '',
         username: data.username || '',
@@ -118,10 +125,13 @@ export default function ProfilePage() {
   async function handleSave() {
     setError('')
     setSaving(true)
+    const phone = phoneNumber.trim()
+      ? `${phoneCountry.dial} ${phoneNumber.trim()}`
+      : ''
     const res = await fetch('/api/profile', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, phone }),
     })
     const data = await res.json()
     setSaving(false)
@@ -458,9 +468,14 @@ export default function ProfilePage() {
                     </div>
                     <div className="pf-field">
                       <label className="pf-label">{isAr ? 'رقم الهاتف' : 'Phone Number'}</label>
-                      <input className="pf-input" type="tel" value={form.phone}
-                        onChange={e => set('phone', e.target.value)}
-                        placeholder={isAr ? 'رقم الهاتف' : '+1 234 567 8900'} />
+                      <PhoneInput
+                        country={phoneCountry}
+                        number={phoneNumber}
+                        onCountryChange={setPhoneCountry}
+                        onNumberChange={setPhoneNumber}
+                        isAr={isAr}
+                        isDark={isDark}
+                      />
                     </div>
                     <div className="pf-field">
                       <label className="pf-label">{isAr ? 'البلد' : 'Country'}</label>

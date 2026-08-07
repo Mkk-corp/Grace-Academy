@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { COUNTRIES, getFlag, DEFAULT_COUNTRY } from '@/lib/countries'
+import { DEFAULT_COUNTRY, validatePhone } from '@/lib/countries'
+import PhoneInput from '@/components/ui/PhoneInput'
 import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
 
@@ -52,103 +53,6 @@ function AuthToggles() {
   )
 }
 
-function CountryPicker({ value, onChange }) {
-  const { lang } = useLang()
-  const { theme } = useTheme()
-  const isAr  = lang === 'ar'
-  const isDark = theme === 'dark'
-
-  const [open,   setOpen]   = useState(false)
-  const [search, setSearch] = useState('')
-  const ref = useRef(null)
-
-  const filtered = search.trim()
-    ? COUNTRIES.filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || c.dial.includes(search))
-    : COUNTRIES
-
-  useEffect(() => {
-    function h(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
-    document.addEventListener('mousedown', h)
-    return () => document.removeEventListener('mousedown', h)
-  }, [])
-
-  const triggerBg  = isDark ? 'rgba(255,255,255,.05)' : '#fff'
-  const triggerBdr = isDark ? 'rgba(201,147,44,.18)'  : '#e2e8f0'
-  const dropBg     = isDark ? '#0d2030'               : '#fff'
-  const dropBdr    = isDark ? 'rgba(201,147,44,.22)'  : '#e2e8f0'
-  const itemColor  = isDark ? '#fff'                  : '#1e293b'
-  const searchBg   = isDark ? 'rgba(255,255,255,.06)' : '#f9fafb'
-  const searchBdr  = isDark ? 'rgba(255,255,255,.1)'  : '#e2e8f0'
-  const searchClr  = isDark ? '#fff'                  : '#111827'
-
-  return (
-    <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
-      <button
-        type="button"
-        onClick={() => { setOpen(v => !v); setSearch('') }}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 6,
-          padding: '13px 10px 13px 13px',
-          background: triggerBg, border: `1px solid ${triggerBdr}`,
-          borderRight: 'none', borderRadius: `${isAr ? '0 11px 11px 0' : '11px 0 0 11px'}`,
-          color: itemColor, cursor: 'pointer', whiteSpace: 'nowrap',
-          fontSize: '.88rem', fontFamily: 'inherit', minWidth: 90,
-        }}
-      >
-        <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>{getFlag(value.code)}</span>
-        <span style={{ color: '#c9932c', fontWeight: 600, fontSize: '.82rem' }}>{value.dial}</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke={isDark ? 'rgba(255,255,255,.4)' : '#9ca3af'} strokeWidth="2" width="11" height="11"
-          style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-      </button>
-
-      {open && (
-        <div style={{
-          position: 'absolute', top: '100%', left: 0, zIndex: 100,
-          width: 270, marginTop: 4, background: dropBg,
-          border: `1px solid ${dropBdr}`, borderRadius: 11, overflow: 'hidden',
-          boxShadow: '0 16px 48px rgba(0,0,0,.35)',
-        }}>
-          <div style={{ padding: '10px 10px 6px', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,.07)' : '#f1f5f9'}` }}>
-            <div style={{ position: 'relative' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke={isDark ? 'rgba(255,255,255,.35)' : '#9ca3af'} strokeWidth="2" width="14" height="14"
-                style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-              <input autoFocus value={search} onChange={e => setSearch(e.target.value)}
-                placeholder={isAr ? 'ابحث عن دولة…' : 'Search country or code…'}
-                style={{ width: '100%', padding: '8px 10px 8px 32px', background: searchBg, border: `1px solid ${searchBdr}`, borderRadius: 7, color: searchClr, fontSize: '.82rem', fontFamily: 'inherit', outline: 'none' }} />
-            </div>
-          </div>
-          <div style={{ maxHeight: 220, overflowY: 'auto' }}>
-            {filtered.length === 0
-              ? <div style={{ padding: '14px', textAlign: 'center', color: isDark ? 'rgba(255,255,255,.3)' : '#9ca3af', fontSize: '.8rem' }}>{isAr ? 'لا نتائج' : 'No results'}</div>
-              : filtered.map(c => (
-                <button key={c.code} type="button" onClick={() => { onChange(c); setOpen(false) }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '9px 14px',
-                    background: value.code === c.code ? 'rgba(201,147,44,.12)' : 'none',
-                    border: 'none', cursor: 'pointer', textAlign: 'left', color: itemColor,
-                    fontSize: '.84rem', fontFamily: 'inherit',
-                    borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,.04)' : '#f8fafc'}`,
-                    transition: 'background .12s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.07)' : '#f1f5f9' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = value.code === c.code ? 'rgba(201,147,44,.12)' : 'none' }}
-                >
-                  <span style={{ fontSize: '1.05rem' }}>{getFlag(c.code)}</span>
-                  <span style={{ flex: 1, fontSize: '.82rem' }}>{c.name}</span>
-                  <span style={{ color: '#c9932c', fontSize: '.78rem', fontWeight: 600 }}>{c.dial}</span>
-                </button>
-              ))
-            }
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
 
 function PasswordChecklist({ password }) {
   const { lang } = useLang()
@@ -222,9 +126,8 @@ export default function RegisterPage() {
     if (!form.email.trim())    errs.email    = isAr ? 'البريد الإلكتروني مطلوب' : 'Email is required'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = isAr ? 'أدخل بريداً إلكترونياً صحيحاً' : 'Enter a valid email address'
     if (form.phone) {
-      const digits = form.phone.replace(/\D/g, '')
-      if (digits.length < country.min || digits.length > country.max)
-        errs.phone = isAr ? `يجب أن يكون الهاتف ${country.min}–${country.max} أرقام` : `Phone should be ${country.min}${country.min !== country.max ? `–${country.max}` : ''} digits for ${country.name}`
+      const phoneErr = validatePhone(form.phone, country, isAr)
+      if (phoneErr) errs.phone = phoneErr
     }
     if (!form.password)        errs.password = isAr ? 'كلمة المرور مطلوبة' : 'Password is required'
     else if (pwdStrength(form.password) < 4) errs.password = isAr ? 'كلمة المرور ضعيفة — استوفِ 4 شروط على الأقل' : 'Password is too weak — meet at least 4 conditions'
@@ -443,16 +346,15 @@ export default function RegisterPage() {
                   {/* Phone */}
                   <div style={{ marginBottom: 16 }}>
                     <label style={labelStyle}>{isAr ? 'رقم الهاتف' : 'PHONE NUMBER'}</label>
-                    <div style={{ display: 'flex' }}>
-                      <CountryPicker value={country} onChange={setCountry} />
-                      <input
-                        style={{ ...inputStyle, flex: 1, padding: '12px 14px', borderRadius: isAr ? '11px 0 0 11px' : '0 11px 11px 0', borderLeft: isAr ? `1px solid ${inputBdr}` : 'none', borderRight: isAr ? 'none' : undefined, borderColor: fieldErrors.phone ? 'rgba(239,68,68,.5)' : inputBdr }}
-                        type="tel" value={form.phone}
-                        onChange={e => set('phone', e.target.value.replace(/[^\d\s\-()]/g, ''))}
-                        placeholder={`${country.min}–${country.max} ${isAr ? 'أرقام' : 'digits'}`}
-                      />
-                    </div>
-                    {fieldErrors.phone && <div style={{ fontSize: '.72rem', color: errClr, marginTop: 5 }}>⚠ {fieldErrors.phone}</div>}
+                    <PhoneInput
+                      country={country}
+                      number={form.phone}
+                      onCountryChange={c => { setCountry(c); setFieldErrors(e => ({ ...e, phone: '' })) }}
+                      onNumberChange={v => set('phone', v)}
+                      error={fieldErrors.phone}
+                      isAr={isAr}
+                      isDark={isDark}
+                    />
                   </div>
 
                   {/* Password */}

@@ -24,7 +24,7 @@
     --border-gold:  rgba(201, 147, 44, 0.30);
 
     --font-en:      var(--font-gotham), 'Gotham', sans-serif;
-    --font-ar:      var(--font-tajawal), 'Tajawal', sans-serif;
+    --font-ar:      var(--font-tajawal), sans-serif;
     --font:         var(--font-en);
 
     --wrap:         1200px;
@@ -129,9 +129,23 @@ a    { text-decoration: none; color: inherit; }
 ul   { list-style: none; }
 button { cursor: pointer; border: none; background: none; font-family: inherit; color: inherit; }
 
-[dir="rtl"] { --font: var(--font-ar); font-family: var(--font-ar); }
-[dir="rtl"] body { font-family: var(--font-ar); }
-[dir="rtl"] * { letter-spacing: 0 !important; font-family: var(--font-ar) !important; }
+/* ─── Arabic / Tajawal — single global rule ─────────────────────────────
+   --font-tajawal is defined on <body> by Next.js (via tajawal.variable class).
+   Targeting body and body * ensures the variable is always in scope.
+   Both [lang="ar"] and [dir="rtl"] trigger it so every current and future
+   portal picks it up automatically with zero per-page code.
+─────────────────────────────────────────────────────────────────────── */
+html[lang="ar"] body,
+html[dir="rtl"]  body {
+  font-family: var(--font-tajawal), sans-serif;
+}
+html[lang="ar"] body *,
+html[dir="rtl"]  body * {
+  font-family: var(--font-tajawal), sans-serif !important;
+  letter-spacing: 0 !important;
+}
+html[lang="ar"],
+html[dir="rtl"]  { --font: var(--font-tajawal), sans-serif; }
 
 /* ─── Utilities ─── */
 .container { max-width: var(--wrap); margin: 0 auto; padding: 0 28px; }

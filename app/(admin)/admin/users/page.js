@@ -5,6 +5,8 @@ import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 import Modal from '@/components/ui/Modal'
 import EmptyState from '@/components/ui/EmptyState'
 import { useLang } from '@/context/LangContext'
+import PhoneInput from '@/components/ui/PhoneInput'
+import { DEFAULT_COUNTRY, parsePhone } from '@/lib/countries'
 
 const S = {
   en: {
@@ -163,9 +165,22 @@ export default function AdminUsersPage() {
 }
 
 function UserModal({ user, roles, onSave, onClose, s }) {
+  const { lang } = useLang()
+  const isAr = lang === 'ar'
   const [form, setForm] = useState(user)
   const isNew = user.id.startsWith('new')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const parsed = parsePhone(user.phone)
+  const [phoneCountry, setPhoneCountry] = useState(parsed.country)
+  const [phoneNumber,  setPhoneNumber]  = useState(parsed.number)
+
+  function handleSave() {
+    const phone = phoneNumber.trim()
+      ? `${phoneCountry.dial} ${phoneNumber.trim()}`
+      : ''
+    onSave({ ...form, phone })
+  }
 
   return (
     <div className="admin-modal">
@@ -195,7 +210,13 @@ function UserModal({ user, roles, onSave, onClose, s }) {
           </div>
           <div className="admin-field">
             <label>{s.fldPhone}</label>
-            <input value={form.phone} onChange={e => set('phone', e.target.value)} placeholder={s.phPhone} />
+            <PhoneInput
+              country={phoneCountry}
+              number={phoneNumber}
+              onCountryChange={setPhoneCountry}
+              onNumberChange={setPhoneNumber}
+              isAr={isAr}
+            />
           </div>
         </div>
 
@@ -215,7 +236,7 @@ function UserModal({ user, roles, onSave, onClose, s }) {
 
         <div className="admin-actions">
           <button className="admin-btn" onClick={onClose}>{s.cancel}</button>
-          <button className="admin-btn admin-btn--primary" onClick={() => onSave(form)}>
+          <button className="admin-btn admin-btn--primary" onClick={handleSave}>
             {isNew ? s.create : s.saveChanges}
           </button>
         </div>
