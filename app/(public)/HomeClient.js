@@ -117,58 +117,6 @@ export default function HomeClient({ stats }) {
         </div>
       </div>
 
-      {/* PLATFORM — purpose statement for Google OAuth review */}
-      <section className="section" id="platform" style={{ background: 'var(--surface)' }}>
-        <div className="container">
-          <div className="section-header" data-reveal>
-            <span className="label">{t('platfLabel')}</span>
-            <h2 className="section-title">{t('platfTitle')}</h2>
-            <p className="section-sub">{t('platfDesc')}</p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24, marginBottom: 48 }}>
-            {/* Capabilities card */}
-            <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '32px' }} data-reveal>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 'var(--r-lg)', background: 'var(--accent-dim)', border: '1px solid var(--border-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                </div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t('platfCapLabel')}</h3>
-              </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {['platfCap1','platfCap2','platfCap3','platfCap4','platfCap5'].map(key => (
-                  <li key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                    <span style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--accent-dim)', border: '1px solid var(--border-gold)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-                    </span>
-                    <span style={{ fontSize: '.9rem', color: 'var(--text-80)', lineHeight: 1.65 }}>{t(key)}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Google Calendar card */}
-            <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '32px' }} data-reveal="right">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 'var(--r-lg)', background: 'var(--accent-dim)', border: '1px solid var(--border-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                </div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t('platfGcalTitle')}</h3>
-              </div>
-              <p style={{ fontSize: '.9rem', color: 'var(--text-80)', lineHeight: 1.75, margin: '0 0 16px' }}>{t('platfGcalDesc1')}</p>
-              <p style={{ fontSize: '.9rem', color: 'var(--text-80)', lineHeight: 1.75, margin: 0 }}>{t('platfGcalDesc2')}</p>
-            </div>
-          </div>
-
-          {/* Legal links */}
-          <div style={{ textAlign: 'center' }}>
-            <Link href="/privacy-policy" style={{ fontSize: '.82rem', color: 'var(--gold)', textDecoration: 'none', fontWeight: 600, letterSpacing: '.06em' }}>{t('platfPrivacy')}</Link>
-            <span style={{ margin: '0 14px', color: 'var(--text-40)' }}>·</span>
-            <Link href="/terms" style={{ fontSize: '.82rem', color: 'var(--gold)', textDecoration: 'none', fontWeight: 600, letterSpacing: '.06em' }}>{t('platfTerms')}</Link>
-          </div>
-        </div>
-      </section>
-
       {/* ABOUT */}
       <section className="section" id="about">
         <div className="container">
@@ -296,6 +244,54 @@ export default function HomeClient({ stats }) {
               <Link href="/contact" className="btn btn--primary">{t('ctaBtn')}</Link>
             </div>
             <p className="cta__motto">{t('ctaTagline')}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* APPLICATION PURPOSE — Google OAuth verification */}
+      <section className="section" id="about-platform" aria-label="About Grace Academy Platform">
+        <div className="container">
+          <div style={{ maxWidth: 680, margin: '0 auto', borderTop: '1px solid var(--border)', paddingTop: 64 }} data-reveal>
+
+            <p style={{ fontSize: '.68rem', fontWeight: 600, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 12, fontFamily: 'var(--font)' }}>
+              {t('platfSubtitle')}
+            </p>
+            <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.4rem)', fontWeight: 700, color: 'var(--text)', lineHeight: 1.15, marginBottom: 28, fontFamily: 'var(--font)' }}>
+              Grace Academy
+            </h2>
+
+            <p style={{ fontSize: '.95rem', color: 'var(--text-60)', lineHeight: 1.85, marginBottom: 14, fontFamily: 'var(--font)' }}>
+              {t('platfDesc1')}
+            </p>
+            <p style={{ fontSize: '.95rem', color: 'var(--text-60)', lineHeight: 1.85, marginBottom: 14, fontFamily: 'var(--font)' }}>
+              {t('platfDesc2')}
+            </p>
+            <p style={{ fontSize: '.95rem', color: 'var(--text-60)', lineHeight: 1.85, marginBottom: 40, fontFamily: 'var(--font)' }}>
+              {t('platfDesc3')}
+            </p>
+
+            <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderLeft: '3px solid var(--gold)', borderRadius: 'var(--r-lg)', padding: '24px 28px', marginBottom: 40 }}>
+              <h3 style={{ fontSize: '.88rem', fontWeight: 700, color: 'var(--text)', marginBottom: 10, fontFamily: 'var(--font)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2" style={{ flexShrink: 0 }}>
+                  <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                {t('platfGcalTitle')}
+              </h3>
+              <p style={{ fontSize: '.88rem', color: 'var(--text-60)', lineHeight: 1.8, margin: 0, fontFamily: 'var(--font)' }}>
+                {t('platfGcalDesc')}
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Link href="/privacy-policy" style={{ fontSize: '.75rem', fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--gold)', textDecoration: 'none', fontFamily: 'var(--font)' }}>
+                {t('platfPrivacy')}
+              </Link>
+              <span style={{ color: 'var(--text-40)', fontSize: '.75rem' }}>·</span>
+              <Link href="/terms" style={{ fontSize: '.75rem', fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--gold)', textDecoration: 'none', fontFamily: 'var(--font)' }}>
+                {t('platfTerms')}
+              </Link>
+            </div>
+
           </div>
         </div>
       </section>
