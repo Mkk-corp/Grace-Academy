@@ -1,7 +1,21 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { COUNTRIES, getFlag, DEFAULT_COUNTRY } from '@/lib/countries'
+import { COUNTRIES, DEFAULT_COUNTRY } from '@/lib/countries'
+
+function Flag({ code, size = 20 }) {
+  const iso = code.toLowerCase()
+  return (
+    <img
+      src={`https://flagcdn.com/w${size}/${iso}.png`}
+      srcSet={`https://flagcdn.com/w${size * 2}/${iso}.png 2x`}
+      width={size}
+      height={Math.round(size * 0.75)}
+      alt={code}
+      style={{ objectFit: 'cover', borderRadius: 2, display: 'block', flexShrink: 0 }}
+    />
+  )
+}
 
 /**
  * PhoneInput — reusable country-code + phone-number input.
@@ -114,7 +128,7 @@ export default function PhoneInput({
             opacity: disabled ? .55 : 1,
           }}
         >
-          <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>{getFlag(sel.code)}</span>
+          <Flag code={sel.code} size={20} />
           <span style={{ color: '#c9932c', fontWeight: 700, fontSize: '.82rem', letterSpacing: 0 }}>{sel.dial}</span>
           <svg viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2.5" width="10" height="10"
             style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s', flexShrink: 0 }}>
@@ -252,9 +266,7 @@ export default function PhoneInput({
                   onMouseLeave={e => { e.currentTarget.style.background = isSelected ? activeBg : 'transparent' }}
                 >
                   {/* Flag */}
-                  <span style={{ fontSize: '1.2rem', lineHeight: 1, flexShrink: 0 }}>
-                    {getFlag(c.code)}
-                  </span>
+                  <Flag code={c.code} size={22} />
 
                   {/* Name */}
                   <span style={{
