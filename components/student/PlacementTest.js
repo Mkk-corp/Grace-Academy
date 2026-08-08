@@ -396,28 +396,28 @@ export default function PlacementTest({ user, isAr, isDark, onBooked }) {
         </div>
       )}
 
-      {/* Already booked banner */}
-      {alreadyBooked && (
-        <div style={{
-          padding: '16px 20px', borderRadius: 12, marginBottom: 20,
-          background: 'rgba(201,147,44,.08)', border: '1px solid rgba(201,147,44,.25)',
-          display: 'flex', alignItems: 'center', gap: 12,
-        }}>
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke={gold} strokeWidth="1.8">
-            <circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/>
-          </svg>
-          <div>
-            <div style={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#111827', fontSize: '.88rem', marginBottom: 2 }}>
-              {isAr ? 'لديك موعد محجوز بالفعل' : 'You already have a session booked'}
-            </div>
-            <div style={{ fontSize: '.78rem', color: isDark ? 'rgba(255,255,255,.45)' : '#6b7280' }}>
-              {isAr ? 'يمكنك حجز موعد واحد فقط لاختبار التحديد' : 'Only one placement test slot can be booked at a time'}
-            </div>
+      {alreadyBooked ? (
+        /* Student has an active upcoming session — hide the slot table entirely */
+        <div style={{ ...surface, padding: '48px 36px', textAlign: 'center' }}>
+          <div style={{
+            width: 60, height: 60, borderRadius: '50%', margin: '0 auto 20px',
+            background: 'rgba(201,147,44,.1)', border: '1.5px solid rgba(201,147,44,.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke={gold} strokeWidth="1.8">
+              <circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/>
+            </svg>
           </div>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 900, color: isDark ? '#f1f5f9' : '#111827', margin: '0 0 8px' }}>
+            {isAr ? 'لديك موعد محجوز بالفعل' : 'You Already Have a Session Booked'}
+          </h3>
+          <p style={{ fontSize: '.84rem', color: isDark ? 'rgba(255,255,255,.45)' : '#6b7280', margin: '0 auto', maxWidth: 340, lineHeight: 1.6 }}>
+            {isAr
+              ? 'يمكنك حجز موعد واحد فقط في كل مرة. راجع تبويب "جلساتي" للاطلاع على تفاصيل جلستك.'
+              : 'You can only hold one session at a time. Head to the My Sessions tab to view your booking details.'}
+          </p>
         </div>
-      )}
-
-      {slotsLoading ? (
+      ) : slotsLoading ? (
         <div style={{ ...surface, padding: 60, textAlign: 'center' }}>
           <div style={{
             width: 40, height: 40, borderRadius: '50%', margin: '0 auto 16px',
@@ -506,29 +506,26 @@ export default function PlacementTest({ user, isAr, isDark, onBooked }) {
                         }}>
                           {avail ? (
                             <button
-                              onClick={() => !alreadyBooked && handleSlotClick(d.date, slotMin, `${d.dayLabel}, ${d.monthDay}`)}
-                              disabled={alreadyBooked}
+                              onClick={() => handleSlotClick(d.date, slotMin, `${d.dayLabel}, ${d.monthDay}`)}
                               style={{
                                 width: '100%', padding: '7px 4px', borderRadius: 8,
-                                background: alreadyBooked ? (isDark ? 'rgba(255,255,255,.05)' : '#f3f4f6') : 'rgba(16,185,129,.1)',
-                                border: alreadyBooked ? `1px solid ${isDark ? 'rgba(255,255,255,.08)' : '#e5e7eb'}` : '1px solid rgba(16,185,129,.3)',
-                                color: alreadyBooked ? (isDark ? 'rgba(255,255,255,.2)' : '#9ca3af') : '#10b981',
+                                background: 'rgba(16,185,129,.1)',
+                                border: '1px solid rgba(16,185,129,.3)',
+                                color: '#10b981',
                                 fontSize: '.73rem', fontWeight: 700,
-                                cursor: alreadyBooked ? 'not-allowed' : 'pointer',
+                                cursor: 'pointer',
                                 transition: 'all .15s', letterSpacing: '.02em',
                               }}
                               onMouseEnter={e => {
-                                if (alreadyBooked) return
                                 e.currentTarget.style.background = '#10b981'
                                 e.currentTarget.style.color = '#fff'
                               }}
                               onMouseLeave={e => {
-                                if (alreadyBooked) return
                                 e.currentTarget.style.background = 'rgba(16,185,129,.1)'
                                 e.currentTarget.style.color = '#10b981'
                               }}
                             >
-                              {alreadyBooked ? '✓' : (isAr ? 'متاح' : 'Free')}
+                              {isAr ? 'متاح' : 'Free'}
                             </button>
                           ) : (
                             <div style={{

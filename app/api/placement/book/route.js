@@ -37,9 +37,10 @@ export async function POST(req) {
     const student = await prisma.user.findUnique({ where: { id: payload.userId } })
     if (!student) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    // Prevent duplicate bookings for the same student
+    // Prevent duplicate active bookings — past sessions do not block rebooking
+    const todayStr = new Date().toLocaleDateString('en-CA')
     const existingBooking = await prisma.booking.findFirst({
-      where: { studentId: student.id, status: 'confirmed' },
+      where: { studentId: student.id, status: 'confirmed', date: { gte: todayStr } },
     })
     if (existingBooking) {
       return NextResponse.json({ error: 'You already have a confirmed placement session.', code: 'already_booked' }, { status: 409 })
