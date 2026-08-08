@@ -147,6 +147,14 @@ html[dir="rtl"]  body * {
 html[lang="ar"],
 html[dir="rtl"]  { --font: var(--font-tajawal), sans-serif; }
 
+/* ─── Platform shell — Comfortaa for English ─── */
+.platform-shell {
+  --font-gotham: var(--font-comfortaa), 'Comfortaa', sans-serif;
+  --font-en: var(--font-comfortaa), 'Comfortaa', sans-serif;
+  --font: var(--font-comfortaa), 'Comfortaa', sans-serif;
+  font-family: var(--font-comfortaa), 'Comfortaa', sans-serif;
+}
+
 /* ─── Utilities ─── */
 .container { max-width: var(--wrap); margin: 0 auto; padding: 0 28px; }
 .section { padding: 108px 0; }

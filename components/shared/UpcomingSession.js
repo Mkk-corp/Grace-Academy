@@ -21,7 +21,7 @@ function formatCountdown(secs) {
   return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
 }
 
-export default function UpcomingSession({ isAr, isDark }) {
+export default function UpcomingSession({ isAr, isDark, isHost = false }) {
   const [booking, setBooking]   = useState(null)
   const [secsLeft, setSecsLeft] = useState(null)
   const [status, setStatus]     = useState('upcoming') // 'upcoming' | 'soon' | 'now' | 'ended'
@@ -154,26 +154,41 @@ export default function UpcomingSession({ isAr, isDark }) {
         )}
 
         {booking.meetLink ? (
-          <a
-            href={canJoin ? booking.meetLink : undefined}
-            target={canJoin ? '_blank' : undefined}
-            rel="noopener noreferrer"
-            onClick={canJoin ? undefined : e => e.preventDefault()}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 7,
-              padding: '8px 18px', borderRadius: 9, textDecoration: 'none',
-              background: canJoin ? '#1a73e8' : (isDark ? 'rgba(255,255,255,.06)' : '#f3f4f6'),
-              color: canJoin ? '#fff' : (isDark ? 'rgba(255,255,255,.22)' : '#9ca3af'),
-              fontWeight: 700, fontSize: '.82rem',
-              cursor: canJoin ? 'pointer' : 'not-allowed',
-              transition: 'all .15s',
-            }}
-          >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-              <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>
-            </svg>
-            {isAr ? 'انضم' : 'Join'}
-          </a>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5 }}>
+            <a
+              href={canJoin ? booking.meetLink : undefined}
+              target={canJoin ? '_blank' : undefined}
+              rel="noopener noreferrer"
+              onClick={canJoin ? undefined : e => e.preventDefault()}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 7,
+                padding: '8px 20px', borderRadius: 9, textDecoration: 'none',
+                background: canJoin
+                  ? 'linear-gradient(135deg, #c9932c, #ae6d0c)'
+                  : (isDark ? 'rgba(255,255,255,.06)' : '#f3f4f6'),
+                color: canJoin ? '#fff' : (isDark ? 'rgba(255,255,255,.22)' : '#9ca3af'),
+                fontWeight: 700, fontSize: '.82rem',
+                cursor: canJoin ? 'pointer' : 'not-allowed',
+                transition: 'all .15s',
+                boxShadow: canJoin ? '0 2px 10px rgba(201,147,44,.4)' : 'none',
+              }}
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>
+              </svg>
+              {isHost
+                ? (isAr ? 'انضم كمضيف' : 'Join as Host')
+                : (isAr ? 'انضم الآن' : 'Join Now')}
+            </a>
+            {isHost && canJoin && (
+              <span style={{
+                fontSize: '.62rem', fontWeight: 700, letterSpacing: '.08em',
+                color: '#c9932c', textTransform: 'uppercase',
+              }}>
+                {isAr ? 'أنت المضيف' : 'YOU ARE THE HOST'}
+              </span>
+            )}
+          </div>
         ) : null}
       </div>
     </div>

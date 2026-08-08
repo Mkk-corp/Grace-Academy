@@ -11,7 +11,7 @@ export default function PublicLayout({ children }) {
   const pathname = usePathname()
 
   if (AUTH_PATHS.includes(pathname)) {
-    return <>{children}</>
+    return <div className="platform-shell">{children}</div>
   }
 
   return (

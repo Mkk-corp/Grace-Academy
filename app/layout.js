@@ -1,5 +1,5 @@
 import localFont from 'next/font/local'
-import { Tajawal } from 'next/font/google'
+import { Tajawal, Comfortaa } from 'next/font/google'
 import { LangProvider } from '@/context/LangContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import '@/app/globals.css'
@@ -23,6 +23,13 @@ const tajawal = Tajawal({
   display: 'swap',
 })
 
+const comfortaa = Comfortaa({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-comfortaa',
+  display: 'swap',
+})
+
 export const metadata = {
   title: 'Grace Academy — Long Live Learn',
   description: 'A complete English learning ecosystem built for every age.',
@@ -31,7 +38,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" dir="ltr" data-theme="light" suppressHydrationWarning>
-      <body className={`${gotham.variable} ${tajawal.variable}`}>
+      <body className={`${gotham.variable} ${tajawal.variable} ${comfortaa.variable}`}>
         <ThemeProvider>
           <LangProvider>
             {children}

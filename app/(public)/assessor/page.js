@@ -46,7 +46,7 @@ function Icon({ name, size = 18, color = 'currentColor' }) {
 /* ─── nav items ──────────────────────────────────────────────────────── */
 const NAV = [
   { id: 'dashboard',   icon: 'dashboard', en: 'Dashboard',                    ar: 'الرئيسية' },
-  { id: 'assessments', icon: 'clipboard', en: 'My Assessments',               ar: 'تقييماتي' },
+  { id: 'assessments', icon: 'clipboard', en: 'My Sessions',                  ar: 'جلساتي' },
   { id: 'schedule',    icon: 'schedule',  en: 'My Schedule',                   ar: 'جدولي' },
   { id: 'calendar',    icon: 'calendar',  en: 'My Calendar',                   ar: 'تقويمي' },
   { id: 'requests',    icon: 'clipboard', en: 'My Requests',                   ar: 'طلباتي' },
@@ -93,7 +93,7 @@ function DashboardTab({ user, isAr, isDark }) {
   return (
     <div style={{ padding: '28px 24px', maxWidth: 960, margin: '0 auto' }}>
       {/* Upcoming session widget */}
-      <UpcomingSession isAr={isAr} isDark={isDark} />
+      <UpcomingSession isAr={isAr} isDark={isDark} isHost />
 
       {/* Welcome banner */}
       <div style={{ background: 'linear-gradient(135deg, #0a1b22 0%, #10222b 100%)', borderRadius: 16, padding: '28px 32px', marginBottom: 28, position: 'relative', overflow: 'hidden' }}>

@@ -16,22 +16,21 @@ function isJoinable(date, slotMin) {
   const m = slotMin % 60
   const start = new Date(y, mo - 1, d, h, m, 0)
   const diffSecs = (start.getTime() - Date.now()) / 1000
-  return diffSecs <= 180 && diffSecs >= -1800
+  return diffSecs <= 300 && diffSecs >= -1800
 }
 
-export default function MyAssessments({ isAr, isDark }) {
-  const [assessments, setAssessments] = useState([])
-  const [loading,     setLoading]     = useState(true)
-  const [now,         setNow]         = useState(Date.now())
+export default function MySessions({ isAr, isDark }) {
+  const [sessions, setSessions] = useState([])
+  const [loading,  setLoading]  = useState(true)
+  const [, setNow]              = useState(Date.now())
 
   useEffect(() => {
-    fetch('/api/assessor/assessments')
-      .then(r => r.ok ? r.json() : { assessments: [] })
-      .then(d => { setAssessments(d.assessments || []); setLoading(false) })
+    fetch('/api/student/my-sessions')
+      .then(r => r.ok ? r.json() : { sessions: [] })
+      .then(d => { setSessions(d.sessions || []); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])
 
-  // Refresh joinable state every 30 seconds
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 30000)
     return () => clearInterval(t)
@@ -50,14 +49,14 @@ export default function MyAssessments({ isAr, isDark }) {
       <div style={{
         width: 40, height: 40, borderRadius: '50%', margin: '0 auto 14px',
         border: `3px solid ${isDark ? 'rgba(255,255,255,.1)' : '#e5e7eb'}`,
-        borderTopColor: gold, animation: 'maSpin .7s linear infinite',
+        borderTopColor: gold, animation: 'msSpin .7s linear infinite',
       }}/>
-      <style>{`@keyframes maSpin{to{transform:rotate(360deg)}}`}</style>
+      <style>{`@keyframes msSpin{to{transform:rotate(360deg)}}`}</style>
       {isAr ? 'جارٍ التحميل...' : 'Loading...'}
     </div>
   )
 
-  if (assessments.length === 0) return (
+  if (sessions.length === 0) return (
     <div style={{ padding: '60px 24px', textAlign: 'center' }}>
       <div style={{
         width: 56, height: 56, borderRadius: '50%', margin: '0 auto 14px',
@@ -65,20 +64,20 @@ export default function MyAssessments({ isAr, isDark }) {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke={gold} strokeWidth="1.8">
-          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-          <rect x="8" y="2" width="8" height="4" rx="1"/>
+          <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>
         </svg>
       </div>
       <div style={{ fontWeight: 700, color: text, marginBottom: 6 }}>
-        {isAr ? 'لا توجد تقييمات بعد' : 'No assessments yet'}
+        {isAr ? 'لا توجد جلسات بعد' : 'No sessions yet'}
       </div>
       <div style={{ fontSize: '.82rem', color: muted }}>
-        {isAr ? 'ستظهر الجلسات هنا بعد حجزها' : 'Sessions will appear here once they are booked'}
+        {isAr ? 'ستظهر جلساتك هنا بعد حجز اختبار التحديد' : 'Your sessions will appear here once you book a placement test'}
       </div>
     </div>
   )
 
   const todayStr = new Date().toLocaleDateString('en-CA')
+  const nowMin   = new Date().getHours() * 60 + new Date().getMinutes()
 
   return (
     <div style={{ padding: '28px 24px', maxWidth: 1100, margin: '0 auto' }}>
@@ -87,7 +86,7 @@ export default function MyAssessments({ isAr, isDark }) {
           {isAr ? 'جلساتي' : 'My Sessions'}
         </h2>
         <p style={{ fontSize: '.82rem', color: muted, margin: 0 }}>
-          {assessments.length} {isAr ? 'جلسة' : assessments.length === 1 ? 'session' : 'sessions'}
+          {sessions.length} {isAr ? 'جلسة' : sessions.length === 1 ? 'session' : 'sessions'}
         </p>
       </div>
 
@@ -97,19 +96,20 @@ export default function MyAssessments({ isAr, isDark }) {
         boxShadow: isDark ? '0 1px 4px rgba(0,0,0,.35)' : '0 1px 3px rgba(0,0,0,.07)',
       }}>
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 680 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
             <thead>
               <tr>
                 {[
                   isAr ? 'النوع' : 'Type',
                   isAr ? 'التاريخ' : 'Date',
                   isAr ? 'الوقت' : 'Time',
-                  isAr ? 'الطالب' : 'Student',
+                  isAr ? 'المستشار الأكاديمي' : 'Academic Consultant',
                   isAr ? 'الحالة' : 'Status',
                   isAr ? 'الإجراء' : 'Action',
                 ].map((h, i) => (
                   <th key={i} style={{
-                    padding: '12px 16px', textAlign: i >= 4 ? 'center' : (isAr ? 'right' : 'left'),
+                    padding: '12px 16px',
+                    textAlign: i >= 4 ? 'center' : (isAr ? 'right' : 'left'),
                     fontSize: '.68rem', fontWeight: 700, letterSpacing: '.1em', color: xmuted,
                     background: thBg, borderBottom: `1px solid ${border}`,
                   }}>
@@ -119,14 +119,14 @@ export default function MyAssessments({ isAr, isDark }) {
               </tr>
             </thead>
             <tbody>
-              {assessments.map((a, i) => {
-                const joinable = isJoinable(a.date, a.slotMin)
-                const isPast   = a.date < todayStr || (a.date === todayStr && a.slotMin < new Date().getHours() * 60 + new Date().getMinutes() - 30)
+              {sessions.map((s, i) => {
+                const joinable = isJoinable(s.date, s.slotMin)
+                const isPast   = s.date < todayStr || (s.date === todayStr && s.slotMin < nowMin - 30)
                 const rowBg    = i % 2 === 0 ? 'transparent' : (isDark ? 'rgba(255,255,255,.015)' : 'rgba(0,0,0,.012)')
 
                 return (
-                  <tr key={a.id} style={{ background: rowBg }}>
-                    {/* Type badge */}
+                  <tr key={s.id} style={{ background: rowBg }}>
+                    {/* Type */}
                     <td style={{ padding: '13px 16px', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,.04)' : '#f3f4f6'}` }}>
                       <span style={{
                         display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -142,15 +142,22 @@ export default function MyAssessments({ isAr, isDark }) {
                       </span>
                     </td>
 
+                    {/* Date */}
                     <td style={{ padding: '13px 16px', fontSize: '.85rem', color: text, fontWeight: 600, borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,.04)' : '#f3f4f6'}` }}>
-                      {a.date}
+                      {s.date}
                     </td>
+
+                    {/* Time */}
                     <td style={{ padding: '13px 16px', fontSize: '.85rem', color: muted, borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,.04)' : '#f3f4f6'}` }}>
-                      {slotMinToTime(a.slotMin)}
+                      {slotMinToTime(s.slotMin)}
                     </td>
+
+                    {/* Assessor name */}
                     <td style={{ padding: '13px 16px', fontSize: '.85rem', color: text, borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,.04)' : '#f3f4f6'}` }}>
-                      {a.studentName}
+                      {s.assessorName || '—'}
                     </td>
+
+                    {/* Status */}
                     <td style={{ padding: '13px 16px', textAlign: 'center', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,.04)' : '#f3f4f6'}` }}>
                       {joinable ? (
                         <span style={{
@@ -178,40 +185,32 @@ export default function MyAssessments({ isAr, isDark }) {
                         </span>
                       )}
                     </td>
+
+                    {/* Join Now */}
                     <td style={{ padding: '13px 16px', textAlign: 'center', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,.04)' : '#f3f4f6'}` }}>
-                      {a.meetLink ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                          <a
-                            href={joinable ? a.meetLink : undefined}
-                            target={joinable ? '_blank' : undefined}
-                            rel="noopener noreferrer"
-                            onClick={joinable ? undefined : e => e.preventDefault()}
-                            style={{
-                              display: 'inline-flex', alignItems: 'center', gap: 6,
-                              padding: '6px 16px', borderRadius: 8, textDecoration: 'none',
-                              background: joinable
-                                ? 'linear-gradient(135deg, #c9932c, #ae6d0c)'
-                                : (isDark ? 'rgba(255,255,255,.06)' : '#f3f4f6'),
-                              color: joinable ? '#fff' : xmuted,
-                              fontSize: '.78rem', fontWeight: 700,
-                              cursor: joinable ? 'pointer' : 'not-allowed',
-                              boxShadow: joinable ? '0 2px 8px rgba(201,147,44,.35)' : 'none',
-                            }}
-                          >
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
-                              <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>
-                            </svg>
-                            {isAr ? 'انضم الآن' : 'Join Now'}
-                          </a>
-                          {joinable && (
-                            <span style={{
-                              fontSize: '.62rem', fontWeight: 700, letterSpacing: '.08em',
-                              color: gold, textTransform: 'uppercase',
-                            }}>
-                              {isAr ? 'أنت المضيف' : 'YOU ARE THE HOST'}
-                            </span>
-                          )}
-                        </div>
+                      {s.meetLink ? (
+                        <a
+                          href={joinable ? s.meetLink : undefined}
+                          target={joinable ? '_blank' : undefined}
+                          rel="noopener noreferrer"
+                          onClick={joinable ? undefined : e => e.preventDefault()}
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 6,
+                            padding: '6px 16px', borderRadius: 8, textDecoration: 'none',
+                            background: joinable
+                              ? 'linear-gradient(135deg, #c9932c, #ae6d0c)'
+                              : (isDark ? 'rgba(255,255,255,.06)' : '#f3f4f6'),
+                            color: joinable ? '#fff' : xmuted,
+                            fontSize: '.78rem', fontWeight: 700,
+                            cursor: joinable ? 'pointer' : 'not-allowed',
+                            boxShadow: joinable ? '0 2px 8px rgba(201,147,44,.35)' : 'none',
+                          }}
+                        >
+                          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>
+                          </svg>
+                          {isAr ? 'انضم الآن' : 'Join Now'}
+                        </a>
                       ) : (
                         <span style={{ color: xmuted, fontSize: '.8rem' }}>—</span>
                       )}

@@ -171,7 +171,7 @@ export default function AdminLayout({ children }) {
           onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = muted } }}
         >
           <SbIcon d={ICONS[icon]} />
-          {sidebarOpen && <span style={{ opacity: sidebarOpen ? 1 : 0, transition: 'opacity .12s', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-gotham,'Gotham',sans-serif)" }}>{label}</span>}
+          {sidebarOpen && <span style={{ opacity: sidebarOpen ? 1 : 0, transition: 'opacity .12s', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-comfortaa,'Comfortaa',sans-serif)" }}>{label}</span>}
         </div>
       </Link>
     )
@@ -197,7 +197,7 @@ export default function AdminLayout({ children }) {
       >
         <SbIcon d={ICONS[icon]} />
         {sidebarOpen && <>
-          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-gotham,'Gotham',sans-serif)" }}>{label}</span>
+          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-comfortaa,'Comfortaa',sans-serif)" }}>{label}</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="13" height="13"
             style={{ flexShrink: 0, opacity: .45, transition: 'transform .2s', transform: open ? 'rotate(180deg)' : 'none' }}>
             <polyline points="6 9 12 15 18 9"/>
@@ -218,8 +218,8 @@ export default function AdminLayout({ children }) {
           ${isDark ? darkVars : lightVars}
           background:var(--bg);
           --gold:#c9932c; --gold-dark:#ae6d0c; --r:8px; --r-lg:12px;
-          --ease:.15s ease; --font:${isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-gotham,'Gotham',sans-serif)"};
-          --font-en:var(--font-gotham,'Gotham',sans-serif);
+          --ease:.15s ease; --font:${isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-comfortaa,'Comfortaa',sans-serif)"};
+          --font-en:var(--font-comfortaa,'Comfortaa',sans-serif);
         }
         .admin-main {
           flex:1; padding:32px; overflow-x:auto; background:var(--bg);
@@ -300,7 +300,7 @@ export default function AdminLayout({ children }) {
             </div>
             {sidebarOpen && (
               <div style={{ overflow: 'hidden' }}>
-                <div style={{ fontSize: '.68rem', fontWeight: 800, letterSpacing: isAr ? 0 : '.15em', color: GOLD, fontFamily: isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-gotham,'Gotham',sans-serif)" }}>GRACE ACADEMY</div>
+                <div style={{ fontSize: '.68rem', fontWeight: 800, letterSpacing: isAr ? 0 : '.15em', color: GOLD, fontFamily: isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-comfortaa,'Comfortaa',sans-serif)" }}>GRACE ACADEMY</div>
                 <div style={{ fontSize: '.54rem', letterSpacing: '.1em', color: muted, marginTop: 2 }}>{isAr ? 'لوحة الإدارة' : 'ADMIN PORTAL'}</div>
               </div>
             )}
@@ -393,7 +393,7 @@ export default function AdminLayout({ children }) {
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = muted }}
               >
                 <SbIcon d={ICONS.user} />
-                {sidebarOpen && <span style={{ fontFamily: isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-gotham,'Gotham',sans-serif)" }}>{isAr ? 'ملفي الشخصي' : 'My Profile'}</span>}
+                {sidebarOpen && <span style={{ fontFamily: isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-comfortaa,'Comfortaa',sans-serif)" }}>{isAr ? 'ملفي الشخصي' : 'My Profile'}</span>}
               </div>
             </Link>
             <div
@@ -412,7 +412,7 @@ export default function AdminLayout({ children }) {
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
             >
               <SbIcon d={ICONS.logout} />
-              {sidebarOpen && <span style={{ fontFamily: isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-gotham,'Gotham',sans-serif)" }}>{isAr ? 'تسجيل الخروج' : 'Log Out'}</span>}
+              {sidebarOpen && <span style={{ fontFamily: isAr ? "var(--font-tajawal,'Tajawal',sans-serif)" : "var(--font-comfortaa,'Comfortaa',sans-serif)" }}>{isAr ? 'تسجيل الخروج' : 'Log Out'}</span>}
             </div>
           </div>
         </aside>
