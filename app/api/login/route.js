@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server'
 import { signToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { verifyPassword } from '@/lib/password'
-import { checkLock, generateAndStoreOtp, getResendInfo } from '@/lib/otp'
-import { sendOtpEmail } from '@/lib/mailer'
 
 async function findUser(identifier) {
   const id = identifier.toLowerCase().trim()
@@ -33,13 +31,8 @@ export async function POST(request) {
     const user = await findUser(identifier)
 
     if (user?.forcePasswordReset) {
-      const lockedSeconds = await checkLock(user.email)
-      if (lockedSeconds) return NextResponse.json({ error: 'locked', lockedSeconds }, { status: 429 })
-      const { resendCount, canResend } = await getResendInfo(user.email)
-      if (canResend) {
-        const { otp } = await generateAndStoreOtp(user.email, resendCount > 0 ? { resendCount } : null)
-        try { await sendOtpEmail(user.email, otp) } catch (e) { console.error('OTP email failed:', e) }
-      }
+      // Do NOT send OTP here — the forgot-password page auto-sends it on mount
+      // when redirected with ?mode=first-login, preventing double-send.
       return NextResponse.json({ forceReset: true, email: user.email })
     }
 

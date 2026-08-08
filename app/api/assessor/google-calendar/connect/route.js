@@ -13,7 +13,7 @@ export async function GET() {
   authUrl.searchParams.set('client_id', process.env.GCAL_CLIENT_ID)
   authUrl.searchParams.set('redirect_uri', `${process.env.AUTH_URL}/api/assessor/google-calendar/callback`)
   authUrl.searchParams.set('response_type', 'code')
-  authUrl.searchParams.set('scope', 'https://www.googleapis.com/auth/calendar openid email')
+  authUrl.searchParams.set('scope', 'https://www.googleapis.com/auth/calendar.events openid email')
   authUrl.searchParams.set('access_type', 'offline')
   authUrl.searchParams.set('prompt', 'consent')
 

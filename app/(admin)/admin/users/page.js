@@ -71,10 +71,11 @@ export default function AdminUsersPage() {
       body: JSON.stringify(user),
     })
     const data = await res.json()
-    if (!res.ok) { setError(data.error || (lang === 'ar' ? 'فشل الحفظ' : 'Save failed')); return }
+    if (!res.ok) { setError(data.error || (lang === 'ar' ? 'فشل الحفظ' : 'Save failed')); return false }
     setError('')
     setUsers(await fetch('/api/admin/users').then(r => r.json()))
-    setEditing(null)
+    if (!isNew) setEditing(null) // edits close immediately; new-user stays open for creds screen
+    return true
   }
 
   async function confirmDelete() {
@@ -166,12 +167,61 @@ export default function AdminUsersPage() {
   )
 }
 
+/* ── Copy field with clipboard button ───────────────────────────────── */
+function CopyField({ label, value, isDark }) {
+  const [copied, setCopied] = useState(false)
+  function copy() {
+    const text = String(value)
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).catch(() => fallback(text))
+    } else {
+      fallback(text)
+    }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  function fallback(text) {
+    const el = document.createElement('textarea')
+    el.value = text
+    el.style.position = 'fixed'; el.style.opacity = '0'
+    document.body.appendChild(el); el.select()
+    try { document.execCommand('copy') } catch {}
+    document.body.removeChild(el)
+  }
+  return (
+    <div style={{ background: isDark ? 'rgba(255,255,255,.03)' : '#f8fafc', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px' }}>
+      <div style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '.1em', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: 5 }}>{label}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <code style={{ flex: 1, fontSize: '.9rem', fontFamily: "'Courier New',monospace", color: 'var(--text)', wordBreak: 'break-all' }}>{value}</code>
+        <button
+          type="button"
+          onClick={copy}
+          style={{
+            flexShrink: 0, width: 32, height: 32, borderRadius: 6,
+            background: copied ? 'rgba(16,185,129,.1)' : 'var(--accent-dim)',
+            border: `1px solid ${copied ? 'rgba(16,185,129,.3)' : 'var(--border-gold)'}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', transition: 'all .15s',
+          }}
+        >
+          {copied
+            ? <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+            : <svg viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2" width="14" height="14"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          }
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function UserModal({ user, roles, onSave, onClose, s }) {
   const { lang } = useLang()
   const { theme } = useTheme()
   const isAr  = lang === 'ar'
   const isDark = theme === 'dark'
   const [form, setForm] = useState(user)
+  const [saving, setSaving] = useState(false)
+  const [creds, setCreds] = useState(null) // null | { email, username, password }
   const isNew = user.id.startsWith('new')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -179,13 +229,57 @@ function UserModal({ user, roles, onSave, onClose, s }) {
   const [phoneCountry, setPhoneCountry] = useState(parsed.country)
   const [phoneNumber,  setPhoneNumber]  = useState(parsed.number)
 
-  function handleSave() {
+  async function handleSave() {
+    if (saving) return
+    setSaving(true)
     const phone = phoneNumber.trim()
       ? `${phoneCountry.dial} ${phoneNumber.trim()}`
       : ''
-    onSave({ ...form, phone })
+    const ok = await onSave({ ...form, phone })
+    if (!ok) { setSaving(false); return }
+    if (isNew) setCreds({ email: form.email, username: form.username, password: form.password })
   }
 
+  /* ── Success / credentials screen ── */
+  if (creds) {
+    return (
+      <div className="admin-modal">
+        <div className="admin-modal__box">
+          <div className="admin-modal__header">
+            <h2 className="admin-modal__title">{isAr ? 'تم إنشاء الحساب!' : 'Account Created!'}</h2>
+            <button className="admin-modal__close" onClick={onClose} aria-label="Close">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+
+          <div style={{ textAlign: 'center', marginBottom: 20 }}>
+            <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(16,185,129,.1)', border: '2px solid rgba(16,185,129,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" width="24" height="24"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <p style={{ fontSize: '.85rem', color: 'var(--text-60)', lineHeight: 1.6 }}>
+              {isAr
+                ? `تم إنشاء الحساب وإرسال بريد الترحيب إلى ${creds.email}`
+                : `Account created — welcome email sent to ${creds.email}`}
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+            <CopyField label={isAr ? 'البريد الإلكتروني' : 'Email'} value={creds.email} isDark={isDark} />
+            <CopyField label={isAr ? 'اسم المستخدم' : 'Username'} value={creds.username} isDark={isDark} />
+            <CopyField label={isAr ? 'كلمة المرور المؤقتة' : 'Temporary Password'} value={creds.password} isDark={isDark} />
+          </div>
+
+          <div className="admin-actions">
+            <button className="admin-btn admin-btn--primary" onClick={onClose}>
+              {isAr ? 'تم' : 'Done'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  /* ── Form ── */
   return (
     <div className="admin-modal">
       <div className="admin-modal__box">
@@ -244,9 +338,11 @@ function UserModal({ user, roles, onSave, onClose, s }) {
         </div>
 
         <div className="admin-actions">
-          <button className="admin-btn" onClick={onClose}>{s.cancel}</button>
-          <button className="admin-btn admin-btn--primary" onClick={handleSave}>
-            {isNew ? s.create : s.saveChanges}
+          <button className="admin-btn" onClick={onClose} disabled={saving}>{s.cancel}</button>
+          <button className="admin-btn admin-btn--primary" onClick={handleSave} disabled={saving}>
+            {saving
+              ? <>{isAr ? 'جارٍ الحفظ…' : 'Saving…'}</>
+              : isNew ? s.create : s.saveChanges}
           </button>
         </div>
       </div>
