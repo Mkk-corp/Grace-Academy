@@ -638,8 +638,8 @@ export default function PlacementTest({ user, isAr, isDark, onBooked }) {
           fontSize: '.8rem', color: isDark ? 'rgba(255,255,255,.55)' : '#6b7280',
         }}>
           {isAr
-            ? 'سيُرسَل رابط Google Meet وتفاصيل الجلسة إلى بريدك الإلكتروني بعد تأكيد الحجز.'
-            : 'A Google Meet link and session details will be sent to your email after confirmation.'}
+            ? 'سيُرسَل رابط الاجتماع وتفاصيل الجلسة إلى بريدك الإلكتروني بعد تأكيد الحجز.'
+            : 'A meeting link and session details will be sent to your email after confirmation.'}
         </div>
 
         {error && (
@@ -751,7 +751,7 @@ export default function PlacementTest({ user, isAr, isDark, onBooked }) {
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
               <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>
             </svg>
-            {isAr ? 'انضم إلى Google Meet' : 'Join Google Meet'}
+            {isAr ? 'انضم إلى الاجتماع' : 'Join Assessment Meeting'}
           </a>
         ) : null}
 

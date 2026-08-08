@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
 import { prisma, readContent, writeContent } from '@/lib/db'
 import { sendPlacementEmail } from '@/lib/mailer'
+import { randomBytes } from 'crypto'
 
 const DOW_TO_KEY = ['sun','mon','tue','wed','thu','fri','sat']
 
@@ -19,69 +20,9 @@ function slotMinToTime(slotMin) {
   return `${h12}:${String(m).padStart(2, '0')} ${ampm}`
 }
 
-async function refreshAccessToken(assessorUser) {
-  try {
-    const res = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        client_id:     process.env.GCAL_CLIENT_ID,
-        client_secret: process.env.GCAL_CLIENT_SECRET,
-        refresh_token: assessorUser.googleCalendarRefreshToken,
-        grant_type:    'refresh_token',
-      }),
-    })
-    if (!res.ok) return null
-    const data = await res.json()
-    const newToken = data.access_token
-    if (!newToken) return null
-    await prisma.user.update({
-      where: { id: assessorUser.id },
-      data:  { googleCalendarAccessToken: newToken },
-    })
-    return newToken
-  } catch {
-    return null
-  }
-}
-
-async function createMeetLink({ accessToken, date, slotMin, studentEmail, assessorEmail, studentName, assessorName }) {
-  const h   = Math.floor(slotMin / 60)
-  const min = slotMin % 60
-  const startISO = `${date}T${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}:00Z`
-  const endISO   = new Date(new Date(startISO).getTime() + 30 * 60 * 1000).toISOString()
-  const requestId = Date.now().toString(36) + Math.random().toString(36).slice(2)
-
-  try {
-    const res = await fetch(
-      'https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1',
-      {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          summary:     'Grace Academy Placement Assessment',
-          description: `Placement assessment — ${studentName} with ${assessorName}`,
-          start: { dateTime: startISO, timeZone: 'UTC' },
-          end:   { dateTime: endISO,   timeZone: 'UTC' },
-          attendees: [{ email: studentEmail }, { email: assessorEmail }],
-          conferenceData: {
-            createRequest: {
-              requestId,
-              conferenceSolutionKey: { type: 'hangoutsMeet' },
-            },
-          },
-        }),
-      }
-    )
-    if (!res.ok) return { meetLink: null, calEventId: null }
-    const data = await res.json()
-    return {
-      meetLink:   data.conferenceData?.entryPoints?.find(ep => ep.entryPointType === 'video')?.uri || null,
-      calEventId: data.id || null,
-    }
-  } catch {
-    return { meetLink: null, calEventId: null }
-  }
+function generateMeetingUrl() {
+  const roomId = randomBytes(16).toString('hex')
+  return `https://meet.jit.si/grace-academy-${roomId}`
 }
 
 export async function POST(req) {
@@ -135,31 +76,12 @@ export async function POST(req) {
     // Pick randomly
     const [assessorId, assessorData] = available[Math.floor(Math.random() * available.length)]
 
-    const assessorUser = await prisma.user.findUnique({ where: { id: assessorId } }).catch(() => null)
+    const assessorUser  = await prisma.user.findUnique({ where: { id: assessorId } }).catch(() => null)
     const assessorEmail = assessorData.assessorEmail || assessorUser?.email || ''
     const assessorName  = assessorData.assessorName  || assessorUser?.name  || 'Academic Consultant'
 
-    // Try to create Google Meet link (with token refresh fallback)
-    let meetLink   = null
-    let calEventId = null
-    if (assessorUser?.googleCalendarAccessToken) {
-      const meetArgs = {
-        accessToken:  assessorUser.googleCalendarAccessToken,
-        date, slotMin: slot,
-        studentEmail: student.email,
-        assessorEmail,
-        studentName:  student.name,
-        assessorName,
-      }
-      ;({ meetLink, calEventId } = await createMeetLink(meetArgs))
-
-      if (!meetLink && assessorUser.googleCalendarRefreshToken) {
-        const refreshed = await refreshAccessToken(assessorUser)
-        if (refreshed) {
-          ;({ meetLink, calEventId } = await createMeetLink({ ...meetArgs, accessToken: refreshed }))
-        }
-      }
-    }
+    // Generate secure Jitsi meeting URL
+    const meetLink = generateMeetingUrl()
 
     // Save booking to database
     const booking = await prisma.booking.create({
@@ -174,7 +96,6 @@ export async function POST(req) {
         dayKey,
         slotMin:   slot,
         meetLink,
-        calEventId,
         status:    'confirmed',
       },
     })

@@ -26,7 +26,7 @@ const CONTENT = {
         items: [
           { text: 'To create and manage your account and provide access to our services.' },
           { text: 'To match you with the appropriate learning level, course, or academic consultant.' },
-          { text: 'To schedule and manage placement assessment sessions, including generating Google Meet links.' },
+          { text: 'To schedule and manage placement assessment sessions, including generating secure video meeting links.' },
           { text: 'To send transactional emails such as booking confirmations, session reminders, and account notifications.' },
           { text: 'To improve our platform, content, and user experience through analytics.' },
           { text: 'To comply with legal obligations and protect the rights of our users.' },
@@ -37,7 +37,7 @@ const CONTENT = {
         body: 'We do not sell, rent, or trade your personal information to third parties. We may share data only in the following circumstances:',
         items: [
           { sub: 'Service providers', text: 'Trusted partners who help us operate our platform (e.g. hosting, email delivery, payment processing) under strict confidentiality agreements.' },
-          { sub: 'Google services', text: 'When you or your assessor connects a Google account, limited data is shared with Google to create Calendar events and Meet links. This is governed by Google\'s own Privacy Policy.' },
+          { sub: 'Google services', text: 'We use Google OAuth solely to allow users to sign in with their Google account. No Calendar or Meet data is accessed. Google login is governed by Google\'s own Privacy Policy.' },
           { sub: 'Legal requirements', text: 'When required by applicable law, court order, or governmental authority.' },
         ],
       },
@@ -100,7 +100,7 @@ const CONTENT = {
         items: [
           { text: 'إنشاء حسابك وإدارته وتوفير الوصول إلى خدماتنا.' },
           { text: 'مطابقتك مع مستوى التعلم أو الدورة أو المستشار الأكاديمي المناسب.' },
-          { text: 'جدولة جلسات تقييم تحديد المستوى وإدارتها، بما في ذلك إنشاء روابط Google Meet.' },
+          { text: 'جدولة جلسات تقييم تحديد المستوى وإدارتها، بما في ذلك إنشاء روابط اجتماع فيديو آمنة.' },
           { text: 'إرسال رسائل بريد إلكتروني تشغيلية كتأكيدات الحجز وتذكيرات الجلسات وإشعارات الحساب.' },
           { text: 'تحسين منصتنا ومحتوانا وتجربة المستخدم من خلال التحليلات.' },
           { text: 'الامتثال للالتزامات القانونية وحماية حقوق مستخدمينا.' },
@@ -111,7 +111,7 @@ const CONTENT = {
         body: 'لا نبيع معلوماتك الشخصية ولا نؤجرها ولا نتاجر بها مع أطراف ثالثة. قد نشارك البيانات فقط في الحالات التالية:',
         items: [
           { sub: 'مزودو الخدمات', text: 'شركاء موثوقون يساعدوننا في تشغيل منصتنا (كالاستضافة وتوصيل البريد الإلكتروني ومعالجة المدفوعات) وفق اتفاقيات سرية صارمة.' },
-          { sub: 'خدمات Google', text: 'عند ربط حساب Google من قِبَلك أو من قِبَل المقيِّم، تُشارَك بيانات محدودة مع Google لإنشاء أحداث تقويمية وروابط Meet. يخضع ذلك لسياسة خصوصية Google.' },
+          { sub: 'خدمات Google', text: 'نستخدم Google OAuth حصراً للسماح للمستخدمين بتسجيل الدخول عبر حساب Google. لا يتم الوصول إلى أي بيانات من التقويم أو Meet. يخضع تسجيل الدخول بـ Google لسياسة خصوصية Google.' },
           { sub: 'المتطلبات القانونية', text: 'عند الاقتضاء بموجب القانون المعمول به أو أمر المحكمة أو الجهة الحكومية المختصة.' },
         ],
       },

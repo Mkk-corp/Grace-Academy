@@ -270,18 +270,6 @@ export default function HomeClient({ stats }) {
               {t('platfDesc3')}
             </p>
 
-            <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderLeft: '3px solid var(--gold)', borderRadius: 'var(--r-lg)', padding: '24px 28px', marginBottom: 40 }}>
-              <h3 style={{ fontSize: '.88rem', fontWeight: 700, color: 'var(--text)', marginBottom: 10, fontFamily: 'var(--font)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2" style={{ flexShrink: 0 }}>
-                  <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-                {t('platfGcalTitle')}
-              </h3>
-              <p style={{ fontSize: '.88rem', color: 'var(--text-60)', lineHeight: 1.8, margin: 0, fontFamily: 'var(--font)' }}>
-                {t('platfGcalDesc')}
-              </p>
-            </div>
-
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <Link href="/privacy-policy" style={{ fontSize: '.75rem', fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--gold)', textDecoration: 'none', fontFamily: 'var(--font)' }}>
                 {t('platfPrivacy')}

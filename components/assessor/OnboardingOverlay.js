@@ -11,29 +11,22 @@ const SLIDES = {
       img:    '/images/welcome-onboarding.svg',
       badge:  'WELCOME TO GRACE ACADEMY',
       title:  "You're part of something great.",
-      body:   "We're excited to have you on board. Before students can find and book you, there are three quick things to set up. It only takes a few minutes.",
+      body:   "We're excited to have you on board. Before students can find and book you, there are two quick things to set up. It only takes a few minutes.",
       cta:    "Let's Get Started →",
     },
     {
       img:    '/images/finish-your-profile.svg',
-      step:   'STEP 1 OF 3',
+      step:   'STEP 1 OF 2',
       title:  'Complete your profile.',
       body:   'Add your name, date of birth, education background, and any other details. A complete profile builds trust with students and helps us match you correctly.',
       cta:    'Go to My Profile →',
     },
     {
       img:    '/images/assessor-schedule.svg',
-      step:   'STEP 2 OF 3',
+      step:   'STEP 2 OF 2',
       title:  'Set up your schedule.',
       body:   "Choose the days and time slots you're available each week. Students will only see and book the slots you've marked — you can update them any time.",
       cta:    'Go to My Schedule →',
-    },
-    {
-      img:    '/images/assessor-settings.svg',
-      step:   'STEP 3 OF 3',
-      title:  'Connect Google Calendar.',
-      body:   "Link your Google account so Grace Academy can automatically create a Google Meet link for every session you're booked for. Students receive the link instantly.",
-      cta:    'Set Up Google Calendar →',
     },
   ],
   ar: [
@@ -41,37 +34,29 @@ const SLIDES = {
       img:    '/images/welcome-onboarding.svg',
       badge:  'مرحباً بك في غريس أكاديمي',
       title:  'أنت جزء من شيء رائع.',
-      body:   'يسعدنا انضمامك إلينا. قبل أن يتمكن الطلاب من العثور عليك وحجزك، هناك ثلاث خطوات سريعة للإعداد. لن تستغرق سوى دقائق.',
+      body:   'يسعدنا انضمامك إلينا. قبل أن يتمكن الطلاب من العثور عليك وحجزك، هناك خطوتان سريعتان للإعداد. لن تستغرقا سوى دقائق.',
       cta:    'لنبدأ ←',
     },
     {
       img:    '/images/finish-your-profile.svg',
-      step:   'الخطوة ١ من ٣',
+      step:   'الخطوة ١ من ٢',
       title:  'أكمل ملفك الشخصي.',
       body:   'أضف اسمك، تاريخ ميلادك، خلفيتك التعليمية، وأي تفاصيل أخرى. الملف الشخصي المكتمل يبني الثقة مع الطلاب ويساعدنا على مطابقتك بشكل صحيح.',
       cta:    'اذهب إلى ملفي الشخصي ←',
     },
     {
       img:    '/images/assessor-schedule.svg',
-      step:   'الخطوة ٢ من ٣',
+      step:   'الخطوة ٢ من ٢',
       title:  'أعدّ جدولك.',
       body:   'اختر الأيام والخانات الزمنية المتاحة لك كل أسبوع. سيرى الطلاب ويحجزون الخانات التي حددتها فقط — يمكنك تحديثها في أي وقت.',
       cta:    'اذهب إلى جدولي ←',
     },
-    {
-      img:    '/images/assessor-settings.svg',
-      step:   'الخطوة ٣ من ٣',
-      title:  'ربط تقويم Google.',
-      body:   'اربط حساب Google بغريس أكاديمي لإنشاء روابط Google Meet تلقائياً لكل جلسة يحجزها الطلاب — يتلقى الطالب الرابط على الفور.',
-      cta:    'إعداد تقويم Google ←',
-    },
   ],
 }
 
-export default function OnboardingOverlay({ user, isAr, isDark, startSlide, onGoToSchedule, onGoToAvail }) {
+export default function OnboardingOverlay({ user, isAr, isDark, startSlide, onGoToSchedule }) {
   const [slide, setSlide] = useState(() => {
-    // startSlide prop (from server-side detection) overrides localStorage
-    if (startSlide != null && startSlide >= 0 && startSlide <= 3) {
+    if (startSlide != null && startSlide >= 0 && startSlide <= 2) {
       try { localStorage.setItem(LS_KEY, String(startSlide)) } catch {}
       return startSlide
     }
@@ -79,7 +64,7 @@ export default function OnboardingOverlay({ user, isAr, isDark, startSlide, onGo
       const saved = typeof window !== 'undefined' ? localStorage.getItem(LS_KEY) : null
       if (saved === null) return 0
       const n = parseInt(saved, 10)
-      return isNaN(n) || n < 1 || n > 3 ? 0 : n
+      return isNaN(n) || n < 1 || n > 2 ? 0 : n
     } catch { return 0 }
   })
   const router = useRouter()
@@ -110,17 +95,14 @@ export default function OnboardingOverlay({ user, isAr, isDark, startSlide, onGo
     } else if (slide === 1) {
       goToSlide(2)
       router.push('/profile')
-    } else if (slide === 2) {
-      goToSlide(3)
-      onGoToSchedule()
     } else {
+      // slide === 2 — last step: go set up schedule
       try { localStorage.removeItem(LS_KEY) } catch {}
-      onGoToAvail()
+      onGoToSchedule()
     }
   }
 
   const isFirst = slide === 0
-  const isLast  = slide === slides.length - 1
 
   return (
     <>

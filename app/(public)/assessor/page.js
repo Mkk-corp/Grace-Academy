@@ -161,7 +161,7 @@ export default function AssessorPage() {
   const [showOnboarding,   setShowOnboarding]   = useState(false)
   const [onboardingSlide,  setOnboardingSlide]  = useState(undefined) // undefined = let LS decide
   const [onboardingDone,   setOnboardingDone]   = useState(false)
-  const [pendingStep,      setPendingStep]      = useState(null) // 2 | 3 | null
+  const [pendingStep,      setPendingStep]      = useState(null) // 2 | null
   const [showSuccessModal, setShowSuccessModal] = useState(false)
 
   useEffect(() => {
@@ -176,29 +176,16 @@ export default function AssessorPage() {
       if (!data.user.isAssessor && !data.user.hasAdminAccess)              { router.replace('/portal'); return }
       setUser(data.user)
 
-      // Show onboarding overlay until schedule + Google Calendar are both set up
+      // Show onboarding overlay until schedule is set up
       if (data.user.isAssessor) {
-        const [schedRes, calRes] = await Promise.all([
-          fetch('/api/assessor/schedule').catch(() => null),
-          fetch('/api/assessor/google-calendar/status').catch(() => null),
-        ])
+        const schedRes = await fetch('/api/assessor/schedule').catch(() => null)
         const schedData = schedRes ? await schedRes.json().catch(() => null) : null
         const dayMap    = schedData?.schedule?.schedule
         const hasSlots  = dayMap && Object.values(dayMap).some(arr => Array.isArray(arr) && arr.length > 0)
-        const calData   = calRes  ? await calRes.json().catch(() => null) : null
-        const calSynced = !!calData?.synced
 
-        if (hasSlots && calSynced) {
+        if (hasSlots) {
           setOnboardingDone(true)
-          // Show celebration modal when redirected back from Google OAuth
-          const urlParams = new URLSearchParams(window.location.search)
-          if (urlParams.get('onboarding') === 'complete') {
-            setShowSuccessModal(true)
-            window.history.replaceState({}, '', '/assessor')
-          }
         } else {
-          // Schedule done but calendar not → jump straight to slide 3
-          if (hasSlots && !calSynced) setOnboardingSlide(3)
           setShowOnboarding(true)
         }
       }
@@ -215,10 +202,8 @@ export default function AssessorPage() {
 
   function handleNavClick(tabId) {
     if (onboardingDone) { setActiveTab(tabId); return }
-    // During step 2 (schedule setup): only allow schedule tab
+    // During schedule setup: only allow schedule tab
     if (pendingStep === 2 && tabId === 'schedule') { setActiveTab(tabId); return }
-    // During step 3 (calendar setup): only allow avail tab
-    if (pendingStep === 3 && tabId === 'avail') { setActiveTab(tabId); return }
     // All other nav attempts re-show the overlay
     setShowOnboarding(true)
   }
@@ -229,16 +214,11 @@ export default function AssessorPage() {
     setActiveTab('schedule')
   }
 
-  function handleGoToAvail() {
-    setPendingStep(3)
-    setShowOnboarding(false)
-    setActiveTab('avail')
-  }
-
   function handleScheduleSaved() {
     setPendingStep(null)
-    setOnboardingSlide(3)
-    setShowOnboarding(true)
+    setOnboardingDone(true)
+    setShowOnboarding(false)
+    setShowSuccessModal(true)
   }
 
   const SW = sidebarOpen ? 264 : 68
@@ -484,8 +464,8 @@ export default function AssessorPage() {
             </h2>
             <p style={{ fontSize: '.9rem', color: isDark ? 'rgba(255,255,255,.55)' : '#6b7280', lineHeight: 1.7, marginBottom: 10 }}>
               {isAr
-                ? 'لقد أكملت جميع خطوات الإعداد بنجاح — الجدول الزمني وتزامن Google Calendar.'
-                : "You've successfully completed all onboarding steps — your schedule and Google Calendar are both set up."}
+                ? 'لقد أكملت جميع خطوات الإعداد بنجاح — ملفك الشخصي وجدولك الأسبوعي جاهزان.'
+                : "You've successfully completed all onboarding steps — your profile and weekly schedule are set up."}
             </p>
             <p style={{ fontSize: '.84rem', color: isDark ? 'rgba(255,255,255,.4)' : '#9ca3af', lineHeight: 1.65, marginBottom: 32 }}>
               {isAr
@@ -497,8 +477,8 @@ export default function AssessorPage() {
             <div style={{ textAlign: isAr ? 'right' : 'left', marginBottom: 32, display: 'flex', flexDirection: 'column', gap: 10 }}>
               {[
                 { en: 'Schedule configured', ar: 'الجدول الزمني مُعدّ' },
-                { en: 'Google Calendar synced', ar: 'Google Calendar مُزامَن' },
-                { en: 'Google Meet ready', ar: 'Google Meet جاهز' },
+                { en: 'Ready to receive bookings', ar: 'جاهز لاستقبال الحجوزات' },
+                { en: 'Meeting links auto-generated', ar: 'روابط الاجتماعات تُنشأ تلقائياً' },
               ].map(item => (
                 <div key={item.en} style={{ display: 'flex', alignItems: 'center', gap: 10, flexDirection: isAr ? 'row-reverse' : 'row' }}>
                   <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(16,185,129,.12)', border: '1.5px solid #10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -536,7 +516,6 @@ export default function AssessorPage() {
           isDark={isDark}
           startSlide={onboardingSlide}
           onGoToSchedule={handleGoToSchedule}
-          onGoToAvail={handleGoToAvail}
         />
       )}
 

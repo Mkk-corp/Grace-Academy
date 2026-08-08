@@ -36,7 +36,7 @@ const CONTENT = {
         title: '4. Placement Assessments',
         items: [
           { text: 'Placement assessment sessions are booked through the student portal and assigned to an available academic consultant.' },
-          { text: 'Sessions are conducted via Google Meet. A link is generated automatically upon booking.' },
+          { text: 'Sessions are conducted via video call. A unique meeting link is generated automatically upon booking and sent to both parties by email.' },
           { text: 'Students are expected to join sessions on time. Late arrivals of more than 15 minutes may result in the session being marked as missed.' },
           { text: 'Each student is entitled to one complimentary placement assessment. Rescheduling requests must be made at least 24 hours in advance.' },
         ],
@@ -57,7 +57,7 @@ const CONTENT = {
         title: '7. Academic Consultant Obligations',
         body: 'Academic consultants (assessors) who operate on the platform agree to:',
         items: [
-          { text: 'Complete the required onboarding steps, including profile setup, schedule configuration, and Google Calendar integration.' },
+          { text: 'Complete the required onboarding steps, including profile setup and schedule configuration.' },
           { text: 'Attend all confirmed sessions on time and maintain a professional standard of conduct.' },
           { text: 'Keep student information confidential and not share it outside the platform.' },
           { text: 'Update their availability schedule with adequate notice when changes are required.' },
@@ -69,7 +69,7 @@ const CONTENT = {
       },
       {
         title: '9. Third-Party Services',
-        body: 'Our platform integrates with third-party services including Google Calendar and Google Meet. These integrations are governed by the respective providers\' terms of service and privacy policies. Grace Academy is not responsible for the availability, accuracy, or conduct of third-party services.',
+        body: 'Our platform may integrate with third-party services. These integrations are governed by the respective providers\' terms of service and privacy policies. Grace Academy is not responsible for the availability, accuracy, or conduct of third-party services.',
       },
       {
         title: '10. Disclaimers',
@@ -126,7 +126,7 @@ const CONTENT = {
         title: '٤. جلسات تقييم تحديد المستوى',
         items: [
           { text: 'تُحجز جلسات تقييم تحديد المستوى عبر بوابة الطالب وتُسند إلى مستشار أكاديمي متاح.' },
-          { text: 'تُعقد الجلسات عبر Google Meet، ويُنشأ الرابط تلقائياً عند الحجز.' },
+          { text: 'تُعقد الجلسات عبر مكالمة فيديو. يُنشأ رابط اجتماع فريد تلقائياً عند الحجز ويُرسل إلى الطرفين بالبريد الإلكتروني.' },
           { text: 'يُتوقع من الطلاب الانضمام إلى الجلسات في موعدها. التأخير لأكثر من 15 دقيقة قد يُسجَّل باعتباره غياباً.' },
           { text: 'يحق لكل طالب إجراء تقييم واحد مجاني لتحديد المستوى. يجب تقديم طلبات إعادة الجدولة قبل 24 ساعة على الأقل.' },
         ],
@@ -147,7 +147,7 @@ const CONTENT = {
         title: '٧. التزامات المستشارين الأكاديميين',
         body: 'يوافق المستشارون الأكاديميون (المقيِّمون) العاملون على المنصة على ما يلي:',
         items: [
-          { text: 'إكمال خطوات الإعداد المطلوبة، بما في ذلك إعداد الملف الشخصي وضبط الجدول الزمني وربط تقويم Google.' },
+          { text: 'إكمال خطوات الإعداد المطلوبة، بما في ذلك إعداد الملف الشخصي وضبط الجدول الزمني.' },
           { text: 'حضور جميع الجلسات المؤكدة في موعدها والحفاظ على مستوى مهني من السلوك.' },
           { text: 'الحفاظ على سرية معلومات الطلاب وعدم مشاركتها خارج المنصة.' },
           { text: 'تحديث جدول توافرهم بإشعار كافٍ عند الحاجة إلى تغييرات.' },
@@ -159,7 +159,7 @@ const CONTENT = {
       },
       {
         title: '٩. الخدمات التابعة لجهات خارجية',
-        body: 'تتكامل منصتنا مع خدمات جهات خارجية، بما فيها Google Calendar وGoogle Meet. تخضع هذه التكاملات لشروط الخدمة وسياسات الخصوصية الخاصة بمزوديها. لا تتحمل أكاديمية جريس المسؤولية عن توافر هذه الخدمات أو دقتها أو سلوكها.',
+        body: 'قد تتكامل منصتنا مع خدمات جهات خارجية. تخضع هذه التكاملات لشروط الخدمة وسياسات الخصوصية الخاصة بمزوديها. لا تتحمل أكاديمية جريس المسؤولية عن توافر هذه الخدمات أو دقتها أو سلوكها.',
       },
       {
         title: '١٠. إخلاء المسؤولية',
