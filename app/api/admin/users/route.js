@@ -123,7 +123,10 @@ export async function DELETE(request) {
     await writeContent('notifications', filteredNotifs)
   }
 
-  // ── User + Bookings (Booking FKs cascade via onDelete: Cascade) ─────────
+  // ── Bookings (explicit delete before user, in case cascade migration isn't applied) ──
+  await prisma.booking.deleteMany({ where: { OR: [{ studentId: id }, { assessorId: id }] } })
+
+  // ── User ────────────────────────────────────────────────────────────────
   await prisma.user.delete({ where: { id } })
 
   return NextResponse.json({ ok: true })

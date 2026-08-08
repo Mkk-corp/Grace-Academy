@@ -24,7 +24,14 @@ const S = {
     phName: 'Full name', phUsername: 'username', phEmail: 'email@example.com', phPhone: '+966 5xx xxx xxxx',
     phPass: 'Password', phPassEdit: 'Leave blank to keep current',
     cancel: 'Cancel', create: 'Create User', saveChanges: 'Save Changes',
-    deleteTitle: 'Delete user', deleteMsg: 'Are you sure you want to delete this user? This action cannot be undone.', deleteBtn: 'Delete',
+    deleteTitle: 'Delete User', deleteBtn: 'Yes, Delete',
+    deleteChecking: 'Checking related data…',
+    deleteWillRemove: 'Deleting this user will permanently remove:',
+    deleteSessions: 'placement session(s)',
+    deleteSchedule: 'Assessor schedule & availability slots',
+    deleteRequests: 'Pending schedule change requests',
+    deleteOther: 'Login sessions & notifications',
+    deleteCannotUndo: 'This cannot be undone.',
     required: '*',
   },
   ar: {
@@ -40,7 +47,14 @@ const S = {
     phName: 'الاسم الكامل', phUsername: 'اسم_المستخدم', phEmail: 'بريدك@example.com', phPhone: '+966 5xx xxx xxxx',
     phPass: 'كلمة المرور', phPassEdit: 'اتركه فارغاً للإبقاء على الحالية',
     cancel: 'إلغاء', create: 'إنشاء مستخدم', saveChanges: 'حفظ التغييرات',
-    deleteTitle: 'حذف المستخدم', deleteMsg: 'هل أنت متأكد من حذف هذا المستخدم؟ لا يمكن التراجع عن هذا الإجراء.', deleteBtn: 'حذف',
+    deleteTitle: 'حذف المستخدم', deleteBtn: 'نعم، احذف',
+    deleteChecking: 'جارٍ التحقق من البيانات المرتبطة…',
+    deleteWillRemove: 'حذف هذا المستخدم سيزيل نهائياً:',
+    deleteSessions: 'جلسة/جلسات تحديد المستوى',
+    deleteSchedule: 'جدول المقيّم والمواعيد المتاحة',
+    deleteRequests: 'طلبات تغيير الجدول المعلّقة',
+    deleteOther: 'جلسات تسجيل الدخول والإشعارات',
+    deleteCannotUndo: 'لا يمكن التراجع عن هذا الإجراء.',
     required: '*',
   },
 }
@@ -53,8 +67,10 @@ export default function AdminUsersPage() {
   const [loading, setLoading]       = useState(true)
   const [editing, setEditing]       = useState(null)
   const [error, setError]           = useState('')
-  const [deleteTarget, setDelete]   = useState(null)
-  const [deleteError, setDelErr]    = useState('')
+  const [deleteTarget, setDelete]      = useState(null)  // { id, name } | null
+  const [deleteError, setDelErr]       = useState('')
+  const [deleteChecking, setDelCheck]  = useState(false)
+  const [relatedData, setRelatedData]  = useState(null)
 
   useEffect(() => {
     Promise.all([
@@ -78,16 +94,30 @@ export default function AdminUsersPage() {
     return true
   }
 
+  async function handleDeleteClick(user) {
+    setDelete({ id: user.id, name: user.name || user.email })
+    setRelatedData(null); setDelErr(''); setDelCheck(true)
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}`)
+      if (res.ok) setRelatedData(await res.json())
+    } catch {}
+    setDelCheck(false)
+  }
+
+  function closeDeleteModal() {
+    setDelete(null); setRelatedData(null); setDelErr(''); setDelCheck(false)
+  }
+
   async function confirmDelete() {
     if (!deleteTarget) return
     const res = await fetch('/api/admin/users', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: deleteTarget }),
+      body: JSON.stringify({ id: deleteTarget.id }),
     })
     if (!res.ok) { setDelErr(lang === 'ar' ? 'فشل الحذف. حاول مرة أخرى.' : 'Delete failed. Please try again.'); return }
-    setUsers(prev => prev.filter(u => u.id !== deleteTarget))
-    setDelete(null); setDelErr('')
+    setUsers(prev => prev.filter(u => u.id !== deleteTarget.id))
+    closeDeleteModal()
   }
 
   function roleName(roleId) { return roles.find(r => r.id === roleId)?.name || '—' }
@@ -150,7 +180,7 @@ export default function AdminUsersPage() {
                   <td style={{ fontSize: '.82rem', color: 'var(--text-60)' }}>{formatDate(user.createdAt)}</td>
                   <td style={{ display: 'flex', gap: 8 }}>
                     <button className="admin-btn" onClick={() => setEditing({ ...user, password: '' })}>{s.edit}</button>
-                    <button className="admin-btn admin-btn--danger" onClick={() => { setDelete(user.id); setDelErr('') }}>{s.delete}</button>
+                    <button className="admin-btn admin-btn--danger" onClick={() => handleDeleteClick(user)}>{s.delete}</button>
                   </td>
                 </tr>
               ))}
@@ -161,8 +191,43 @@ export default function AdminUsersPage() {
 
       {editing && <UserModal user={editing} roles={roles} onSave={save} onClose={() => { setEditing(null); setError('') }} s={s} />}
 
-      <Modal open={!!deleteTarget} onClose={() => { setDelete(null); setDelErr('') }} onConfirm={confirmDelete}
-        variant="delete" title={s.deleteTitle} message={deleteError || s.deleteMsg} confirmText={s.deleteBtn} cancelText={s.cancel} />
+      <Modal
+        open={!!deleteTarget}
+        onClose={closeDeleteModal}
+        onConfirm={deleteChecking ? undefined : confirmDelete}
+        variant="delete"
+        confirmText={s.deleteBtn}
+        cancelText={s.cancel}
+      >
+        <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(220,38,38,.1)', border: '1px solid rgba(220,38,38,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" width="24" height="24">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            <path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+          </svg>
+        </div>
+        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text)', marginBottom: 12, paddingRight: 24 }}>
+          {s.deleteTitle} — <span style={{ color: '#dc2626' }}>{deleteTarget?.name}</span>
+        </h3>
+        {deleteChecking ? (
+          <p style={{ fontSize: '.875rem', color: 'var(--text-60)', lineHeight: 1.65 }}>{s.deleteChecking}</p>
+        ) : (
+          <>
+            <p style={{ fontSize: '.875rem', color: 'var(--text-60)', marginBottom: 10 }}>{s.deleteWillRemove}</p>
+            <ul style={{ margin: '0 0 10px', padding: lang === 'ar' ? '0 18px 0 0' : '0 0 0 18px', fontSize: '.85rem', color: 'var(--text-70)', lineHeight: 2 }}>
+              {relatedData?.bookingCount > 0 && (
+                <li style={{ color: '#dc2626', fontWeight: 600 }}>{relatedData.bookingCount} {s.deleteSessions}</li>
+              )}
+              {relatedData?.hasSchedule && <li>{s.deleteSchedule}</li>}
+              {relatedData?.hasSlotRequests && <li>{s.deleteRequests}</li>}
+              <li>{s.deleteOther}</li>
+            </ul>
+            <p style={{ fontSize: '.8rem', color: '#dc2626', fontWeight: 700 }}>{s.deleteCannotUndo}</p>
+          </>
+        )}
+        {deleteError && (
+          <p style={{ fontSize: '.82rem', color: '#ef4444', marginTop: 8, fontWeight: 500 }}>{deleteError}</p>
+        )}
+      </Modal>
     </>
   )
 }

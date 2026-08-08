@@ -42,7 +42,7 @@ export async function POST(req) {
       where: { studentId: student.id, status: 'confirmed' },
     })
     if (existingBooking) {
-      return NextResponse.json({ error: 'You already have a confirmed placement session.' }, { status: 409 })
+      return NextResponse.json({ error: 'You already have a confirmed placement session.', code: 'already_booked' }, { status: 409 })
     }
 
     const body = await req.json().catch(() => null)
@@ -80,7 +80,7 @@ export async function POST(req) {
     })
 
     if (available.length === 0) {
-      return NextResponse.json({ error: 'No assessors available at this slot. Please choose a different time.' }, { status: 409 })
+      return NextResponse.json({ error: 'No assessors available at this slot. Please choose a different time.', code: 'slot_unavailable' }, { status: 409 })
     }
 
     // Pick randomly

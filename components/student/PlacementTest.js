@@ -27,6 +27,7 @@ export default function PlacementTest({ user, isAr, isDark, onBooked }) {
   const [showProfilePopup, setShowProfilePopup] = useState(false)
   const [profileMissing, setProfileMissing]     = useState([])
   const [pendingSlot, setPendingSlot]           = useState(null)
+  const [bookingError, setBookingError]         = useState(null) // null | { code, message }
 
   const loadSlots = useCallback(async () => {
     setSlotsLoading(true)
@@ -78,7 +79,7 @@ export default function PlacementTest({ user, isAr, isDark, onBooked }) {
 
   async function confirmBooking() {
     setBooking(true)
-    setError('')
+    setBookingError(null)
     try {
       const res = await fetch('/api/placement/book', {
         method: 'POST',
@@ -87,12 +88,15 @@ export default function PlacementTest({ user, isAr, isDark, onBooked }) {
       })
       let data = {}
       try { data = await res.json() } catch {}
-      if (!res.ok) throw new Error(data.error || 'Booking failed. Please try again.')
+      if (!res.ok) {
+        setBookingError({ code: data.code || 'unknown', message: data.error || '' })
+        return
+      }
       setBookingResult(data.booking)
       setStep('done')
       onBooked?.()
-    } catch (e) {
-      setError(e.message)
+    } catch {
+      setBookingError({ code: 'unknown', message: '' })
     } finally {
       setBooking(false)
     }
@@ -527,7 +531,16 @@ export default function PlacementTest({ user, isAr, isDark, onBooked }) {
                               {alreadyBooked ? '✓' : (isAr ? 'متاح' : 'Free')}
                             </button>
                           ) : (
-                            <span style={{ color: isDark ? 'rgba(255,255,255,.15)' : '#d1d5db', fontSize: '.8rem' }}>—</span>
+                            <div style={{
+                              padding: '7px 4px', borderRadius: 8, textAlign: 'center',
+                              background: isDark ? 'rgba(255,255,255,.025)' : '#f9fafb',
+                              border: `1px solid ${isDark ? 'rgba(255,255,255,.05)' : '#efefef'}`,
+                              color: isDark ? 'rgba(255,255,255,.1)' : '#d1d5db',
+                              fontSize: '.72rem', fontWeight: 600, letterSpacing: '.02em',
+                              userSelect: 'none',
+                            }}>
+                              {isAr ? 'محجوز' : 'Full'}
+                            </div>
                           )}
                         </td>
                       )
@@ -549,9 +562,9 @@ export default function PlacementTest({ user, isAr, isDark, onBooked }) {
               </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-              <span style={{ fontSize: '.85rem', color: isDark ? 'rgba(255,255,255,.2)' : '#d1d5db', fontWeight: 700 }}>—</span>
+              <div style={{ width: 28, height: 20, borderRadius: 5, background: isDark ? 'rgba(255,255,255,.025)' : '#f9fafb', border: `1px solid ${isDark ? 'rgba(255,255,255,.05)' : '#efefef'}` }}/>
               <span style={{ fontSize: '.74rem', color: isDark ? 'rgba(255,255,255,.45)' : '#6b7280' }}>
-                {isAr ? 'غير متاح' : 'Not available'}
+                {isAr ? 'غير متاح / محجوز' : 'Unavailable / Full'}
               </span>
             </div>
           </div>
@@ -561,134 +574,214 @@ export default function PlacementTest({ user, isAr, isDark, onBooked }) {
   )
 
   /* ── CONFIRM ─────────────────────────────────────────────────────── */
-  if (step === 'confirm') return (
-    <div style={{ maxWidth: 520, margin: '0 auto' }}>
-      <div style={{ ...surface, padding: '40px 36px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{
-            width: 60, height: 60, borderRadius: '50%', margin: '0 auto 16px',
-            background: 'rgba(201,147,44,.1)', border: '1.5px solid rgba(201,147,44,.3)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke={gold} strokeWidth="1.8">
-              <rect x="3" y="4" width="18" height="18" rx="2"/>
-              <line x1="16" y1="2" x2="16" y2="6"/>
-              <line x1="8" y1="2" x2="8" y2="6"/>
-              <line x1="3" y1="10" x2="21" y2="10"/>
-              <line x1="8" y1="14" x2="12" y2="14"/>
-              <line x1="8" y1="18" x2="14" y2="18"/>
-            </svg>
-          </div>
-          <h2 style={{ fontSize: '1.3rem', fontWeight: 900, color: isDark ? '#f1f5f9' : '#111827', margin: '0 0 6px' }}>
-            {isAr ? 'تأكيد الحجز' : 'Confirm Your Booking'}
-          </h2>
-          <p style={{ fontSize: '.84rem', color: isDark ? 'rgba(255,255,255,.45)' : '#6b7280', margin: 0 }}>
-            {isAr ? 'راجع التفاصيل وأكّد موعدك' : 'Review the details below and confirm your session'}
-          </p>
-        </div>
+  if (step === 'confirm') {
+    const isAlreadyBooked = bookingError?.code === 'already_booked'
+    const errTitle = isAr
+      ? (isAlreadyBooked ? 'لديك جلسة محجوزة بالفعل' : 'احتُلّ هذا الموعد للتو')
+      : (isAlreadyBooked ? 'You Already Have a Session' : 'That Slot Was Just Taken')
+    const errBody = isAr
+      ? (isAlreadyBooked
+          ? 'لديك جلسة تقييم مؤكدة بالفعل. يمكنك حجز جلسة واحدة فقط في كل مرة. ابحث عن تفاصيل جلستك في تبويب "جلساتي".'
+          : 'طالب آخر حجز هذا الموعد قبلك بثوانٍ. عُد واختر موعداً آخر — لا تزال هناك أوقات متاحة في انتظارك.')
+      : (isAlreadyBooked
+          ? 'You already have a confirmed placement session. Only one session can be active at a time. Head to the My Sessions tab to view your booking details.'
+          : 'Another student secured this slot just seconds before you. Head back and pick a different time — there are still open slots available.')
 
-        {/* Session details */}
-        <div style={{
-          background: isDark ? 'rgba(255,255,255,.04)' : '#f9fafb',
-          border: `1px solid ${isDark ? 'rgba(255,255,255,.09)' : '#e5e7eb'}`,
-          borderRadius: 12, padding: 20, marginBottom: 24,
-        }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '.8rem', color: isDark ? 'rgba(255,255,255,.4)' : '#9ca3af', fontWeight: 600 }}>
-                {isAr ? 'النوع' : 'TYPE'}
-              </span>
-              <span style={{ fontSize: '.87rem', fontWeight: 700, color: gold }}>
-                {isAr ? 'اختبار تحديد المستوى' : 'Placement Assessment'}
-              </span>
-            </div>
-            <div style={{ height: 1, background: isDark ? 'rgba(255,255,255,.06)' : '#e5e7eb' }}/>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '.8rem', color: isDark ? 'rgba(255,255,255,.4)' : '#9ca3af', fontWeight: 600 }}>
-                {isAr ? 'التاريخ' : 'DATE'}
-              </span>
-              <span style={{ fontSize: '.87rem', fontWeight: 600, color: isDark ? '#f1f5f9' : '#111827' }}>
-                {selectedSlot.dateLabel}
-              </span>
-            </div>
-            <div style={{ height: 1, background: isDark ? 'rgba(255,255,255,.06)' : '#e5e7eb' }}/>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '.8rem', color: isDark ? 'rgba(255,255,255,.4)' : '#9ca3af', fontWeight: 600 }}>
-                {isAr ? 'الوقت' : 'TIME'}
-              </span>
-              <span style={{ fontSize: '.87rem', fontWeight: 600, color: isDark ? '#f1f5f9' : '#111827' }}>
-                {selectedSlot.timeLabel} (UTC)
-              </span>
-            </div>
-            <div style={{ height: 1, background: isDark ? 'rgba(255,255,255,.06)' : '#e5e7eb' }}/>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '.8rem', color: isDark ? 'rgba(255,255,255,.4)' : '#9ca3af', fontWeight: 600 }}>
-                {isAr ? 'المدة' : 'DURATION'}
-              </span>
-              <span style={{ fontSize: '.87rem', fontWeight: 600, color: isDark ? '#f1f5f9' : '#111827' }}>
-                {isAr ? '٣٠ دقيقة' : '30 minutes'}
-              </span>
-            </div>
-          </div>
-        </div>
+    return (
+      <div style={{ maxWidth: 520, margin: '0 auto' }}>
+        <div style={{ ...surface, padding: '40px 36px' }}>
 
-        <div style={{
-          background: 'rgba(201,147,44,.07)', border: '1px solid rgba(201,147,44,.2)',
-          borderRadius: 10, padding: '10px 14px', marginBottom: 24,
-          fontSize: '.8rem', color: isDark ? 'rgba(255,255,255,.55)' : '#6b7280',
-        }}>
-          {isAr
-            ? 'سيُرسَل رابط الاجتماع وتفاصيل الجلسة إلى بريدك الإلكتروني بعد تأكيد الحجز.'
-            : 'A meeting link and session details will be sent to your email after confirmation.'}
-        </div>
+          {bookingError ? (
+            /* ── Gamified error state ─────────────────────────────────── */
+            <div style={{ textAlign: 'center' }}>
+              <div style={{
+                width: 72, height: 72, borderRadius: '50%', margin: '0 auto 20px',
+                background: 'rgba(217,119,6,.09)', border: '2px solid rgba(217,119,6,.22)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {isAlreadyBooked ? (
+                  <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#d97706" strokeWidth="1.8">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#d97706" strokeWidth="1.8">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                )}
+              </div>
 
-        {error && (
-          <div style={{
-            padding: '10px 14px', borderRadius: 10, marginBottom: 16,
-            background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)',
-            color: '#ef4444', fontSize: '.83rem',
-          }}>{error}</div>
-        )}
+              <div style={{
+                display: 'inline-block',
+                background: 'rgba(217,119,6,.1)', border: '1px solid rgba(217,119,6,.25)',
+                borderRadius: 100, padding: '3px 14px', marginBottom: 14,
+              }}>
+                <span style={{ fontSize: '.68rem', fontWeight: 800, letterSpacing: '.14em', color: '#d97706' }}>
+                  {isAr ? 'لم يتم الحجز' : 'BOOKING FAILED'}
+                </span>
+              </div>
 
-        <div style={{ display: 'flex', gap: 12 }}>
-          <button
-            onClick={() => setStep('slots')}
-            disabled={booking}
-            style={{
-              flex: 1, padding: '12px', borderRadius: 10,
-              background: 'none', border: `1px solid ${isDark ? 'rgba(255,255,255,.15)' : '#e5e7eb'}`,
-              color: isDark ? 'rgba(255,255,255,.55)' : '#6b7280',
-              fontWeight: 600, fontSize: '.87rem', cursor: 'pointer',
-            }}
-          >
-            {isAr ? 'رجوع' : 'Back'}
-          </button>
-          <button
-            onClick={confirmBooking}
-            disabled={booking}
-            style={{
-              flex: 2, padding: '12px', borderRadius: 10,
-              background: booking ? 'rgba(201,147,44,.4)' : gold, border: 'none',
-              color: '#fff', fontWeight: 700, fontSize: '.87rem',
-              cursor: booking ? 'not-allowed' : 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            }}
-          >
-            {booking ? (
-              <>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: isDark ? '#f1f5f9' : '#111827', margin: '0 0 12px', lineHeight: 1.3 }}>
+                {errTitle}
+              </h2>
+              <p style={{ fontSize: '.875rem', color: isDark ? 'rgba(255,255,255,.5)' : '#6b7280', lineHeight: 1.7, margin: '0 auto 28px', maxWidth: 360 }}>
+                {errBody}
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {!isAlreadyBooked && (
+                  <button
+                    onClick={() => { setBookingError(null); setStep('slots'); loadSlots() }}
+                    style={{
+                      padding: '13px', borderRadius: 10, border: 'none',
+                      background: gold, color: '#fff', fontWeight: 700, fontSize: '.9rem',
+                      cursor: 'pointer', transition: 'opacity .15s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '.88'}
+                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                  >
+                    {isAr ? 'اختر موعداً آخر' : 'Pick Another Slot'}
+                  </button>
+                )}
+                <button
+                  onClick={() => { setBookingError(null); setStep('choose'); setSlots(null) }}
+                  style={{
+                    padding: '12px', borderRadius: 10,
+                    background: isAlreadyBooked ? gold : 'none',
+                    border: isAlreadyBooked ? 'none' : `1px solid ${isDark ? 'rgba(255,255,255,.1)' : '#e5e7eb'}`,
+                    color: isAlreadyBooked ? '#fff' : (isDark ? 'rgba(255,255,255,.45)' : '#6b7280'),
+                    fontWeight: 600, fontSize: '.87rem', cursor: 'pointer',
+                  }}
+                >
+                  {isAr ? 'العودة إلى البداية' : 'Back to Start'}
+                </button>
+              </div>
+            </div>
+
+          ) : (
+            /* ── Normal confirm state ─────────────────────────────────── */
+            <>
+              <div style={{ textAlign: 'center', marginBottom: 28 }}>
                 <div style={{
-                  width: 16, height: 16, borderRadius: '50%',
-                  border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff',
-                  animation: 'prSpin 0.7s linear infinite',
-                }}/>
-                {isAr ? 'جارٍ الحجز...' : 'Booking...'}
-              </>
-            ) : (isAr ? 'تأكيد الحجز' : 'Confirm Booking')}
-          </button>
+                  width: 60, height: 60, borderRadius: '50%', margin: '0 auto 16px',
+                  background: 'rgba(201,147,44,.1)', border: '1.5px solid rgba(201,147,44,.3)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke={gold} strokeWidth="1.8">
+                    <rect x="3" y="4" width="18" height="18" rx="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                    <line x1="8" y1="14" x2="12" y2="14"/>
+                    <line x1="8" y1="18" x2="14" y2="18"/>
+                  </svg>
+                </div>
+                <h2 style={{ fontSize: '1.3rem', fontWeight: 900, color: isDark ? '#f1f5f9' : '#111827', margin: '0 0 6px' }}>
+                  {isAr ? 'تأكيد الحجز' : 'Confirm Your Booking'}
+                </h2>
+                <p style={{ fontSize: '.84rem', color: isDark ? 'rgba(255,255,255,.45)' : '#6b7280', margin: 0 }}>
+                  {isAr ? 'راجع التفاصيل وأكّد موعدك' : 'Review the details below and confirm your session'}
+                </p>
+              </div>
+
+              {/* Session details */}
+              <div style={{
+                background: isDark ? 'rgba(255,255,255,.04)' : '#f9fafb',
+                border: `1px solid ${isDark ? 'rgba(255,255,255,.09)' : '#e5e7eb'}`,
+                borderRadius: 12, padding: 20, marginBottom: 24,
+              }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '.8rem', color: isDark ? 'rgba(255,255,255,.4)' : '#9ca3af', fontWeight: 600 }}>
+                      {isAr ? 'النوع' : 'TYPE'}
+                    </span>
+                    <span style={{ fontSize: '.87rem', fontWeight: 700, color: gold }}>
+                      {isAr ? 'اختبار تحديد المستوى' : 'Placement Assessment'}
+                    </span>
+                  </div>
+                  <div style={{ height: 1, background: isDark ? 'rgba(255,255,255,.06)' : '#e5e7eb' }}/>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '.8rem', color: isDark ? 'rgba(255,255,255,.4)' : '#9ca3af', fontWeight: 600 }}>
+                      {isAr ? 'التاريخ' : 'DATE'}
+                    </span>
+                    <span style={{ fontSize: '.87rem', fontWeight: 600, color: isDark ? '#f1f5f9' : '#111827' }}>
+                      {selectedSlot.dateLabel}
+                    </span>
+                  </div>
+                  <div style={{ height: 1, background: isDark ? 'rgba(255,255,255,.06)' : '#e5e7eb' }}/>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '.8rem', color: isDark ? 'rgba(255,255,255,.4)' : '#9ca3af', fontWeight: 600 }}>
+                      {isAr ? 'الوقت' : 'TIME'}
+                    </span>
+                    <span style={{ fontSize: '.87rem', fontWeight: 600, color: isDark ? '#f1f5f9' : '#111827' }}>
+                      {selectedSlot.timeLabel} (UTC)
+                    </span>
+                  </div>
+                  <div style={{ height: 1, background: isDark ? 'rgba(255,255,255,.06)' : '#e5e7eb' }}/>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '.8rem', color: isDark ? 'rgba(255,255,255,.4)' : '#9ca3af', fontWeight: 600 }}>
+                      {isAr ? 'المدة' : 'DURATION'}
+                    </span>
+                    <span style={{ fontSize: '.87rem', fontWeight: 600, color: isDark ? '#f1f5f9' : '#111827' }}>
+                      {isAr ? '٣٠ دقيقة' : '30 minutes'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{
+                background: 'rgba(201,147,44,.07)', border: '1px solid rgba(201,147,44,.2)',
+                borderRadius: 10, padding: '10px 14px', marginBottom: 24,
+                fontSize: '.8rem', color: isDark ? 'rgba(255,255,255,.55)' : '#6b7280',
+              }}>
+                {isAr
+                  ? 'سيُرسَل رابط الاجتماع وتفاصيل الجلسة إلى بريدك الإلكتروني بعد تأكيد الحجز.'
+                  : 'A meeting link and session details will be sent to your email after confirmation.'}
+              </div>
+
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button
+                  onClick={() => setStep('slots')}
+                  disabled={booking}
+                  style={{
+                    flex: 1, padding: '12px', borderRadius: 10,
+                    background: 'none', border: `1px solid ${isDark ? 'rgba(255,255,255,.15)' : '#e5e7eb'}`,
+                    color: isDark ? 'rgba(255,255,255,.55)' : '#6b7280',
+                    fontWeight: 600, fontSize: '.87rem', cursor: 'pointer',
+                  }}
+                >
+                  {isAr ? 'رجوع' : 'Back'}
+                </button>
+                <button
+                  onClick={confirmBooking}
+                  disabled={booking}
+                  style={{
+                    flex: 2, padding: '12px', borderRadius: 10,
+                    background: booking ? 'rgba(201,147,44,.4)' : gold, border: 'none',
+                    color: '#fff', fontWeight: 700, fontSize: '.87rem',
+                    cursor: booking ? 'not-allowed' : 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  }}
+                >
+                  {booking ? (
+                    <>
+                      <div style={{
+                        width: 16, height: 16, borderRadius: '50%',
+                        border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff',
+                        animation: 'prSpin 0.7s linear infinite',
+                      }}/>
+                      {isAr ? 'جارٍ الحجز...' : 'Booking...'}
+                    </>
+                  ) : (isAr ? 'تأكيد الحجز' : 'Confirm Booking')}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   /* ── DONE ────────────────────────────────────────────────────────── */
   if (step === 'done' && bookingResult) return (
