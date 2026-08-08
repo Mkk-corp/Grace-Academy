@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { readContent, writeContent } from '@/lib/db'
 import { sendSlotRequestNotification } from '@/lib/mailer'
 
 const ADMIN_ONLY_PERMS = ['access_student_portal', 'access_assessor_portal', 'access_teacher_portal']
@@ -27,14 +26,34 @@ async function getAdminUser() {
   return { ...user, permissions, hasAdminAccess }
 }
 
+function mapRequest(r) {
+  return {
+    id: r.id,
+    assessorId: r.assessorId,
+    assessorName: r.assessor?.name ?? '',
+    assessorEmail: r.assessor?.email ?? '',
+    currentSchedule: r.currentSchedule,
+    proposedSchedule: r.proposedSchedule,
+    reason: r.reason,
+    status: r.status,
+    adminNote: r.adminNote,
+    resolvedById: r.resolvedById,
+    resolvedByName: r.resolvedByName,
+    createdAt: r.createdAt.toISOString(),
+    resolvedAt: r.resolvedAt?.toISOString() ?? null,
+  }
+}
+
 export async function GET() {
   const admin = await getAdminUser()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const allRequests = await readContent('slot-requests') || []
-  const sorted = [...allRequests].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  const requests = await prisma.slotRequest.findMany({
+    include: { assessor: { select: { name: true, email: true } } },
+    orderBy: { createdAt: 'desc' },
+  })
 
-  return NextResponse.json({ requests: sorted })
+  return NextResponse.json({ requests: requests.map(mapRequest) })
 }
 
 export async function PUT(req) {
@@ -48,63 +67,53 @@ export async function PUT(req) {
     return NextResponse.json({ error: 'Invalid request: id and action (approve|reject) required' }, { status: 400 })
   }
 
-  const allRequests = await readContent('slot-requests') || []
-  const idx = allRequests.findIndex(r => r.id === id)
-  if (idx === -1) return NextResponse.json({ error: 'Request not found' }, { status: 404 })
-
-  const request = allRequests[idx]
-  if (request.status !== 'pending') {
-    return NextResponse.json({ error: 'Request is no longer pending' }, { status: 409 })
-  }
-
-  allRequests[idx] = {
-    ...request,
-    status: action === 'approve' ? 'approved' : 'rejected',
-    adminNote: adminNote || null,
-    resolvedAt: new Date().toISOString(),
-    resolvedBy: admin.id,
-    resolvedByName: admin.name,
-  }
-
-  await writeContent('slot-requests', allRequests)
-
-  // If approved: update the assessor's schedule
-  if (action === 'approve') {
-    const schedules = await readContent('schedules') || {}
-    schedules[request.assessorId] = {
-      ...(schedules[request.assessorId] || {}),
-      schedule: request.proposedSchedule,
-      updatedAt: new Date().toISOString(),
-      updatedByRequest: id,
-    }
-    await writeContent('schedules', schedules)
-  }
-
-  // Create in-app notification for the assessor
-  const notifications = await readContent('notifications') || []
-  notifications.push({
-    id: `notif_${Date.now()}`,
-    recipientType: 'user',
-    recipientId: request.assessorId,
-    title: action === 'approve' ? 'Schedule Change Approved' : 'Schedule Change Rejected',
-    body: action === 'approve'
-      ? 'Your schedule change request has been approved. Your new schedule is now active.'
-      : `Your schedule change request has been rejected.${adminNote ? ` Reason: ${adminNote}` : ''}`,
-    type: 'slot_request_resolved',
-    meta: { requestId: id, action, adminNote: adminNote || null },
-    read: false,
-    createdAt: new Date().toISOString(),
+  const request = await prisma.slotRequest.findUnique({
+    where: { id },
+    include: { assessor: { select: { name: true, email: true } } },
   })
-  await writeContent('notifications', notifications)
+  if (!request) return NextResponse.json({ error: 'Request not found' }, { status: 404 })
+  if (request.status !== 'pending') return NextResponse.json({ error: 'Request is no longer pending' }, { status: 409 })
 
-  // Send email to assessor
+  const updated = await prisma.slotRequest.update({
+    where: { id },
+    data: {
+      status: action === 'approve' ? 'approved' : 'rejected',
+      adminNote: adminNote || null,
+      resolvedAt: new Date(),
+      resolvedById: admin.id,
+      resolvedByName: admin.name,
+    },
+    include: { assessor: { select: { name: true, email: true } } },
+  })
+
+  if (action === 'approve') {
+    await prisma.scheduleTemplate.upsert({
+      where: { userId: request.assessorId },
+      update: { schedule: request.proposedSchedule },
+      create: { userId: request.assessorId, schedule: request.proposedSchedule },
+    })
+  }
+
+  await prisma.notification.create({
+    data: {
+      recipientType: 'user',
+      recipientId: request.assessorId,
+      type: 'slot_request_resolved',
+      title: action === 'approve' ? 'Schedule Change Approved' : 'Schedule Change Rejected',
+      body: action === 'approve'
+        ? 'Your schedule change request has been approved. Your new schedule is now active.'
+        : `Your schedule change request has been rejected.${adminNote ? ` Reason: ${adminNote}` : ''}`,
+      meta: { requestId: id, action, adminNote: adminNote || null },
+    },
+  })
+
   try {
     const baseUrl = process.env.AUTH_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-    if (request.assessorEmail) {
+    if (request.assessor?.email) {
       await sendSlotRequestNotification({
-        to: request.assessorEmail,
+        to: request.assessor.email,
         type: action === 'approve' ? 'approved' : 'rejected',
-        assessorName: request.assessorName,
+        assessorName: request.assessor.name,
         requestId: id,
         adminNote: adminNote || null,
         baseUrl,
@@ -114,7 +123,7 @@ export async function PUT(req) {
     console.error('[slot-request resolve email]', e.message)
   }
 
-  return NextResponse.json({ success: true, request: allRequests[idx] })
+  return NextResponse.json({ success: true, request: mapRequest(updated) })
 }
 
 export async function DELETE(req) {
@@ -124,15 +133,11 @@ export async function DELETE(req) {
   const { id } = await req.json()
   if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
 
-  const allRequests = await readContent('slot-requests') || []
-  const target = allRequests.find(r => r.id === id)
+  const target = await prisma.slotRequest.findUnique({ where: { id } })
   if (!target) return NextResponse.json({ error: 'Request not found' }, { status: 404 })
-  if (target.status === 'pending') {
-    return NextResponse.json({ error: 'Cannot delete a pending request' }, { status: 409 })
-  }
+  if (target.status === 'pending') return NextResponse.json({ error: 'Cannot delete a pending request' }, { status: 409 })
 
-  const updated = allRequests.filter(r => r.id !== id)
-  await writeContent('slot-requests', updated)
+  await prisma.slotRequest.delete({ where: { id } })
 
   return NextResponse.json({ success: true })
 }

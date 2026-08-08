@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
-import { prisma, readContent, writeContent } from '@/lib/db'
+import { prisma } from '@/lib/db'
 import { hashPassword } from '@/lib/password'
 import { sendAssessorWelcomeEmail } from '@/lib/mailer'
 
@@ -99,34 +99,13 @@ export async function DELETE(request) {
   const user = await prisma.user.findUnique({ where: { id } })
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-  // ── OtpSession (keyed by email, no FK) ──────────────────────────────────
+  // OtpSession is keyed by email with no FK — must be deleted manually
   await prisma.otpSession.deleteMany({ where: { email: user.email } })
 
-  // ── SiteContent: schedules (JSON object keyed by assessorId) ────────────
-  const schedules = await readContent('schedules') || {}
-  if (Object.prototype.hasOwnProperty.call(schedules, id)) {
-    delete schedules[id]
-    await writeContent('schedules', schedules)
-  }
-
-  // ── SiteContent: slot-requests (JSON array with assessorId field) ────────
-  const slotRequests = await readContent('slot-requests') || []
-  const filteredRequests = slotRequests.filter(r => r.assessorId !== id)
-  if (filteredRequests.length !== slotRequests.length) {
-    await writeContent('slot-requests', filteredRequests)
-  }
-
-  // ── SiteContent: notifications (JSON array with recipientId field) ───────
-  const notifications = await readContent('notifications') || []
-  const filteredNotifs = notifications.filter(n => n.recipientId !== id)
-  if (filteredNotifs.length !== notifications.length) {
-    await writeContent('notifications', filteredNotifs)
-  }
-
-  // ── Bookings (explicit delete before user, in case cascade migration isn't applied) ──
+  // Bookings have cascades but explicit delete ensures no FK violation on old rows
   await prisma.booking.deleteMany({ where: { OR: [{ studentId: id }, { assessorId: id }] } })
 
-  // ── User ────────────────────────────────────────────────────────────────
+  // ScheduleTemplate, SlotRequest, Notification, AssessorPreference all cascade-delete with User
   await prisma.user.delete({ where: { id } })
 
   return NextResponse.json({ ok: true })

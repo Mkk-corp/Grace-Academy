@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
-import { prisma, readContent, writeContent } from '@/lib/db'
+import { prisma } from '@/lib/db'
 import { sendPlacementEmail } from '@/lib/mailer'
 import { randomBytes } from 'crypto'
 
-const DOW_TO_KEY = ['sun','mon','tue','wed','thu','fri','sat']
+const DOW_TO_KEY = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
 function dateToDayKey(dateStr) {
   const d = new Date(dateStr + 'T12:00:00')
@@ -37,13 +37,15 @@ export async function POST(req) {
     const student = await prisma.user.findUnique({ where: { id: payload.userId } })
     if (!student) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    // Prevent duplicate active bookings — past sessions do not block rebooking
     const todayStr = new Date().toLocaleDateString('en-CA')
     const existingBooking = await prisma.booking.findFirst({
       where: { studentId: student.id, status: 'confirmed', date: { gte: todayStr } },
     })
     if (existingBooking) {
-      return NextResponse.json({ error: 'You already have a confirmed placement session.', code: 'already_booked' }, { status: 409 })
+      return NextResponse.json(
+        { error: 'You already have a confirmed placement session.', code: 'already_booked' },
+        { status: 409 },
+      )
     }
 
     const body = await req.json().catch(() => null)
@@ -51,50 +53,44 @@ export async function POST(req) {
     const { date, slotMin } = body
     if (!date || slotMin == null) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
-    const slot = Number(slotMin)
+    const slot   = Number(slotMin)
     const dayKey = dateToDayKey(date)
 
-    // Load schedules and slot-requests in parallel
-    const [schedules, slotRequests] = await Promise.all([
-      readContent('schedules').then(v => v || {}),
-      readContent('slot-requests').then(v => v || []),
+    const [templates, pendingRequests] = await Promise.all([
+      prisma.scheduleTemplate.findMany({ select: { userId: true, schedule: true } }),
+      prisma.slotRequest.findMany({ where: { status: 'pending' }, select: { assessorId: true } }),
     ])
 
-    // Exclude assessors whose schedule change request is still pending —
-    // consistent with what slots/route.js showed the student.
-    const pendingAssessorIds = new Set(
-      slotRequests.filter(r => r.status === 'pending').map(r => r.assessorId)
-    )
+    const pendingAssessorIds = new Set(pendingRequests.map(r => r.assessorId))
 
-    // Assessors already confirmed at this date + slot
     const bookedAtSlot = await prisma.booking.findMany({
       where: { status: 'confirmed', date, slotMin: slot },
       select: { assessorId: true },
     })
     const bookedIds = new Set(bookedAtSlot.map(b => b.assessorId))
 
-    // Find available assessors (not pending, not already booked at this slot)
-    const available = Object.entries(schedules).filter(([id, data]) => {
-      if (pendingAssessorIds.has(id)) return false
-      const slots = data.schedule?.[dayKey] || []
-      return slots.map(Number).includes(slot) && !bookedIds.has(id)
+    const available = templates.filter(({ userId: assessorId, schedule }) => {
+      if (pendingAssessorIds.has(assessorId)) return false
+      const slots = schedule[dayKey] || []
+      return slots.map(Number).includes(slot) && !bookedIds.has(assessorId)
     })
 
     if (available.length === 0) {
-      return NextResponse.json({ error: 'No assessors available at this slot. Please choose a different time.', code: 'slot_unavailable' }, { status: 409 })
+      return NextResponse.json(
+        { error: 'No assessors available at this slot. Please choose a different time.', code: 'slot_unavailable' },
+        { status: 409 },
+      )
     }
 
-    // Pick randomly
-    const [assessorId, assessorData] = available[Math.floor(Math.random() * available.length)]
+    const chosen     = available[Math.floor(Math.random() * available.length)]
+    const assessorId = chosen.userId
 
     const assessorUser  = await prisma.user.findUnique({ where: { id: assessorId } }).catch(() => null)
-    const assessorEmail = assessorData.assessorEmail || assessorUser?.email || ''
-    const assessorName  = assessorData.assessorName  || assessorUser?.name  || 'Academic Consultant'
+    const assessorEmail = assessorUser?.email || ''
+    const assessorName  = assessorUser?.name  || 'Academic Consultant'
 
-    // Generate secure Jitsi meeting URL
     const meetLink = generateMeetingUrl()
 
-    // Save booking to database
     const booking = await prisma.booking.create({
       data: {
         studentId:    student.id,
@@ -116,28 +112,20 @@ export async function POST(req) {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     })
 
-    // Send emails independently so one failure doesn't block the other
     sendPlacementEmail({ to: student.email,  role: 'student',  studentName: student.name, assessorName, date: dateLabel, time: timeStr, meetLink })
       .catch(err => console.error('[mailer] student placement email failed:', err?.message))
     sendPlacementEmail({ to: assessorEmail,   role: 'assessor', studentName: student.name, assessorName, date: dateLabel, time: timeStr, meetLink })
       .catch(err => console.error('[mailer] assessor placement email failed:', err?.message))
 
-    // In-app notification for assessor (non-fatal)
-    readContent('notifications').then(list => {
-      const notifications = list || []
-      const notifId = Date.now().toString(36) + 'n' + Math.random().toString(36).slice(2)
-      notifications.push({
-        id:            notifId,
+    prisma.notification.create({
+      data: {
         recipientType: 'user',
         recipientId:   assessorId,
         type:          'placement_booked',
         title:         'New Placement Assessment Booked',
         body:          `A student has booked a placement session on ${dateLabel} at ${timeStr}.`,
         meta:          { date: dateLabel, time: timeStr, studentName: student.name, meetLink, bookingId: booking.id },
-        read:          false,
-        createdAt:     new Date().toISOString(),
-      })
-      return writeContent('notifications', notifications)
+      },
     }).catch(() => {})
 
     return NextResponse.json({

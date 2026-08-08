@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
-import { prisma, readContent, writeContent } from '@/lib/db'
+import { prisma } from '@/lib/db'
 
 function slotMinToTime(slotMin) {
-  const h = Math.floor(slotMin / 60)
-  const m = slotMin % 60
+  const h    = Math.floor(slotMin / 60)
+  const m    = slotMin % 60
   const ampm = h >= 12 ? 'PM' : 'AM'
-  const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h
+  const h12  = h > 12 ? h - 12 : h === 0 ? 12 : h
   return `${h12}:${String(m).padStart(2, '0')} ${ampm}`
 }
 
@@ -27,27 +27,33 @@ export async function POST(req) {
 
   await prisma.booking.update({ where: { id: bookingId }, data: { reminderSent: true } })
 
-  const timeStr = slotMinToTime(booking.slotMin)
+  const timeStr   = slotMinToTime(booking.slotMin)
   const dateLabel = new Date(booking.date + 'T12:00:00').toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   })
-  const meta = { date: dateLabel, time: timeStr, bookingId }
+  const notifBody = `Your placement assessment starts in 3 minutes on ${dateLabel} at ${timeStr}.`
+  const meta      = { date: dateLabel, time: timeStr, bookingId }
 
-  const notifications = (await readContent('notifications')) || []
-  const mkNotif = (recipientId) => ({
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2),
-    recipientType: 'user',
-    recipientId,
-    type: 'placement_reminder',
-    title: 'Session Starting Soon',
-    body: `Your placement assessment starts in 3 minutes on ${dateLabel} at ${timeStr}.`,
-    meta,
-    read: false,
-    createdAt: new Date().toISOString(),
+  await prisma.notification.createMany({
+    data: [
+      {
+        recipientType: 'user',
+        recipientId:   booking.studentId,
+        type:          'placement_reminder',
+        title:         'Session Starting Soon',
+        body:          notifBody,
+        meta,
+      },
+      {
+        recipientType: 'user',
+        recipientId:   booking.assessorId,
+        type:          'placement_reminder',
+        title:         'Session Starting Soon',
+        body:          notifBody,
+        meta,
+      },
+    ],
   })
-  notifications.push(mkNotif(booking.studentId))
-  notifications.push(mkNotif(booking.assessorId))
-  await writeContent('notifications', notifications)
 
   return NextResponse.json({ ok: true })
 }

@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { readContent, writeContent } from '@/lib/db'
 
 const ADMIN_ONLY_PERMS = ['access_student_portal', 'access_assessor_portal', 'access_teacher_portal']
 
@@ -25,24 +24,38 @@ async function getAuthUser() {
   return { ...user, permissions, hasAdminAccess }
 }
 
+function buildWhereForUser(user) {
+  return {
+    OR: [
+      { recipientType: 'user', recipientId: user.id },
+      ...(user.hasAdminAccess ? [{ recipientType: 'admin' }] : []),
+    ],
+  }
+}
+
 export async function GET() {
   const user = await getAuthUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const allNotifications = await readContent('notifications') || []
+  const notifications = await prisma.notification.findMany({
+    where: buildWhereForUser(user),
+    orderBy: { createdAt: 'desc' },
+    take: 30,
+  })
 
-  const mine = allNotifications.filter(n =>
-    (n.recipientType === 'user' && n.recipientId === user.id) ||
-    (n.recipientType === 'admin' && user.hasAdminAccess)
-  )
+  const mapped = notifications.map(n => ({
+    id: n.id,
+    recipientType: n.recipientType,
+    recipientId: n.recipientId,
+    type: n.type,
+    title: n.title,
+    body: n.body,
+    meta: n.meta,
+    read: n.read,
+    createdAt: n.createdAt.toISOString(),
+  }))
 
-  const sorted = [...mine]
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, 30)
-
-  const unreadCount = sorted.filter(n => !n.read).length
-
-  return NextResponse.json({ notifications: sorted, unreadCount })
+  return NextResponse.json({ notifications: mapped, unreadCount: mapped.filter(n => !n.read).length })
 }
 
 export async function PUT(req) {
@@ -52,32 +65,24 @@ export async function PUT(req) {
   const body = await req.json()
   const { id, all } = body
 
-  const allNotifications = await readContent('notifications') || []
-
   if (all) {
-    // Mark all notifications for this user as read
-    const updated = allNotifications.map(n => {
-      const isMine =
-        (n.recipientType === 'user' && n.recipientId === user.id) ||
-        (n.recipientType === 'admin' && user.hasAdminAccess)
-      if (isMine) return { ...n, read: true }
-      return n
+    await prisma.notification.updateMany({
+      where: { ...buildWhereForUser(user), read: false },
+      data: { read: true },
     })
-    await writeContent('notifications', updated)
     return NextResponse.json({ success: true })
   }
 
   if (id) {
-    const updated = allNotifications.map(n => {
-      if (n.id !== id) return n
-      // Only mark if it belongs to this user
-      const isMine =
-        (n.recipientType === 'user' && n.recipientId === user.id) ||
-        (n.recipientType === 'admin' && user.hasAdminAccess)
-      if (!isMine) return n
-      return { ...n, read: true }
-    })
-    await writeContent('notifications', updated)
+    const notif = await prisma.notification.findUnique({ where: { id } })
+    if (!notif) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+    const isMine =
+      (notif.recipientType === 'user' && notif.recipientId === user.id) ||
+      (notif.recipientType === 'admin' && user.hasAdminAccess)
+    if (!isMine) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+    await prisma.notification.update({ where: { id }, data: { read: true } })
     return NextResponse.json({ success: true })
   }
 

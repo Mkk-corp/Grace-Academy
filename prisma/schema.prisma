@@ -15,19 +15,19 @@ model Role {
 }
 
 model User {
-  id                 String    @id @default(cuid())
+  id                 String               @id @default(cuid())
   name               String
-  username           String    @default("")
-  email              String    @unique
-  phone              String    @default("")
+  username           String               @default("")
+  email              String               @unique
+  phone              String               @default("")
   password           String?
-  googleId                   String?   @unique
+  googleId           String?              @unique
   avatar             String?
   roleId             String?
-  role               Role?     @relation(fields: [roleId], references: [id])
-  source             String    @default("website")
-  forcePasswordReset Boolean   @default(false)
-  passwordHistory    String[]  @default([])
+  role               Role?                @relation(fields: [roleId], references: [id])
+  source             String               @default("website")
+  forcePasswordReset Boolean              @default(false)
+  passwordHistory    String[]             @default([])
   dob                String?
   gender             String?
   bio                String?
@@ -46,30 +46,88 @@ model User {
   teachingExperience Boolean?
   teachingWhere      String?
   englishLevel       String?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  bookingsAsStudent  Booking[] @relation("StudentBookings")
-  bookingsAsAssessor Booking[] @relation("AssessorBookings")
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  bookingsAsStudent  Booking[]            @relation("StudentBookings")
+  bookingsAsAssessor Booking[]            @relation("AssessorBookings")
+  scheduleTemplate   ScheduleTemplate?
+  slotRequests       SlotRequest[]        @relation("AssessorSlotRequests")
+  notifications      Notification[]       @relation("UserNotifications")
+  assessorPreference AssessorPreference?
 }
 
 model Booking {
+  id                String   @id @default(cuid())
+  studentId         String
+  student           User     @relation("StudentBookings",  fields: [studentId],  references: [id], onDelete: Cascade)
+  assessorId        String
+  assessor          User     @relation("AssessorBookings", fields: [assessorId], references: [id], onDelete: Cascade)
+  studentName       String
+  studentEmail      String
+  assessorName      String
+  assessorEmail     String
+  date              String
+  dayKey            String
+  slotMin           Int
+  meetLink          String?
+  status            String   @default("confirmed")
+  reminderSent      Boolean  @default(false)
+  emailReminderSent Boolean  @default(false)
+  createdAt         DateTime @default(now())
+}
+
+model ScheduleTemplate {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schedule  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SlotRequest {
+  id               String    @id @default(cuid())
+  assessorId       String
+  assessor         User      @relation("AssessorSlotRequests", fields: [assessorId], references: [id], onDelete: Cascade)
+  currentSchedule  Json?
+  proposedSchedule Json
+  reason           String
+  status           String    @default("pending")
+  adminNote        String?
+  resolvedAt       DateTime?
+  resolvedById     String?
+  resolvedByName   String?
+  createdAt        DateTime  @default(now())
+}
+
+model Notification {
   id            String   @id @default(cuid())
-  studentId     String
-  student       User     @relation("StudentBookings",  fields: [studentId],  references: [id], onDelete: Cascade)
-  assessorId    String
-  assessor      User     @relation("AssessorBookings", fields: [assessorId], references: [id], onDelete: Cascade)
-  studentName   String
-  studentEmail  String
-  assessorName  String
-  assessorEmail String
-  date          String
-  dayKey        String
-  slotMin       Int
-  meetLink      String?
-  status        String   @default("confirmed")
-  reminderSent       Boolean  @default(false)
-  emailReminderSent  Boolean  @default(false)
-  createdAt          DateTime @default(now())
+  recipientType String
+  recipientId   String?
+  recipient     User?    @relation("UserNotifications", fields: [recipientId], references: [id], onDelete: Cascade)
+  type          String
+  title         String
+  body          String
+  meta          Json
+  read          Boolean  @default(false)
+  createdAt     DateTime @default(now())
+}
+
+model AssessorPreference {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accent    String   @default("american")
+  topics    String[] @default([])
+  updatedAt DateTime @updatedAt
+}
+
+model ScheduleConfig {
+  id       String @id
+  minDays  Int    @default(2)
+  maxDays  Int    @default(5)
+  minSlots Int    @default(4)
+  maxSlots Int    @default(32)
 }
 
 model OtpSession {

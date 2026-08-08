@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
-import { prisma, readContent, writeContent } from '@/lib/db'
+import { prisma } from '@/lib/db'
 
 const ADMIN_ONLY_PERMS = ['access_student_portal', 'access_assessor_portal', 'access_teacher_portal']
 const DEFAULTS = { minDays: 2, maxDays: 5, minSlots: 4, maxSlots: 32 }
@@ -15,15 +15,19 @@ async function getAdmin() {
   const user = await prisma.user.findUnique({ where: { id: payload.userId }, include: { role: true } })
   if (!user) return null
   const permissions = user.role?.permissions || []
-  const hasAdminAccess = permissions.some(p => !ADMIN_ONLY_PERMS.includes(p))
-  return hasAdminAccess ? user : null
+  return permissions.some(p => !ADMIN_ONLY_PERMS.includes(p)) ? user : null
 }
 
 export async function GET() {
   const admin = await getAdmin()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const limits = (await readContent('schedule_limits')) || DEFAULTS
-  return NextResponse.json({ limits: { ...DEFAULTS, ...limits } })
+
+  const config = await prisma.scheduleConfig.findUnique({ where: { id: 'default' } })
+  const limits = config
+    ? { minDays: config.minDays, maxDays: config.maxDays, minSlots: config.minSlots, maxSlots: config.maxSlots }
+    : DEFAULTS
+
+  return NextResponse.json({ limits })
 }
 
 export async function PUT(req) {
@@ -46,6 +50,11 @@ export async function PUT(req) {
   if (minSlots < 1 || minSlots > maxSlots) return NextResponse.json({ error: 'minSlots must be ≥ 1 and ≤ maxSlots' }, { status: 400 })
 
   const limits = { minDays, maxDays, minSlots, maxSlots }
-  await writeContent('schedule_limits', limits)
+  await prisma.scheduleConfig.upsert({
+    where:  { id: 'default' },
+    update: limits,
+    create: { id: 'default', ...limits },
+  })
+
   return NextResponse.json({ ok: true, limits })
 }
