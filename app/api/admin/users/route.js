@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
-import { prisma } from '@/lib/db'
+import { prisma, readContent, writeContent } from '@/lib/db'
 import { hashPassword } from '@/lib/password'
 import { sendAssessorWelcomeEmail } from '@/lib/mailer'
 
@@ -96,9 +96,35 @@ export async function DELETE(request) {
   if (!await requireAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id } = await request.json()
 
-  const existing = await prisma.user.findUnique({ where: { id } })
-  if (!existing) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  const user = await prisma.user.findUnique({ where: { id } })
+  if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
+  // ── OtpSession (keyed by email, no FK) ──────────────────────────────────
+  await prisma.otpSession.deleteMany({ where: { email: user.email } })
+
+  // ── SiteContent: schedules (JSON object keyed by assessorId) ────────────
+  const schedules = await readContent('schedules') || {}
+  if (Object.prototype.hasOwnProperty.call(schedules, id)) {
+    delete schedules[id]
+    await writeContent('schedules', schedules)
+  }
+
+  // ── SiteContent: slot-requests (JSON array with assessorId field) ────────
+  const slotRequests = await readContent('slot-requests') || []
+  const filteredRequests = slotRequests.filter(r => r.assessorId !== id)
+  if (filteredRequests.length !== slotRequests.length) {
+    await writeContent('slot-requests', filteredRequests)
+  }
+
+  // ── SiteContent: notifications (JSON array with recipientId field) ───────
+  const notifications = await readContent('notifications') || []
+  const filteredNotifs = notifications.filter(n => n.recipientId !== id)
+  if (filteredNotifs.length !== notifications.length) {
+    await writeContent('notifications', filteredNotifs)
+  }
+
+  // ── User + Bookings (Booking FKs cascade via onDelete: Cascade) ─────────
   await prisma.user.delete({ where: { id } })
+
   return NextResponse.json({ ok: true })
 }
