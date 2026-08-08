@@ -38,10 +38,20 @@ export async function GET() {
 
   const weekDates = dates.map(d => d.date)
 
-  // Load assessor schedules (stored in SiteContent)
-  const schedules = (await readContent('schedules')) || {}
+  // Load assessor schedules and slot-requests in parallel
+  const [schedules, slotRequests] = await Promise.all([
+    readContent('schedules').then(v => v || {}),
+    readContent('slot-requests').then(v => v || []),
+  ])
 
-  // Load confirmed bookings for this week from DB
+  // Assessors with a pending change request are treated as unavailable —
+  // they have signalled they want different slots, so don't offer their
+  // current schedule to students until the request is resolved.
+  const pendingAssessorIds = new Set(
+    slotRequests.filter(r => r.status === 'pending').map(r => r.assessorId)
+  )
+
+  // Load confirmed bookings for this window from DB
   const confirmedBookings = await prisma.booking.findMany({
     where: {
       status: 'confirmed',
@@ -55,12 +65,13 @@ export async function GET() {
   )
 
   // Build availability map: { dateStr: { slotMin: count } }
-  // Exclude past dates entirely; for today exclude slots within 30 min of now
+  // Skip assessors with pending requests and those already fully booked.
   const nowMin = new Date().getHours() * 60 + new Date().getMinutes()
   const availability = {}
   dates.forEach(({ date, dayKey }) => {
     availability[date] = {}
     Object.entries(schedules).forEach(([assessorId, data]) => {
+      if (pendingAssessorIds.has(assessorId)) return
       const slots = data.schedule?.[dayKey] || []
       slots.forEach(slotMin => {
         if (date === todayStr && Number(slotMin) <= nowMin + 30) return

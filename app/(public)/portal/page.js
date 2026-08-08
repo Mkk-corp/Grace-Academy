@@ -57,8 +57,6 @@ const NAV_ITEMS = [
   { id: 'dashboard',   labelEn: 'Dashboard',       labelAr: 'الرئيسية',           icon: 'grid'     },
   { id: 'placement',  labelEn: 'Placement Test',  labelAr: 'اختبار التحديد',     icon: 'award'    },
   { id: 'my-sessions',labelEn: 'My Sessions',     labelAr: 'جلساتي',             icon: 'video'    },
-  { id: 'courses',    labelEn: 'My Courses',      labelAr: 'دوراتي',             icon: 'book'     },
-  { id: 'live',       labelEn: 'Live Sessions',   labelAr: 'الجلسات المباشرة',   icon: 'video'    },
   { id: 'certs',     labelEn: 'Certificates',    labelAr: 'الشهادات',           icon: 'award'    },
   { id: 'schedule',  labelEn: 'Schedule',        labelAr: 'الجدول الزمني',      icon: 'calendar' },
   { id: 'resources', labelEn: 'Resources',       labelAr: 'الموارد',            icon: 'folder'   },

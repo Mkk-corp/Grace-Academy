@@ -53,8 +53,17 @@ export async function POST(req) {
     const slot = Number(slotMin)
     const dayKey = dateToDayKey(date)
 
-    // Load schedules
-    const schedules = (await readContent('schedules')) || {}
+    // Load schedules and slot-requests in parallel
+    const [schedules, slotRequests] = await Promise.all([
+      readContent('schedules').then(v => v || {}),
+      readContent('slot-requests').then(v => v || []),
+    ])
+
+    // Exclude assessors whose schedule change request is still pending —
+    // consistent with what slots/route.js showed the student.
+    const pendingAssessorIds = new Set(
+      slotRequests.filter(r => r.status === 'pending').map(r => r.assessorId)
+    )
 
     // Assessors already confirmed at this date + slot
     const bookedAtSlot = await prisma.booking.findMany({
@@ -63,8 +72,9 @@ export async function POST(req) {
     })
     const bookedIds = new Set(bookedAtSlot.map(b => b.assessorId))
 
-    // Find available assessors
+    // Find available assessors (not pending, not already booked at this slot)
     const available = Object.entries(schedules).filter(([id, data]) => {
+      if (pendingAssessorIds.has(id)) return false
       const slots = data.schedule?.[dayKey] || []
       return slots.map(Number).includes(slot) && !bookedIds.has(id)
     })
