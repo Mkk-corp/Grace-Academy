@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { hashPassword } from '@/lib/password'
+import { logAudit } from '@/lib/audit'
 
 export async function POST(request) {
   try {
@@ -22,7 +23,8 @@ export async function POST(request) {
       if (existingUsername) return NextResponse.json({ error: 'Username already taken' }, { status: 409 })
     }
 
-    await prisma.user.create({
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null
+    const newUser = await prisma.user.create({
       data: {
         name,
         username: username || '',
@@ -34,6 +36,7 @@ export async function POST(request) {
       },
     })
 
+    logAudit({ actorId: newUser.id, actorName: newUser.name, actorRole: 'student', action: 'user.registered', entity: 'User', entityId: newUser.id, meta: { email, source: 'website' }, ip })
     return NextResponse.json({ ok: true }, { status: 201 })
   } catch (err) {
     console.error('[register]', err)

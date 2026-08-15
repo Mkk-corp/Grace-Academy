@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { signToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { logAudit } from '@/lib/audit'
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
@@ -40,6 +41,7 @@ export async function GET(request) {
     include: { role: true },
   })
 
+  let isNewUser = false
   if (user) {
     if (!user.googleId) {
       user = await prisma.user.update({
@@ -49,6 +51,7 @@ export async function GET(request) {
       })
     }
   } else {
+    isNewUser = true
     user = await prisma.user.create({
       data: {
         name: googleUser.name || googleUser.email.split('@')[0],
@@ -70,6 +73,13 @@ export async function GET(request) {
   const isAssessor     = permissions.includes('access_assessor_portal') && !hasAdminAccess
   const isTeacher      = permissions.includes('access_teacher_portal')  && !hasAdminAccess
   const redirect = hasAdminAccess ? '/admin' : isAssessor ? '/assessor' : isTeacher ? '/teacher' : '/portal'
+  const actorRole = hasAdminAccess ? 'admin' : isAssessor ? 'assessor' : isTeacher ? 'teacher' : 'student'
+
+  if (isNewUser) {
+    logAudit({ actorId: user.id, actorName: user.name, actorRole, action: 'user.registered', entity: 'User', entityId: user.id, meta: { email: user.email, source: 'google' } })
+  } else {
+    logAudit({ actorId: user.id, actorName: user.name, actorRole, action: 'login.success', entity: 'User', entityId: user.id, meta: { source: 'google', redirect } })
+  }
 
   const token = signToken({ userId: user.id, roleId: user.roleId, name: user.name })
   const response = NextResponse.redirect(`${authUrl}${redirect}`)

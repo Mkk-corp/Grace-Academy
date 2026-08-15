@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { logAudit } from '@/lib/audit'
 
 const ADMIN_ONLY_PERMS = ['access_student_portal', 'access_assessor_portal', 'access_teacher_portal']
 
@@ -52,5 +53,6 @@ export async function PUT(req) {
     create: { userId: user.id, accent: newAccent, topics: newTopics },
   })
 
+  logAudit({ actorId: user.id, actorName: user.name, actorRole: 'assessor', action: 'assessor.preferences_updated', entity: 'AssessorPreference', entityId: user.id, meta: { accent: newAccent, topicCount: newTopics.length } })
   return NextResponse.json({ accent: prefs.accent, topics: prefs.topics })
 }

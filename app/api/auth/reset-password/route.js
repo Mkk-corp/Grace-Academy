@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { hashPassword, verifyPassword } from '@/lib/password'
 import { signToken } from '@/lib/auth'
 import { clearSession } from '@/lib/otp'
+import { logAudit } from '@/lib/audit'
 
 const COMMON_PASSWORDS = [
   'password123', 'admin123', 'welcome123', 'letmein123', 'qwerty123',
@@ -66,6 +67,7 @@ export async function POST(request) {
   })
 
   await clearSession(email)
+  logAudit({ actorId: updated.id, actorName: updated.name, actorRole: 'user', action: 'user.password_reset', entity: 'User', entityId: updated.id, meta: { email } })
 
   const permissions = updated.role?.permissions || []
   const hasAdminAccess = permissions.some(p => !['access_student_portal', 'access_assessor_portal', 'access_teacher_portal'].includes(p))

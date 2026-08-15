@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import crypto from 'crypto'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { logAudit } from '@/lib/audit'
 
 async function requireAdmin() {
   const jar = await cookies()
@@ -16,7 +17,8 @@ export async function GET() {
 }
 
 export async function POST(request) {
-  if (!await requireAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const admin = await requireAdmin()
+  if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { name, description, permissions } = await request.json()
   if (!name) return NextResponse.json({ error: 'Name required' }, { status: 400 })
 
@@ -31,11 +33,13 @@ export async function POST(request) {
       permissions: permissions || [],
     },
   })
+  logAudit({ actorId: admin.userId, actorName: admin.name, actorRole: 'admin', action: 'role.created', entity: 'Role', entityId: role.id, meta: { name, permissions: permissions || [] } })
   return NextResponse.json(role, { status: 201 })
 }
 
 export async function PUT(request) {
-  if (!await requireAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const admin = await requireAdmin()
+  if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id, name, description, permissions } = await request.json()
 
   const existing = await prisma.role.findUnique({ where: { id } })
@@ -47,11 +51,13 @@ export async function PUT(request) {
   if (permissions !== undefined) data.permissions = permissions
 
   const role = await prisma.role.update({ where: { id }, data })
+  logAudit({ actorId: admin.userId, actorName: admin.name, actorRole: 'admin', action: 'role.updated', entity: 'Role', entityId: id, meta: { roleName: existing.name, fields: Object.keys(data) } })
   return NextResponse.json(role)
 }
 
 export async function DELETE(request) {
-  if (!await requireAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const admin = await requireAdmin()
+  if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id } = await request.json()
 
   const inUse = await prisma.user.findFirst({ where: { roleId: id } })
@@ -61,5 +67,6 @@ export async function DELETE(request) {
   if (!existing) return NextResponse.json({ error: 'Role not found' }, { status: 404 })
 
   await prisma.role.delete({ where: { id } })
+  logAudit({ actorId: admin.userId, actorName: admin.name, actorRole: 'admin', action: 'role.deleted', entity: 'Role', entityId: id, meta: { name: existing.name } })
   return NextResponse.json({ ok: true })
 }

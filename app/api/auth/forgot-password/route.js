@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { checkLock, generateAndStoreOtp, getResendInfo } from '@/lib/otp'
 import { sendOtpEmail } from '@/lib/mailer'
+import { logAudit } from '@/lib/audit'
 
 export async function POST(request) {
   const { email } = await request.json()
@@ -34,5 +35,6 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Failed to send OTP email. Please try again.' }, { status: 500 })
   }
 
+  logAudit({ actorId: user.id, actorName: user.name, actorRole: 'user', action: 'user.password_reset_requested', entity: 'User', entityId: user.id, meta: { email } })
   return NextResponse.json({ ok: true, resendCount: existingInfo ? existingInfo.resendCount + 1 : 0, locked })
 }

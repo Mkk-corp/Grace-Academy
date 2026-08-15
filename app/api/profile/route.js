@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { logAudit } from '@/lib/audit'
 
 const ALLOWED_AVATARS = ['user1', 'user2', 'user3', 'user4', 'user5']
 
@@ -57,6 +58,7 @@ export async function PUT(request) {
   }
 
   const user = await prisma.user.update({ where: { id: userId }, data: updates, select: SAFE_SELECT })
+  logAudit({ actorId: userId, actorName: user.name, actorRole: 'user', action: 'profile.updated', entity: 'User', entityId: userId, meta: { fields: Object.keys(updates) } })
   const { role, ...rest } = user
   return NextResponse.json({ ...rest, roleName: role?.name || null })
 }
