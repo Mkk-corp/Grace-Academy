@@ -279,7 +279,8 @@ function DayCard({ day, slots, onToggleSlot, onToggleDay, isAr, isDark, readOnly
 // ─── Read-only schedule view (locked state) ────────────────────────────────
 function ScheduleReadView({ scheduleData, isAr, isDark }) {
   const GOLD = '#c9932c'
-  const activeDays = DAYS.filter(d => (scheduleData?.schedule?.[d.key] || []).length > 0)
+  // scheduleData is the raw day-map object (e.g. { sat: [540,570], mon: [600] })
+  const activeDays = DAYS.filter(d => (scheduleData?.[d.key] || []).length > 0)
 
   function formatRange(slots) {
     if (!slots || slots.length === 0) return []
@@ -297,7 +298,7 @@ function ScheduleReadView({ scheduleData, isAr, isDark }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {activeDays.map(day => {
-        const slots = scheduleData?.schedule?.[day.key] || []
+        const slots = scheduleData?.[day.key] || []
         const ranges = formatRange(slots)
         return (
           <div key={day.key} style={{

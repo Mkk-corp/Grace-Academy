@@ -713,7 +713,7 @@ export default function AssessorPage() {
               ? onboardingDone
                 ? <>
                     <WeeklyCalendar user={user} isAr={isAr} isDark={isDark} />
-                    <WeeklySchedule user={user} isAr={isAr} isDark={isDark} onScheduleSaved={handleScheduleSaved} hideReadView />
+                    <WeeklySchedule user={user} isAr={isAr} isDark={isDark} onScheduleSaved={handleScheduleSaved} />
                   </>
                 : <WeeklySchedule user={user} isAr={isAr} isDark={isDark} onScheduleSaved={handleScheduleSaved} />
               : activeTab === 'calendar'
