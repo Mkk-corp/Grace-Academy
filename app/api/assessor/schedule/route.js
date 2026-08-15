@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { logAudit } from '@/lib/audit'
 
 const ADMIN_ONLY_PERMS = ['access_student_portal', 'access_assessor_portal', 'access_teacher_portal']
 
@@ -88,6 +89,8 @@ export async function POST(req) {
     data: { userId: user.id, schedule },
   })
 
+  const totalSlots = Object.values(schedule).reduce((s, v) => s + (Array.isArray(v) ? v.length : 0), 0)
+  logAudit({ actorId: user.id, actorName: user.name, actorRole: 'assessor', action: 'schedule.created', entity: 'ScheduleTemplate', entityId: template.id, meta: { totalSlots } })
   return NextResponse.json({
     success: true,
     data: {

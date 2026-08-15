@@ -155,3 +155,20 @@ model ContactMessage {
   read        Boolean  @default(false)
   submittedAt DateTime @default(now())
 }
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actorName String?
+  actorRole String?
+  action    String
+  entity    String?
+  entityId  String?
+  meta      Json     @default("{}")
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+  @@index([actorRole])
+  @@index([action])
+}

@@ -57,7 +57,6 @@ const NAV_ITEMS = [
   { id: 'dashboard',   labelEn: 'Dashboard',      labelAr: 'الرئيسية',       icon: 'grid'  },
   { id: 'placement',   labelEn: 'Placement Test', labelAr: 'اختبار التحديد', icon: 'award' },
   { id: 'my-sessions', labelEn: 'My Sessions',    labelAr: 'جلساتي',         icon: 'video' },
-  { id: 'messages',    labelEn: 'Messages',       labelAr: 'الرسائل',        icon: 'mail'  },
 ]
 
 

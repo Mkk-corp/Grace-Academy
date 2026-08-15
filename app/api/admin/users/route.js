@@ -4,6 +4,7 @@ import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { hashPassword } from '@/lib/password'
 import { sendAssessorWelcomeEmail } from '@/lib/mailer'
+import { logAudit } from '@/lib/audit'
 
 async function requireAdmin() {
   const jar = await cookies()
@@ -69,11 +70,14 @@ export async function POST(request) {
     }
   }
 
+  const admin = await requireAdmin()
+  logAudit({ actorId: admin?.userId, actorName: admin?.name, actorRole: 'admin', action: 'user.created', entity: 'User', entityId: user.id, meta: { name: user.name, email: user.email, roleId: user.roleId } })
   return NextResponse.json(user, { status: 201 })
 }
 
 export async function PUT(request) {
-  if (!await requireAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const admin = await requireAdmin()
+  if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id, name, email, phone, roleId, password } = await request.json()
 
   const existing = await prisma.user.findUnique({ where: { id } })
@@ -90,11 +94,13 @@ export async function PUT(request) {
   }
 
   const user = await prisma.user.update({ where: { id }, data, select: SAFE_SELECT })
+  logAudit({ actorId: admin?.userId, actorName: admin?.name, actorRole: 'admin', action: 'user.updated', entity: 'User', entityId: id, meta: { fields: Object.keys(data), targetName: existing.name } })
   return NextResponse.json(user)
 }
 
 export async function DELETE(request) {
-  if (!await requireAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const admin = await requireAdmin()
+  if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id } = await request.json()
 
   const user = await prisma.user.findUnique({ where: { id } })
@@ -109,5 +115,6 @@ export async function DELETE(request) {
   // ScheduleTemplate, SlotRequest, Notification, AssessorPreference all cascade-delete with User
   await prisma.user.delete({ where: { id } })
 
+  logAudit({ actorId: admin?.userId, actorName: admin?.name, actorRole: 'admin', action: 'user.deleted', entity: 'User', entityId: id, meta: { name: user.name, email: user.email } })
   return NextResponse.json({ ok: true })
 }

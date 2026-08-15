@@ -4,6 +4,7 @@ import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { sendPlacementEmail } from '@/lib/mailer'
 import { randomBytes } from 'crypto'
+import { logAudit } from '@/lib/audit'
 
 const DOW_TO_KEY = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
@@ -140,6 +141,7 @@ export async function POST(req) {
       ],
     }).catch(() => {})
 
+    logAudit({ actorId: student.id, actorName: student.name, actorRole: 'student', action: 'booking.created', entity: 'Booking', entityId: booking.id, meta: { date: dateLabel, time: timeStr, assessorName, assessorId } })
     return NextResponse.json({
       success: true,
       booking: { id: booking.id, date: dateLabel, time: timeStr },

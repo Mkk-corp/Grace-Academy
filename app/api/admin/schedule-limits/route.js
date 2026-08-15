@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { logAudit } from '@/lib/audit'
 
 const ADMIN_ONLY_PERMS = ['access_student_portal', 'access_assessor_portal', 'access_teacher_portal']
 const DEFAULTS = { minDays: 2, maxDays: 5, minSlots: 4, maxSlots: 32 }
@@ -145,5 +146,6 @@ export async function PUT(req) {
   }
   // ────────────────────────────────────────────────────────────────────────
 
+  logAudit({ actorId: admin?.id, actorName: admin?.name, actorRole: 'admin', action: 'schedule_limits.updated', entity: 'ScheduleConfig', entityId: 'default', meta: limits })
   return NextResponse.json({ ok: true, limits })
 }

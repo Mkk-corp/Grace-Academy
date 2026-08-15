@@ -6,9 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
-import AvailabilitySettings from '@/components/assessor/AvailabilitySettings'
 import WeeklySchedule from '@/components/assessor/WeeklySchedule'
-import WeeklyCalendar from '@/components/assessor/WeeklyCalendar'
 import SlotRequests from '@/components/assessor/SlotRequests'
 import AssignedStudents from '@/components/assessor/AssignedStudents'
 import MyAssessments from '@/components/assessor/MyAssessments'
@@ -48,13 +46,9 @@ const NAV = [
   { id: 'dashboard',   icon: 'dashboard', en: 'Dashboard',                    ar: 'الرئيسية' },
   { id: 'assessments', icon: 'clipboard', en: 'My Sessions',                  ar: 'جلساتي' },
   { id: 'schedule',    icon: 'schedule',  en: 'My Schedule',                   ar: 'جدولي' },
-  { id: 'calendar',    icon: 'calendar',  en: 'My Calendar',                   ar: 'تقويمي' },
   { id: 'requests',    icon: 'clipboard', en: 'My Requests',                   ar: 'طلباتي' },
   { id: 'students',    icon: 'students',  en: 'Assigned Students',             ar: 'الطلاب المعيّنون' },
   { id: 'reports',     icon: 'report',    en: 'Pending Reports',               ar: 'التقارير المعلّقة' },
-  { id: 'history',     icon: 'history',   en: 'Assessment History',            ar: 'سجل التقييمات' },
-  { id: 'avail',       icon: 'avail',     en: 'Availability Settings',         ar: 'إعدادات التوفر' },
-  { id: 'resources',   icon: 'resources', en: 'Resources / Assessment Guidelines', ar: 'الموارد / إرشادات التقييم' },
 ]
 
 /* ─── placeholder content per tab ───────────────────────────────────── */
@@ -695,7 +689,7 @@ export default function AssessorPage() {
             sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(o => !o)}
             search={search} onSearchChange={setSearch}
             onLogout={handleLogout}
-            onSettings={() => setActiveTab('avail')}
+            onSettings={() => setActiveTab('schedule')}
             notificationBell={<NotificationBell isDark={isDark} isAr={isAr} userId={user?.id} />}
           />
 
@@ -707,17 +701,10 @@ export default function AssessorPage() {
               ? <MyAssessments user={user} isAr={isAr} isDark={isDark} />
               : activeTab === 'students'
               ? <AssignedStudents user={user} isAr={isAr} isDark={isDark} />
-              : activeTab === 'avail'
-              ? <AvailabilitySettings user={user} isAr={isAr} isDark={isDark} />
               : activeTab === 'schedule'
               ? onboardingDone
-                ? <>
-                    <WeeklyCalendar user={user} isAr={isAr} isDark={isDark} />
-                    <WeeklySchedule user={user} isAr={isAr} isDark={isDark} onScheduleSaved={handleScheduleSaved} />
-                  </>
+                ? <WeeklySchedule user={user} isAr={isAr} isDark={isDark} onScheduleSaved={handleScheduleSaved} />
                 : <WeeklySchedule user={user} isAr={isAr} isDark={isDark} onScheduleSaved={handleScheduleSaved} />
-              : activeTab === 'calendar'
-              ? <WeeklyCalendar user={user} isAr={isAr} isDark={isDark} />
               : activeTab === 'requests'
               ? <SlotRequests user={user} isAr={isAr} isDark={isDark} />
               : <ComingSoon tab={activeTab} isAr={isAr} isDark={isDark} />

@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { sendSlotRequestNotification } from '@/lib/mailer'
+import { logAudit } from '@/lib/audit'
 
 const ADMIN_ONLY_PERMS = ['access_student_portal', 'access_assessor_portal', 'access_teacher_portal']
 
@@ -148,6 +149,7 @@ export async function POST(req) {
     console.error('[slot-request notify admins]', e.message)
   }
 
+  logAudit({ actorId: user.id, actorName: user.name, actorRole: 'assessor', action: 'slot_request.submitted', entity: 'SlotRequest', entityId: request.id, meta: { reason: request.reason } })
   return NextResponse.json({
     request: {
       id: request.id,

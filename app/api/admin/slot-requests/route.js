@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { sendSlotRequestNotification } from '@/lib/mailer'
+import { logAudit } from '@/lib/audit'
 
 const ADMIN_ONLY_PERMS = ['access_student_portal', 'access_assessor_portal', 'access_teacher_portal']
 
@@ -148,6 +149,7 @@ export async function PUT(req) {
     console.error('[slot-request resolve email]', e.message)
   }
 
+  logAudit({ actorId: admin.id, actorName: admin.name, actorRole: 'admin', action: `slot_request.${action}d`, entity: 'SlotRequest', entityId: id, meta: { assessorName: request.assessor?.name, assessorId: request.assessorId, adminNote: adminNote || null } })
   return NextResponse.json({ success: true, request: mapRequest(updated) })
 }
 
