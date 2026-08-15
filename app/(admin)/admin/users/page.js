@@ -13,8 +13,12 @@ import { DEFAULT_COUNTRY, parsePhone } from '@/lib/countries'
 const S = {
   en: {
     title: 'Users', addBtn: '+ Add User',
-    colName: 'Name', colEmail: 'Email', colPhone: 'Phone', colRole: 'Role', colSource: 'Source', colJoined: 'Joined', colActions: 'Actions',
-    emptyTitle: 'No users yet', emptyDesc: 'Users who register from the website will appear here. You can also add users manually.', emptyAction: 'Add User',
+    tabStudents: 'Students', tabStaff: 'Academy Staff',
+    colName: 'Name', colEmail: 'Email', colPhone: 'Phone', colRole: 'Role',
+    colSource: 'Source', colJoinedAt: 'Joined At', colActions: 'Actions',
+    emptyStudents: 'No students yet', emptyStudentsDesc: 'Students who register from the website will appear here.',
+    emptyStaff: 'No staff yet', emptyStaffDesc: 'Add assessors, teachers, and admin users here.',
+    emptyAction: 'Add User',
     unassigned: 'Unassigned', srcWebsite: 'Website', srcAdmin: 'Admin',
     edit: 'Edit', delete: 'Delete',
     modalAdd: 'Add User', modalEdit: 'Edit User',
@@ -36,8 +40,12 @@ const S = {
   },
   ar: {
     title: 'المستخدمون', addBtn: '+ إضافة مستخدم',
-    colName: 'الاسم', colEmail: 'البريد الإلكتروني', colPhone: 'الهاتف', colRole: 'الدور', colSource: 'المصدر', colJoined: 'تاريخ الانضمام', colActions: 'الإجراءات',
-    emptyTitle: 'لا يوجد مستخدمون بعد', emptyDesc: 'المستخدمون الذين يسجلون من الموقع سيظهرون هنا. يمكنك أيضاً إضافتهم يدوياً.', emptyAction: 'إضافة مستخدم',
+    tabStudents: 'الطلاب', tabStaff: 'فريق الأكاديمية',
+    colName: 'الاسم', colEmail: 'البريد الإلكتروني', colPhone: 'الهاتف', colRole: 'الدور',
+    colSource: 'المصدر', colJoinedAt: 'تاريخ الانضمام', colActions: 'الإجراءات',
+    emptyStudents: 'لا يوجد طلاب بعد', emptyStudentsDesc: 'الطلاب الذين يسجلون من الموقع سيظهرون هنا.',
+    emptyStaff: 'لا يوجد فريق بعد', emptyStaffDesc: 'أضف المقيّمين والمعلمين والمسؤولين من هنا.',
+    emptyAction: 'إضافة مستخدم',
     unassigned: 'غير معيَّن', srcWebsite: 'الموقع', srcAdmin: 'الإدارة',
     edit: 'تعديل', delete: 'حذف',
     modalAdd: 'إضافة مستخدم', modalEdit: 'تعديل المستخدم',
@@ -62,15 +70,18 @@ const S = {
 export default function AdminUsersPage() {
   const { lang } = useLang()
   const s = S[lang] || S.en
+  const isAr = lang === 'ar'
+
   const [users, setUsers]           = useState([])
   const [roles, setRoles]           = useState([])
   const [loading, setLoading]       = useState(true)
+  const [activeTab, setActiveTab]   = useState('students')
   const [editing, setEditing]       = useState(null)
   const [error, setError]           = useState('')
-  const [deleteTarget, setDelete]      = useState(null)  // { id, name } | null
-  const [deleteError, setDelErr]       = useState('')
-  const [deleteChecking, setDelCheck]  = useState(false)
-  const [relatedData, setRelatedData]  = useState(null)
+  const [deleteTarget, setDelete]   = useState(null)
+  const [deleteError, setDelErr]    = useState('')
+  const [deleteChecking, setDelCheck] = useState(false)
+  const [relatedData, setRelatedData] = useState(null)
 
   useEffect(() => {
     Promise.all([
@@ -78,6 +89,18 @@ export default function AdminUsersPage() {
       fetch('/api/admin/roles').then(r => r.json()),
     ]).then(([u, r]) => { setUsers(u); setRoles(r); setLoading(false) })
   }, [])
+
+  // A user is staff if their role has any permission besides access_student_portal
+  function isStaffUser(user) {
+    if (!user.roleId) return false
+    const role = roles.find(r => r.id === user.roleId)
+    if (!role) return false
+    return (role.permissions || []).some(p => p !== 'access_student_portal')
+  }
+
+  const staffUsers   = users.filter(u =>  isStaffUser(u))
+  const studentUsers = users.filter(u => !isStaffUser(u))
+  const visibleUsers = activeTab === 'staff' ? staffUsers : studentUsers
 
   async function save(user) {
     const isNew = user.id.startsWith('new')
@@ -87,10 +110,10 @@ export default function AdminUsersPage() {
       body: JSON.stringify(user),
     })
     const data = await res.json()
-    if (!res.ok) { setError(data.error || (lang === 'ar' ? 'فشل الحفظ' : 'Save failed')); return false }
+    if (!res.ok) { setError(data.error || (isAr ? 'فشل الحفظ' : 'Save failed')); return false }
     setError('')
     setUsers(await fetch('/api/admin/users').then(r => r.json()))
-    if (!isNew) setEditing(null) // edits close immediately; new-user stays open for creds screen
+    if (!isNew) setEditing(null)
     return true
   }
 
@@ -115,7 +138,7 @@ export default function AdminUsersPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: deleteTarget.id }),
     })
-    if (!res.ok) { setDelErr(lang === 'ar' ? 'فشل الحذف. حاول مرة أخرى.' : 'Delete failed. Please try again.'); return }
+    if (!res.ok) { setDelErr(isAr ? 'فشل الحذف. حاول مرة أخرى.' : 'Delete failed. Please try again.'); return }
     setUsers(prev => prev.filter(u => u.id !== deleteTarget.id))
     closeDeleteModal()
   }
@@ -123,10 +146,33 @@ export default function AdminUsersPage() {
   function roleName(roleId) { return roles.find(r => r.id === roleId)?.name || '—' }
   function formatDate(iso) {
     if (!iso) return '—'
-    return new Date(iso).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    return new Date(iso).toLocaleDateString(isAr ? 'ar-SA' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
   }
 
   const newUser = () => setEditing({ id: `new${Date.now()}`, name: '', username: '', email: '', phone: '', password: '', roleId: '', source: 'admin' })
+
+  const tabStyle = (tab) => ({
+    padding: '8px 20px',
+    borderRadius: 8,
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '.88rem',
+    fontWeight: 600,
+    transition: 'all .15s',
+    background: activeTab === tab ? 'var(--gold)' : 'transparent',
+    color: activeTab === tab ? '#fff' : 'var(--text-60)',
+  })
+
+  const tabCount = (count) => (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      minWidth: 20, height: 20, borderRadius: 10, fontSize: '.72rem', fontWeight: 700,
+      padding: '0 5px', marginInlineStart: 6,
+      background: 'rgba(255,255,255,.2)',
+    }}>
+      {count}
+    </span>
+  )
 
   return (
     <>
@@ -135,58 +181,124 @@ export default function AdminUsersPage() {
         <button className="admin-btn admin-btn--primary" onClick={newUser}>{s.addBtn}</button>
       </div>
 
+      {/* Tabs */}
+      <div style={{
+        display: 'inline-flex', gap: 4, background: 'var(--surface-2, rgba(255,255,255,.04))',
+        border: '1px solid var(--border)', borderRadius: 10, padding: 4, marginBottom: 20,
+      }}>
+        <button style={tabStyle('students')} onClick={() => setActiveTab('students')}>
+          {s.tabStudents}
+          {!loading && tabCount(studentUsers.length)}
+        </button>
+        <button style={tabStyle('staff')} onClick={() => setActiveTab('staff')}>
+          {s.tabStaff}
+          {!loading && tabCount(staffUsers.length)}
+        </button>
+      </div>
+
       {error && (
         <div style={{ background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.3)', borderRadius: 8, padding: '10px 16px', marginBottom: 16, color: '#ef4444', fontSize: '.88rem' }}>
           {error}
         </div>
       )}
 
-      {!loading && users.length === 0 && (
-        <EmptyState title={s.emptyTitle} description={s.emptyDesc} actionLabel={s.emptyAction} onAction={newUser} />
+      {/* Students tab */}
+      {activeTab === 'students' && (
+        <>
+          {!loading && studentUsers.length === 0 && (
+            <EmptyState title={s.emptyStudents} description={s.emptyStudentsDesc} actionLabel={s.emptyAction} onAction={newUser} />
+          )}
+          {(loading || studentUsers.length > 0) && (
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>{s.colName}</th>
+                    <th>{s.colEmail}</th>
+                    <th>{s.colPhone}</th>
+                    <th>{s.colSource}</th>
+                    <th>{s.colActions}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? <AdminTableSkeleton cols={5} rows={6} /> : studentUsers.map(user => (
+                    <tr key={user.id}>
+                      <td>
+                        <div style={{ fontWeight: 600 }}>{user.name || '—'}</div>
+                        {user.username && <div style={{ fontSize: '.78rem', color: 'var(--text-60)' }}>@{user.username}</div>}
+                      </td>
+                      <td style={{ fontSize: '.88rem' }}>{user.email}</td>
+                      <td style={{ fontSize: '.88rem', color: 'var(--text-60)' }}>{user.phone || '—'}</td>
+                      <td>
+                        <span style={{
+                          background: user.source === 'website' ? 'rgba(74,222,128,.1)' : 'rgba(96,165,250,.1)',
+                          border: `1px solid ${user.source === 'website' ? 'rgba(74,222,128,.3)' : 'rgba(96,165,250,.3)'}`,
+                          color: user.source === 'website' ? '#4ade80' : '#60a5fa',
+                          borderRadius: 4, fontSize: '.75rem', padding: '2px 7px',
+                        }}>
+                          {user.source === 'website' ? s.srcWebsite : s.srcAdmin}
+                        </span>
+                      </td>
+                      <td style={{ display: 'flex', gap: 8 }}>
+                        <button className="admin-btn" onClick={() => setEditing({ ...user, password: '' })}>{s.edit}</button>
+                        <button className="admin-btn admin-btn--danger" onClick={() => handleDeleteClick(user)}>{s.delete}</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
-      {(loading || users.length > 0) && (
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>{s.colName}</th><th>{s.colEmail}</th><th>{s.colPhone}</th>
-                <th>{s.colRole}</th><th>{s.colSource}</th><th>{s.colJoined}</th><th>{s.colActions}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? <AdminTableSkeleton cols={7} rows={6} /> : users.map(user => (
-                <tr key={user.id}>
-                  <td>
-                    <div style={{ fontWeight: 600 }}>{user.name || '—'}</div>
-                    {user.username && <div style={{ fontSize: '.78rem', color: 'var(--text-60)' }}>@{user.username}</div>}
-                  </td>
-                  <td style={{ fontSize: '.88rem' }}>{user.email}</td>
-                  <td style={{ fontSize: '.88rem', color: 'var(--text-60)' }}>{user.phone || '—'}</td>
-                  <td>
-                    {user.roleId
-                      ? <span style={{ background: 'rgba(201,147,44,.1)', border: '1px solid rgba(201,147,44,.2)', color: 'var(--gold)', borderRadius: 4, fontSize: '.78rem', padding: '2px 8px' }}>{roleName(user.roleId)}</span>
-                      : <span style={{ color: 'var(--text-40)', fontSize: '.82rem' }}>{s.unassigned}</span>}
-                  </td>
-                  <td>
-                    <span style={{
-                      background: user.source === 'website' ? 'rgba(74,222,128,.1)' : 'rgba(96,165,250,.1)',
-                      border: `1px solid ${user.source === 'website' ? 'rgba(74,222,128,.3)' : 'rgba(96,165,250,.3)'}`,
-                      color: user.source === 'website' ? '#4ade80' : '#60a5fa',
-                      borderRadius: 4, fontSize: '.75rem', padding: '2px 7px',
-                    }}>
-                      {user.source === 'website' ? s.srcWebsite : s.srcAdmin}
-                    </span>
-                  </td>
-                  <td style={{ fontSize: '.82rem', color: 'var(--text-60)' }}>{formatDate(user.createdAt)}</td>
-                  <td style={{ display: 'flex', gap: 8 }}>
-                    <button className="admin-btn" onClick={() => setEditing({ ...user, password: '' })}>{s.edit}</button>
-                    <button className="admin-btn admin-btn--danger" onClick={() => handleDeleteClick(user)}>{s.delete}</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+
+      {/* Staff tab */}
+      {activeTab === 'staff' && (
+        <>
+          {!loading && staffUsers.length === 0 && (
+            <EmptyState title={s.emptyStaff} description={s.emptyStaffDesc} actionLabel={s.emptyAction} onAction={newUser} />
+          )}
+          {(loading || staffUsers.length > 0) && (
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>{s.colName}</th>
+                    <th>{s.colEmail}</th>
+                    <th>{s.colPhone}</th>
+                    <th>{s.colRole}</th>
+                    <th>{s.colJoinedAt}</th>
+                    <th>{s.colActions}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? <AdminTableSkeleton cols={6} rows={6} /> : staffUsers.map(user => (
+                    <tr key={user.id}>
+                      <td>
+                        <div style={{ fontWeight: 600 }}>{user.name || '—'}</div>
+                        {user.username && <div style={{ fontSize: '.78rem', color: 'var(--text-60)' }}>@{user.username}</div>}
+                      </td>
+                      <td style={{ fontSize: '.88rem' }}>{user.email}</td>
+                      <td style={{ fontSize: '.88rem', color: 'var(--text-60)' }}>{user.phone || '—'}</td>
+                      <td>
+                        {user.roleId
+                          ? <span style={{ background: 'rgba(201,147,44,.1)', border: '1px solid rgba(201,147,44,.2)', color: 'var(--gold)', borderRadius: 4, fontSize: '.78rem', padding: '2px 8px' }}>{roleName(user.roleId)}</span>
+                          : <span style={{ color: 'var(--text-40)', fontSize: '.82rem' }}>{s.unassigned}</span>}
+                      </td>
+                      <td style={{ fontSize: '.82rem', color: 'var(--text-60)', whiteSpace: 'nowrap' }}>
+                        {formatDate(user.createdAt)}
+                      </td>
+                      <td style={{ display: 'flex', gap: 8 }}>
+                        <button className="admin-btn" onClick={() => setEditing({ ...user, password: '' })}>{s.edit}</button>
+                        <button className="admin-btn admin-btn--danger" onClick={() => handleDeleteClick(user)}>{s.delete}</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
 
       {editing && <UserModal user={editing} roles={roles} onSave={save} onClose={() => { setEditing(null); setError('') }} s={s} />}
@@ -213,7 +325,7 @@ export default function AdminUsersPage() {
         ) : (
           <>
             <p style={{ fontSize: '.875rem', color: 'var(--text-60)', marginBottom: 10 }}>{s.deleteWillRemove}</p>
-            <ul style={{ margin: '0 0 10px', padding: lang === 'ar' ? '0 18px 0 0' : '0 0 0 18px', fontSize: '.85rem', color: 'var(--text-70)', lineHeight: 2 }}>
+            <ul style={{ margin: '0 0 10px', padding: isAr ? '0 18px 0 0' : '0 0 0 18px', fontSize: '.85rem', color: 'var(--text-70)', lineHeight: 2 }}>
               {relatedData?.bookingCount > 0 && (
                 <li style={{ color: '#dc2626', fontWeight: 600 }}>{relatedData.bookingCount} {s.deleteSessions}</li>
               )}
@@ -232,7 +344,7 @@ export default function AdminUsersPage() {
   )
 }
 
-/* ── Copy field with clipboard button ───────────────────────────────── */
+/* ── Copy field with clipboard button ──────────────────────────────────── */
 function CopyField({ label, value, isDark }) {
   const [copied, setCopied] = useState(false)
   function copy() {
@@ -279,6 +391,7 @@ function CopyField({ label, value, isDark }) {
   )
 }
 
+/* ── User create / edit modal ──────────────────────────────────────────── */
 function UserModal({ user, roles, onSave, onClose, s }) {
   const { lang } = useLang()
   const { theme } = useTheme()
@@ -286,7 +399,7 @@ function UserModal({ user, roles, onSave, onClose, s }) {
   const isDark = theme === 'dark'
   const [form, setForm] = useState(user)
   const [saving, setSaving] = useState(false)
-  const [creds, setCreds] = useState(null) // null | { email, username, password }
+  const [creds, setCreds] = useState(null)
   const isNew = user.id.startsWith('new')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -297,15 +410,13 @@ function UserModal({ user, roles, onSave, onClose, s }) {
   async function handleSave() {
     if (saving) return
     setSaving(true)
-    const phone = phoneNumber.trim()
-      ? `${phoneCountry.dial} ${phoneNumber.trim()}`
-      : ''
+    const phone = phoneNumber.trim() ? `${phoneCountry.dial} ${phoneNumber.trim()}` : ''
     const ok = await onSave({ ...form, phone })
     if (!ok) { setSaving(false); return }
     if (isNew) setCreds({ email: form.email, username: form.username, password: form.password })
   }
 
-  /* ── Success / credentials screen ── */
+  /* Credentials screen shown after successful creation */
   if (creds) {
     return (
       <div className="admin-modal">
@@ -329,8 +440,8 @@ function UserModal({ user, roles, onSave, onClose, s }) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
-            <CopyField label={isAr ? 'البريد الإلكتروني' : 'Email'} value={creds.email} isDark={isDark} />
-            <CopyField label={isAr ? 'اسم المستخدم' : 'Username'} value={creds.username} isDark={isDark} />
+            <CopyField label={isAr ? 'البريد الإلكتروني' : 'Email'}             value={creds.email}    isDark={isDark} />
+            <CopyField label={isAr ? 'اسم المستخدم'      : 'Username'}          value={creds.username} isDark={isDark} />
             <CopyField label={isAr ? 'كلمة المرور المؤقتة' : 'Temporary Password'} value={creds.password} isDark={isDark} />
           </div>
 
@@ -344,7 +455,7 @@ function UserModal({ user, roles, onSave, onClose, s }) {
     )
   }
 
-  /* ── Form ── */
+  /* Form */
   return (
     <div className="admin-modal">
       <div className="admin-modal__box">
@@ -405,9 +516,7 @@ function UserModal({ user, roles, onSave, onClose, s }) {
         <div className="admin-actions">
           <button className="admin-btn" onClick={onClose} disabled={saving}>{s.cancel}</button>
           <button className="admin-btn admin-btn--primary" onClick={handleSave} disabled={saving}>
-            {saving
-              ? <>{isAr ? 'جارٍ الحفظ…' : 'Saving…'}</>
-              : isNew ? s.create : s.saveChanges}
+            {saving ? (isAr ? 'جارٍ الحفظ…' : 'Saving…') : isNew ? s.create : s.saveChanges}
           </button>
         </div>
       </div>

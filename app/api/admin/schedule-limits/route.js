@@ -18,6 +18,22 @@ async function getAdmin() {
   return permissions.some(p => !ADMIN_ONLY_PERMS.includes(p)) ? user : null
 }
 
+function countScheduleStats(dayMap) {
+  if (!dayMap || typeof dayMap !== 'object') return { totalSlots: 0, activeDays: 0 }
+  const totalSlots = Object.values(dayMap).reduce((s, v) => s + (Array.isArray(v) ? v.length : 0), 0)
+  const activeDays = Object.keys(dayMap).filter(k => Array.isArray(dayMap[k]) && dayMap[k].length > 0).length
+  return { totalSlots, activeDays }
+}
+
+function violationBody(totalSlots, activeDays, minSlots, maxSlots, minDays, maxDays) {
+  const parts = []
+  if (totalSlots < minSlots) parts.push(`too few slots (${totalSlots}/${minSlots} minimum)`)
+  if (totalSlots > maxSlots) parts.push(`too many slots (${totalSlots}/${maxSlots} maximum)`)
+  if (activeDays < minDays) parts.push(`too few active days (${activeDays}/${minDays} minimum)`)
+  if (activeDays > maxDays) parts.push(`too many active days (${activeDays}/${maxDays} maximum)`)
+  return `Schedule limits updated. Your schedule requires adjustment: ${parts.join('; ')}. Please submit a schedule change request.`
+}
+
 export async function GET() {
   const admin = await getAdmin()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -55,6 +71,79 @@ export async function PUT(req) {
     update: limits,
     create: { id: 'default', ...limits },
   })
+
+  // ── Notify all staff of the change and flag non-compliant assessors ──────
+  try {
+    const [assessorRoles, teacherRoles] = await Promise.all([
+      prisma.role.findMany({ where: { permissions: { has: 'access_assessor_portal' } }, select: { id: true } }),
+      prisma.role.findMany({ where: { permissions: { has: 'access_teacher_portal' } }, select: { id: true } }),
+    ])
+
+    const staffRoleIds = [...assessorRoles, ...teacherRoles].map(r => r.id)
+
+    const staffUsers = staffRoleIds.length
+      ? await prisma.user.findMany({
+          where: { roleId: { in: staffRoleIds } },
+          select: { id: true, scheduleTemplate: { select: { schedule: true } } },
+        })
+      : []
+
+    const notifData = []
+
+    // Broadcast to all admins
+    notifData.push({
+      recipientType: 'admin',
+      recipientId: null,
+      type: 'schedule_limits_updated',
+      title: 'Schedule Limits Updated',
+      body: `Schedule slot limits have been changed to: ${minSlots}–${maxSlots} slots, ${minDays}–${maxDays} active days.`,
+      meta: limits,
+    })
+
+    for (const u of staffUsers) {
+      const dayMap = u.scheduleTemplate?.schedule ?? null
+
+      if (!dayMap) {
+        // No schedule yet — just inform
+        notifData.push({
+          recipientType: 'user', recipientId: u.id,
+          type: 'schedule_limits_updated',
+          title: 'Schedule Limits Updated',
+          body: `The academy has updated schedule requirements: ${minSlots}–${maxSlots} slots across ${minDays}–${maxDays} days.`,
+          meta: { ...limits, compliant: null },
+        })
+        continue
+      }
+
+      const { totalSlots, activeDays } = countScheduleStats(dayMap)
+      const slotOk = totalSlots >= minSlots && totalSlots <= maxSlots
+      const dayOk  = activeDays >= minDays  && activeDays <= maxDays
+      const compliant = slotOk && dayOk
+
+      if (compliant) {
+        notifData.push({
+          recipientType: 'user', recipientId: u.id,
+          type: 'schedule_limits_updated',
+          title: 'Schedule Limits Updated — You\'re Compliant',
+          body: `Slot limits changed. Your schedule (${totalSlots} slots, ${activeDays} days) already meets the new requirements.`,
+          meta: { ...limits, totalSlots, activeDays, compliant: true },
+        })
+      } else {
+        notifData.push({
+          recipientType: 'user', recipientId: u.id,
+          type: 'schedule_compliance_required',
+          title: 'Schedule Update Required',
+          body: violationBody(totalSlots, activeDays, minSlots, maxSlots, minDays, maxDays),
+          meta: { ...limits, totalSlots, activeDays, compliant: false },
+        })
+      }
+    }
+
+    if (notifData.length) await prisma.notification.createMany({ data: notifData })
+  } catch (e) {
+    console.error('[schedule-limits] notification error:', e.message)
+  }
+  // ────────────────────────────────────────────────────────────────────────
 
   return NextResponse.json({ ok: true, limits })
 }

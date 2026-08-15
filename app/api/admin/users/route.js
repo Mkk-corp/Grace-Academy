@@ -55,11 +55,12 @@ export async function POST(request) {
     select: SAFE_SELECT,
   })
 
-  // Send welcome email if the assigned role is an assessor role
+  // Send welcome email if the assigned role is assessor / academic consultant
+  // Awaited intentionally — serverless functions cut off fire-and-forget promises after response.
   if (roleId) {
     const role = await prisma.role.findUnique({ where: { id: roleId } }).catch(() => null)
     if (role?.name?.toLowerCase().includes('assessor') || role?.name?.toLowerCase().includes('academic consultant')) {
-      sendAssessorWelcomeEmail({
+      await sendAssessorWelcomeEmail({
         to:       email,
         name:     name || username,
         username,

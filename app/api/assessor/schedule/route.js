@@ -45,6 +45,8 @@ function validateSchedule(schedule) {
   return null
 }
 
+const SCHEDULE_CONFIG_DEFAULTS = { minDays: 2, maxDays: 5, minSlots: 4, maxSlots: 32 }
+
 export async function GET() {
   const user = await getAuthUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -52,8 +54,16 @@ export async function GET() {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const template = await prisma.scheduleTemplate.findUnique({ where: { userId: user.id } })
-  return NextResponse.json({ schedule: template?.schedule ?? null })
+  const [template, configRow] = await Promise.all([
+    prisma.scheduleTemplate.findUnique({ where: { userId: user.id } }),
+    prisma.scheduleConfig.findUnique({ where: { id: 'default' } }),
+  ])
+
+  const config = configRow
+    ? { minDays: configRow.minDays, maxDays: configRow.maxDays, minSlots: configRow.minSlots, maxSlots: configRow.maxSlots }
+    : SCHEDULE_CONFIG_DEFAULTS
+
+  return NextResponse.json({ schedule: template?.schedule ?? null, config })
 }
 
 export async function POST(req) {

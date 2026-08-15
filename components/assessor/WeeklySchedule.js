@@ -331,7 +331,7 @@ function ScheduleReadView({ scheduleData, isAr, isDark }) {
 }
 
 // ─── Main component ────────────────────────────────────────────────────────
-export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) {
+export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved, hideReadView = false }) {
   const [scheduleData, setScheduleData] = useState(undefined)
   const [requests, setRequests]         = useState([])
   const [loading, setLoading]           = useState(true)
@@ -571,12 +571,14 @@ export default function WeeklySchedule({ user, isAr, isDark, onScheduleSaved }) 
               </div>
             )}
 
-            <div style={{ marginBottom: showRequestForm ? 28 : 0 }}>
-              <div style={{ fontSize: '.74rem', fontWeight: 700, letterSpacing: isAr ? 0 : '.1em', color: 'var(--as-xmuted)', textTransform: 'uppercase', marginBottom: 12 }}>
-                {isAr ? 'الجدول الحالي' : 'CURRENT SCHEDULE'}
+            {!hideReadView && (
+              <div style={{ marginBottom: showRequestForm ? 28 : 0 }}>
+                <div style={{ fontSize: '.74rem', fontWeight: 700, letterSpacing: isAr ? 0 : '.1em', color: 'var(--as-xmuted)', textTransform: 'uppercase', marginBottom: 12 }}>
+                  {isAr ? 'الجدول الحالي' : 'CURRENT SCHEDULE'}
+                </div>
+                <ScheduleReadView scheduleData={scheduleData} isAr={isAr} isDark={isDark} />
               </div>
-              <ScheduleReadView scheduleData={scheduleData} isAr={isAr} isDark={isDark} />
-            </div>
+            )}
 
             {/* ─── REQUEST CHANGE FORM ─── */}
             {showRequestForm && (

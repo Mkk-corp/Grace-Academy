@@ -92,6 +92,31 @@ export async function PUT(req) {
       update: { schedule: request.proposedSchedule },
       create: { userId: request.assessorId, schedule: request.proposedSchedule },
     })
+
+    // Check if the approved schedule now complies with current limits
+    try {
+      const cfg = await prisma.scheduleConfig.findUnique({ where: { id: 'default' } })
+      const lim = cfg || { minDays: 2, maxDays: 5, minSlots: 4, maxSlots: 32 }
+      const dm  = request.proposedSchedule || {}
+      const totalSlots = Object.values(dm).reduce((s, v) => s + (Array.isArray(v) ? v.length : 0), 0)
+      const activeDays = Object.keys(dm).filter(k => Array.isArray(dm[k]) && dm[k].length > 0).length
+      const compliant  = totalSlots >= lim.minSlots && totalSlots <= lim.maxSlots
+                      && activeDays >= lim.minDays  && activeDays <= lim.maxDays
+      if (compliant) {
+        await prisma.notification.create({
+          data: {
+            recipientType: 'user',
+            recipientId: request.assessorId,
+            type: 'schedule_compliance_ok',
+            title: 'Schedule Now Compliant',
+            body: `Your updated schedule (${totalSlots} slots, ${activeDays} days) meets all current requirements. No further action needed.`,
+            meta: { totalSlots, activeDays, ...lim },
+          },
+        })
+      }
+    } catch (e) {
+      console.error('[slot-request approve] compliance check error:', e.message)
+    }
   }
 
   await prisma.notification.create({

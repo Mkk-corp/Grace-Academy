@@ -54,13 +54,10 @@ function Icon({ name, size = 18, color = 'currentColor' }) {
 }
 
 const NAV_ITEMS = [
-  { id: 'dashboard',   labelEn: 'Dashboard',       labelAr: 'الرئيسية',           icon: 'grid'     },
-  { id: 'placement',  labelEn: 'Placement Test',  labelAr: 'اختبار التحديد',     icon: 'award'    },
-  { id: 'my-sessions',labelEn: 'My Sessions',     labelAr: 'جلساتي',             icon: 'video'    },
-  { id: 'certs',     labelEn: 'Certificates',    labelAr: 'الشهادات',           icon: 'award'    },
-  { id: 'schedule',  labelEn: 'Schedule',        labelAr: 'الجدول الزمني',      icon: 'calendar' },
-  { id: 'resources', labelEn: 'Resources',       labelAr: 'الموارد',            icon: 'folder'   },
-  { id: 'messages',  labelEn: 'Messages',        labelAr: 'الرسائل',            icon: 'mail'     },
+  { id: 'dashboard',   labelEn: 'Dashboard',      labelAr: 'الرئيسية',       icon: 'grid'  },
+  { id: 'placement',   labelEn: 'Placement Test', labelAr: 'اختبار التحديد', icon: 'award' },
+  { id: 'my-sessions', labelEn: 'My Sessions',    labelAr: 'جلساتي',         icon: 'video' },
+  { id: 'messages',    labelEn: 'Messages',       labelAr: 'الرسائل',        icon: 'mail'  },
 ]
 
 
@@ -100,14 +97,23 @@ export default function PortalPage() {
 
       setUser(me.user)
 
-      // Check placement booking → gate onboarding
+      // Staff (admin-created users with a role) never see student onboarding
+      const isStaff = me.user.source === 'admin' && !!me.user.roleId
+      // Persist "onboarding complete" in localStorage keyed by user ID so the
+      // popup never reappears even after the placement booking date has passed
+      const lsKey = `ga_placement_done_${me.user.id}`
+      const alreadyDone = !!localStorage.getItem(lsKey)
+
       try {
         const placRes  = await fetch('/api/placement/upcoming')
         const placData = await placRes.json()
         const hasBooking = !!placData?.booking
         setStats(s => ({ ...s, placement: hasBooking ? 'confirmed' : null }))
-        if (!hasBooking) setShowOnboarding(true)
-      } catch { setShowOnboarding(true) }
+        if (hasBooking && !alreadyDone) localStorage.setItem(lsKey, '1')
+        if (!isStaff && !alreadyDone && !hasBooking) setShowOnboarding(true)
+      } catch {
+        if (!isStaff && !alreadyDone) setShowOnboarding(true)
+      }
 
       setLoading(false)
     }
@@ -524,6 +530,7 @@ export default function PortalPage() {
             <PlacementTest
               user={user} isAr={isAr} isDark={isDark}
               onBooked={() => {
+                if (user?.id) localStorage.setItem(`ga_placement_done_${user.id}`, '1')
                 setShowOnboarding(false)
                 setStats(s => ({ ...s, placement: 'confirmed' }))
               }}
