@@ -57,11 +57,11 @@ model User {
 }
 
 model Booking {
-  id                String   @id @default(cuid())
+  id                String             @id @default(cuid())
   studentId         String
-  student           User     @relation("StudentBookings",  fields: [studentId],  references: [id], onDelete: Cascade)
+  student           User               @relation("StudentBookings",  fields: [studentId],  references: [id], onDelete: Cascade)
   assessorId        String
-  assessor          User     @relation("AssessorBookings", fields: [assessorId], references: [id], onDelete: Cascade)
+  assessor          User               @relation("AssessorBookings", fields: [assessorId], references: [id], onDelete: Cascade)
   studentName       String
   studentEmail      String
   assessorName      String
@@ -70,10 +70,33 @@ model Booking {
   dayKey            String
   slotMin           Int
   meetLink          String?
-  status            String   @default("confirmed")
-  reminderSent      Boolean  @default(false)
-  emailReminderSent Boolean  @default(false)
-  createdAt         DateTime @default(now())
+  recordingLink     String?
+  status            String             @default("confirmed")
+  reminderSent      Boolean            @default(false)
+  emailReminderSent Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  report            AssessmentReport?
+}
+
+model AssessmentReport {
+  id              String   @id @default(cuid())
+  bookingId       String   @unique
+  booking         Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  assessorId      String
+  studentId       String
+  studentName     String
+  studentEmail    String
+  assessorName    String
+  date            String
+  slotMin         Int
+  feedback        String
+  englishLevel    String
+  suggestedCourse String
+  submittedAt     DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([assessorId])
+  @@index([studentId])
 }
 
 model ScheduleTemplate {

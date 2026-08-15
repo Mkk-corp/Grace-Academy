@@ -10,6 +10,7 @@ import WeeklySchedule from '@/components/assessor/WeeklySchedule'
 import SlotRequests from '@/components/assessor/SlotRequests'
 import AssignedStudents from '@/components/assessor/AssignedStudents'
 import MyAssessments from '@/components/assessor/MyAssessments'
+import PendingReports from '@/components/assessor/PendingReports'
 import UpcomingSession from '@/components/shared/UpcomingSession'
 import OnboardingOverlay from '@/components/assessor/OnboardingOverlay'
 import PortalTopbar from '@/components/portal/PortalTopbar'
@@ -707,6 +708,8 @@ export default function AssessorPage() {
                 : <WeeklySchedule user={user} isAr={isAr} isDark={isDark} onScheduleSaved={handleScheduleSaved} />
               : activeTab === 'requests'
               ? <SlotRequests user={user} isAr={isAr} isDark={isDark} />
+              : activeTab === 'reports'
+              ? <PendingReports isAr={isAr} isDark={isDark} />
               : <ComingSoon tab={activeTab} isAr={isAr} isDark={isDark} />
             }
           </main>
