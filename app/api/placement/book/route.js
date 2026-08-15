@@ -112,25 +112,37 @@ export async function POST(req) {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     })
 
-    sendPlacementEmail({ to: student.email,  role: 'student',  studentName: student.name, assessorName, date: dateLabel, time: timeStr, meetLink })
+    // Confirmation emails — no meet link (link is sent in the 5-min reminder instead)
+    sendPlacementEmail({ to: student.email,  role: 'student',  studentName: student.name, assessorName, date: dateLabel, time: timeStr })
       .catch(err => console.error('[mailer] student placement email failed:', err?.message))
-    sendPlacementEmail({ to: assessorEmail,   role: 'assessor', studentName: student.name, assessorName, date: dateLabel, time: timeStr, meetLink })
+    sendPlacementEmail({ to: assessorEmail,   role: 'assessor', studentName: student.name, assessorName, date: dateLabel, time: timeStr })
       .catch(err => console.error('[mailer] assessor placement email failed:', err?.message))
 
-    prisma.notification.create({
-      data: {
-        recipientType: 'user',
-        recipientId:   assessorId,
-        type:          'placement_booked',
-        title:         'New Placement Assessment Booked',
-        body:          `A student has booked a placement session on ${dateLabel} at ${timeStr}.`,
-        meta:          { date: dateLabel, time: timeStr, studentName: student.name, meetLink, bookingId: booking.id },
-      },
+    // In-app notifications — meetLink is included here so it surfaces in the notification centre
+    prisma.notification.createMany({
+      data: [
+        {
+          recipientType: 'user',
+          recipientId:   assessorId,
+          type:          'placement_booked',
+          title:         'New Placement Assessment Booked',
+          body:          `A new session with ${student.name} is confirmed for ${dateLabel} at ${timeStr}. Your meeting link is ready — it will also be sent in your reminder 5 min before.`,
+          meta:          { date: dateLabel, time: timeStr, studentName: student.name, meetLink, bookingId: booking.id },
+        },
+        {
+          recipientType: 'user',
+          recipientId:   student.id,
+          type:          'placement_booked',
+          title:         'Placement Session Confirmed',
+          body:          `Your placement assessment with ${assessorName} is confirmed for ${dateLabel} at ${timeStr}. Your meeting link will be sent in your reminder 5 min before the session.`,
+          meta:          { date: dateLabel, time: timeStr, assessorName, meetLink, bookingId: booking.id },
+        },
+      ],
     }).catch(() => {})
 
     return NextResponse.json({
       success: true,
-      booking: { id: booking.id, date: dateLabel, time: timeStr, meetLink },
+      booking: { id: booking.id, date: dateLabel, time: timeStr },
     })
   } catch (err) {
     console.error('[placement/book] unexpected error:', err?.message)

@@ -31,8 +31,7 @@ export async function POST(req) {
   const dateLabel = new Date(booking.date + 'T12:00:00').toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   })
-  const notifBody = `Your placement assessment starts in 3 minutes on ${dateLabel} at ${timeStr}.`
-  const meta      = { date: dateLabel, time: timeStr, bookingId }
+  const meta = { date: dateLabel, time: timeStr, bookingId, meetLink: booking.meetLink }
 
   await prisma.notification.createMany({
     data: [
@@ -40,17 +39,17 @@ export async function POST(req) {
         recipientType: 'user',
         recipientId:   booking.studentId,
         type:          'placement_reminder',
-        title:         'Session Starting Soon',
-        body:          notifBody,
+        title:         'Session Starting in 3 Minutes',
+        body:          `Your placement assessment starts in 3 minutes at ${timeStr}. Tap to join.`,
         meta,
       },
       {
         recipientType: 'user',
         recipientId:   booking.assessorId,
         type:          'placement_reminder',
-        title:         'Session Starting Soon',
-        body:          notifBody,
-        meta,
+        title:         'Session Starting in 3 Minutes',
+        body:          `Your placement session with ${booking.studentName} starts in 3 minutes at ${timeStr}. Tap to join as host.`,
+        meta: { ...meta, studentName: booking.studentName },
       },
     ],
   })

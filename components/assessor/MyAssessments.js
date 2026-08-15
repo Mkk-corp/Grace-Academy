@@ -16,7 +16,7 @@ function isJoinable(date, slotMin) {
   const m = slotMin % 60
   const start = new Date(y, mo - 1, d, h, m, 0)
   const diffSecs = (start.getTime() - Date.now()) / 1000
-  return diffSecs <= 180 && diffSecs >= -1800
+  return diffSecs <= 300 && diffSecs >= -1800
 }
 
 export default function MyAssessments({ isAr, isDark }) {
