@@ -52,7 +52,7 @@ export default function WeeklyCalendar({ user, isAr, isDark }) {
     try {
       const res  = await fetch('/api/assessor/schedule')
       const data = await res.json()
-      if (data.schedule?.schedule) setSchedule(data.schedule.schedule)
+      if (data.schedule) setSchedule(data.schedule)
     } catch (e) {
       console.error('[WeeklyCalendar]', e)
     } finally {
