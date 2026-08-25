@@ -5,6 +5,8 @@ import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 import Modal from '@/components/ui/Modal'
 import EmptyState from '@/components/ui/EmptyState'
 import { useLang } from '@/context/LangContext'
+import Pagination from '@/components/ui/Pagination'
+import TableToolbar from '@/components/ui/TableToolbar'
 
 const S = {
   en: {
@@ -48,6 +50,7 @@ export default function AdminPortfolioPage() {
   const [loading, setLoading]     = useState(true)
   const [editing, setEditing]     = useState(null)
   const [deleteTarget, setDelete] = useState(null)
+  const [page, setPage]           = useState(1)
 
   const blank = () => ({ id: `new${Date.now()}`, thumbLabel: '', category: { en: '', ar: '' }, title: { en: '', ar: '' }, challenge: { en: '', ar: '' }, approach: { en: '', ar: '' }, outcome: { en: '', ar: '' } })
 
@@ -76,22 +79,39 @@ export default function AdminPortfolioPage() {
       {!loading && items.length === 0 && (
         <EmptyState title={s.emptyTitle} description={s.emptyDesc} actionLabel={s.emptyAction} onAction={() => setEditing(blank())} />
       )}
+      {!loading && items.length > 0 && (
+        <TableToolbar
+          hasDateFilter={false}
+          exportData={items}
+          exportCols={[
+            { header: 'Title', value: r => r.title?.en || '' },
+            { header: 'Title (AR)', value: r => r.title?.ar || '' },
+            { header: 'Category', value: r => r.category?.en || '' },
+          ]}
+          exportFilename="portfolio"
+          exportTitle="Portfolio"
+          isAr={lang === 'ar'}
+        />
+      )}
       {(loading || items.length > 0) && (
-        <table className="admin-table">
-          <thead><tr><th>{s.colTitle}</th><th>{s.colCategory}</th><th>{s.colActions}</th></tr></thead>
-          <tbody>
-            {loading ? <AdminTableSkeleton cols={3} rows={6} /> : items.map(item => (
-              <tr key={item.id}>
-                <td>{item.title.en}</td>
-                <td>{item.category.en}</td>
-                <td style={{ display: 'flex', gap: 8 }}>
-                  <button className="admin-btn" onClick={() => setEditing({ ...item })}>{lang === 'ar' ? 'تعديل' : 'Edit'}</button>
-                  <button className="admin-btn admin-btn--danger" onClick={() => setDelete(item.id)}>{lang === 'ar' ? 'حذف' : 'Delete'}</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div style={{ background: 'var(--surface)', borderRadius: 'var(--r-lg)', overflow: 'hidden', border: '1px solid var(--border)' }}>
+          <table className="admin-table" style={{ borderRadius: 0 }}>
+            <thead><tr><th>{s.colTitle}</th><th>{s.colCategory}</th><th>{s.colActions}</th></tr></thead>
+            <tbody>
+              {loading ? <AdminTableSkeleton cols={3} rows={6} /> : items.slice((page-1)*25, page*25).map(item => (
+                <tr key={item.id}>
+                  <td>{item.title.en}</td>
+                  <td>{item.category.en}</td>
+                  <td style={{ display: 'flex', gap: 8 }}>
+                    <button className="admin-btn" onClick={() => setEditing({ ...item })}>{lang === 'ar' ? 'تعديل' : 'Edit'}</button>
+                    <button className="admin-btn admin-btn--danger" onClick={() => setDelete(item.id)}>{lang === 'ar' ? 'حذف' : 'Delete'}</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {!loading && <Pagination page={page} total={items.length} onChange={setPage} />}
+        </div>
       )}
 
       {editing && <PortfolioModal item={editing} onSave={save} onClose={() => setEditing(null)} s={s} />}

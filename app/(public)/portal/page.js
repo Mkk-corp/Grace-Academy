@@ -12,6 +12,7 @@ import MySessions from '@/components/student/MySessions'
 import UpcomingSession from '@/components/shared/UpcomingSession'
 import PortalTopbar from '@/components/portal/PortalTopbar'
 import StudentOnboarding from '@/components/student/StudentOnboarding'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 /* ── service icon map ─────────────────────────────────────────────── */
 function SvcIcon({ slug, size = 18 }) {
@@ -518,6 +519,23 @@ export default function PortalPage() {
             search={search} onSearchChange={setSearch}
             onLogout={handleLogout}
             onSettings={() => setActiveNav('settings')}
+          />
+
+          {/* ── BREADCRUMB ── */}
+          <Breadcrumb
+            isAr={isAr}
+            isDark={isDark}
+            crumbs={[
+              {
+                label: isAr ? 'بوابة الطالب' : 'Student Portal',
+                onClick: activeNav !== 'dashboard' ? () => setActiveNav('dashboard') : undefined,
+              },
+              {
+                label: isAr
+                  ? (activeNav === 'settings' ? 'الإعدادات' : NAV_ITEMS.find(n => n.id === activeNav)?.labelAr || 'الرئيسية')
+                  : (activeNav === 'settings' ? 'Settings'  : NAV_ITEMS.find(n => n.id === activeNav)?.labelEn || 'Dashboard'),
+              },
+            ]}
           />
 
           {/* ── CONTENT ── */}

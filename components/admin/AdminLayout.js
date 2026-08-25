@@ -373,6 +373,11 @@ export default function AdminLayout({ children }) {
 
             <div style={{ height: 1, background: border, margin: '8px 12px' }} />
 
+            {/* Placement Tests */}
+            <NavLink href="/admin/placement-tests" label={isAr ? 'اختبارات التحديد' : 'Placement Tests'} icon="assessor" startsWith />
+
+            <div style={{ height: 1, background: border, margin: '8px 12px' }} />
+
             {/* Data Center */}
             <NavLink href="/admin/datacenter" label={isAr ? 'مركز البيانات' : 'Data Center'} icon="database" startsWith />
 

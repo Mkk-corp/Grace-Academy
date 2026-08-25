@@ -5,6 +5,8 @@ import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 import Modal from '@/components/ui/Modal'
 import EmptyState from '@/components/ui/EmptyState'
 import { useLang } from '@/context/LangContext'
+import Pagination from '@/components/ui/Pagination'
+import TableToolbar from '@/components/ui/TableToolbar'
 
 const S = {
   en: {
@@ -34,6 +36,9 @@ export default function AdminContactPage() {
   const [loading, setLoading]     = useState(true)
   const [selected, setSelected]   = useState(null)
   const [deleteTarget, setDelete] = useState(null)
+  const [page, setPage]           = useState(1)
+  const [dateFrom, setDateFrom]   = useState('')
+  const [dateTo, setDateTo]       = useState('')
 
   useEffect(() => {
     fetch('/api/contact').then(r => r.json()).then(msgs => { setMessages(msgs.reverse()); setLoading(false) })
@@ -53,6 +58,21 @@ export default function AdminContactPage() {
   }
 
   const unreadCount = messages.filter(m => !m.read).length
+
+  const messagesFiltered = messages.filter(m => {
+    const d = m.submittedAt ? m.submittedAt.substring(0, 10) : null
+    if (dateFrom && (!d || d < dateFrom)) return false
+    if (dateTo   && (!d || d > dateTo))   return false
+    return true
+  })
+
+  const contactExportCols = [
+    { header: 'Name',    value: r => r.name    || '' },
+    { header: 'Email',   value: r => r.email   || '' },
+    { header: 'Phone',   value: r => r.phone   || '' },
+    { header: 'Date',    value: r => r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('en-GB') : '' },
+    { header: 'Message', value: r => r.message || '' },
+  ]
 
   return (
     <>
@@ -74,33 +94,47 @@ export default function AdminContactPage() {
       {(loading || messages.length > 0) && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div>
-            <table className="admin-table">
-              <thead><tr><th>{s.colFrom}</th><th>{s.colDate}</th><th>{s.colActions}</th></tr></thead>
-              <tbody>
-                {loading ? <AdminTableSkeleton cols={3} rows={5} /> : messages.map(msg => (
-                  <tr key={msg.id} onClick={() => { setSelected(msg); if (!msg.read) markRead(msg.id) }} style={{ cursor: 'pointer' }}>
-                    <td>
-                      {!msg.read && <span className="badge-unread" style={{ marginInlineEnd: 8 }}>{s.badgeNew}</span>}
-                      {msg.name}
-                    </td>
-                    <td style={{ fontSize: '.8rem', color: 'var(--text-60)' }}>
-                      {new Date(msg.submittedAt).toLocaleDateString()}
-                    </td>
-                    <td>
-                      <button
-                        className="admin-btn admin-btn--danger"
-                        onClick={e => { e.stopPropagation(); setDelete(msg.id) }}
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px' }}
-                      >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14">
-                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {!loading && messages.length > 0 && (
+              <TableToolbar
+                dateFrom={dateFrom} dateTo={dateTo}
+                onDateChange={(f, t) => { setDateFrom(f); setDateTo(t); setPage(1) }}
+                exportData={messagesFiltered}
+                exportCols={contactExportCols}
+                exportFilename="contact-messages"
+                exportTitle="Contact Messages"
+                isAr={lang === 'ar'}
+              />
+            )}
+            <div style={{ background: 'var(--surface)', borderRadius: 'var(--r-lg)', overflow: 'hidden', border: '1px solid var(--border)' }}>
+              <table className="admin-table" style={{ borderRadius: 0 }}>
+                <thead><tr><th>{s.colFrom}</th><th>{s.colDate}</th><th>{s.colActions}</th></tr></thead>
+                <tbody>
+                  {loading ? <AdminTableSkeleton cols={3} rows={5} /> : messagesFiltered.slice((page-1)*25, page*25).map(msg => (
+                    <tr key={msg.id} onClick={() => { setSelected(msg); if (!msg.read) markRead(msg.id) }} style={{ cursor: 'pointer' }}>
+                      <td>
+                        {!msg.read && <span className="badge-unread" style={{ marginInlineEnd: 8 }}>{s.badgeNew}</span>}
+                        {msg.name}
+                      </td>
+                      <td style={{ fontSize: '.8rem', color: 'var(--text-60)' }}>
+                        {new Date(msg.submittedAt).toLocaleDateString()}
+                      </td>
+                      <td>
+                        <button
+                          className="admin-btn admin-btn--danger"
+                          onClick={e => { e.stopPropagation(); setDelete(msg.id) }}
+                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px 8px' }}
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {!loading && <Pagination page={page} total={messagesFiltered.length} onChange={setPage} />}
+            </div>
           </div>
 
           <div>

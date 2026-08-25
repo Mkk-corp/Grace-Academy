@@ -9,6 +9,8 @@ import PhoneInput from '@/components/ui/PhoneInput'
 import Select from '@/components/ui/Select'
 import { useTheme } from '@/context/ThemeContext'
 import { DEFAULT_COUNTRY, parsePhone } from '@/lib/countries'
+import Pagination from '@/components/ui/Pagination'
+import TableToolbar from '@/components/ui/TableToolbar'
 
 const S = {
   en: {
@@ -82,6 +84,12 @@ export default function AdminUsersPage() {
   const [deleteError, setDelErr]    = useState('')
   const [deleteChecking, setDelCheck] = useState(false)
   const [relatedData, setRelatedData] = useState(null)
+  const [pageStudents, setPageStudents]     = useState(1)
+  const [pageStaff, setPageStaff]           = useState(1)
+  const [dateFromStudents, setDateFromStu]  = useState('')
+  const [dateToStudents,   setDateToStu]    = useState('')
+  const [dateFromStaff,    setDateFromStaff] = useState('')
+  const [dateToStaff,      setDateToStaff]   = useState('')
 
   useEffect(() => {
     Promise.all([
@@ -101,6 +109,30 @@ export default function AdminUsersPage() {
   const staffUsers   = users.filter(u =>  isStaffUser(u))
   const studentUsers = users.filter(u => !isStaffUser(u))
   const visibleUsers = activeTab === 'staff' ? staffUsers : studentUsers
+
+  function inDateRange(isoStr, from, to) {
+    const d = isoStr ? isoStr.substring(0, 10) : null
+    if (from && (!d || d < from)) return false
+    if (to   && (!d || d > to))   return false
+    return true
+  }
+  const filteredStudents = studentUsers.filter(u => inDateRange(u.createdAt, dateFromStudents, dateToStudents))
+  const filteredStaff    = staffUsers.filter(u => inDateRange(u.createdAt, dateFromStaff, dateToStaff))
+
+  const studentExportCols = [
+    { header: 'Name',   value: r => r.name  || '' },
+    { header: 'Email',  value: r => r.email || '' },
+    { header: 'Phone',  value: r => r.phone || '' },
+    { header: 'Source', value: r => r.source === 'website' ? 'Website' : 'Admin' },
+    { header: 'Joined', value: r => r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-GB') : '' },
+  ]
+  const staffExportCols = [
+    { header: 'Name',   value: r => r.name  || '' },
+    { header: 'Email',  value: r => r.email || '' },
+    { header: 'Phone',  value: r => r.phone || '' },
+    { header: 'Role',   value: r => roleName(r.roleId) },
+    { header: 'Joined', value: r => r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-GB') : '' },
+  ]
 
   async function save(user) {
     const isNew = user.id.startsWith('new')
@@ -186,11 +218,11 @@ export default function AdminUsersPage() {
         display: 'inline-flex', gap: 4, background: 'var(--surface-2, rgba(255,255,255,.04))',
         border: '1px solid var(--border)', borderRadius: 10, padding: 4, marginBottom: 20,
       }}>
-        <button style={tabStyle('students')} onClick={() => setActiveTab('students')}>
+        <button style={tabStyle('students')} onClick={() => { setActiveTab('students'); setPageStudents(1) }}>
           {s.tabStudents}
           {!loading && tabCount(studentUsers.length)}
         </button>
-        <button style={tabStyle('staff')} onClick={() => setActiveTab('staff')}>
+        <button style={tabStyle('staff')} onClick={() => { setActiveTab('staff'); setPageStaff(1) }}>
           {s.tabStaff}
           {!loading && tabCount(staffUsers.length)}
         </button>
@@ -208,6 +240,17 @@ export default function AdminUsersPage() {
           {!loading && studentUsers.length === 0 && (
             <EmptyState title={s.emptyStudents} description={s.emptyStudentsDesc} actionLabel={s.emptyAction} onAction={newUser} />
           )}
+          {!loading && studentUsers.length > 0 && (
+            <TableToolbar
+              dateFrom={dateFromStudents} dateTo={dateToStudents}
+              onDateChange={(f, t) => { setDateFromStu(f); setDateToStu(t); setPageStudents(1) }}
+              exportData={filteredStudents}
+              exportCols={studentExportCols}
+              exportFilename="students"
+              exportTitle="Students"
+              isAr={isAr}
+            />
+          )}
           {(loading || studentUsers.length > 0) && (
             <div className="admin-table-wrap">
               <table className="admin-table">
@@ -221,7 +264,7 @@ export default function AdminUsersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {loading ? <AdminTableSkeleton cols={5} rows={6} /> : studentUsers.map(user => (
+                  {loading ? <AdminTableSkeleton cols={5} rows={6} /> : filteredStudents.slice((pageStudents-1)*25, pageStudents*25).map(user => (
                     <tr key={user.id}>
                       <td>
                         <div style={{ fontWeight: 600 }}>{user.name || '—'}</div>
@@ -247,6 +290,7 @@ export default function AdminUsersPage() {
                   ))}
                 </tbody>
               </table>
+              {!loading && <Pagination page={pageStudents} total={filteredStudents.length} onChange={setPageStudents} />}
             </div>
           )}
         </>
@@ -257,6 +301,17 @@ export default function AdminUsersPage() {
         <>
           {!loading && staffUsers.length === 0 && (
             <EmptyState title={s.emptyStaff} description={s.emptyStaffDesc} actionLabel={s.emptyAction} onAction={newUser} />
+          )}
+          {!loading && staffUsers.length > 0 && (
+            <TableToolbar
+              dateFrom={dateFromStaff} dateTo={dateToStaff}
+              onDateChange={(f, t) => { setDateFromStaff(f); setDateToStaff(t); setPageStaff(1) }}
+              exportData={filteredStaff}
+              exportCols={staffExportCols}
+              exportFilename="staff"
+              exportTitle="Academy Staff"
+              isAr={isAr}
+            />
           )}
           {(loading || staffUsers.length > 0) && (
             <div className="admin-table-wrap">
@@ -272,7 +327,7 @@ export default function AdminUsersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {loading ? <AdminTableSkeleton cols={6} rows={6} /> : staffUsers.map(user => (
+                  {loading ? <AdminTableSkeleton cols={6} rows={6} /> : filteredStaff.slice((pageStaff-1)*25, pageStaff*25).map(user => (
                     <tr key={user.id}>
                       <td>
                         <div style={{ fontWeight: 600 }}>{user.name || '—'}</div>
@@ -296,6 +351,7 @@ export default function AdminUsersPage() {
                   ))}
                 </tbody>
               </table>
+              {!loading && <Pagination page={pageStaff} total={filteredStaff.length} onChange={setPageStaff} />}
             </div>
           )}
         </>

@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Pagination from '@/components/ui/Pagination'
+import TableToolbar from '@/components/ui/TableToolbar'
 
 function slotMinToTime(slotMin) {
   const h    = Math.floor(slotMin / 60)
@@ -23,6 +25,9 @@ export default function MySessions({ isAr, isDark }) {
   const [sessions, setSessions] = useState([])
   const [loading,  setLoading]  = useState(true)
   const [, setNow]              = useState(Date.now())
+  const [page, setPage]         = useState(1)
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo]     = useState('')
 
   useEffect(() => {
     fetch('/api/student/my-sessions')
@@ -79,6 +84,23 @@ export default function MySessions({ isAr, isDark }) {
   const todayStr = new Date().toLocaleDateString('en-CA')
   const nowMin   = new Date().getHours() * 60 + new Date().getMinutes()
 
+  const filteredSessions = sessions.filter(s => {
+    if (dateFrom && s.date < dateFrom) return false
+    if (dateTo   && s.date > dateTo)   return false
+    return true
+  })
+
+  const msExportCols = [
+    { header: 'Type',        value: _ => 'Placement Test' },
+    { header: 'Date',        value: r => r.date },
+    { header: 'Time',        value: r => slotMinToTime(r.slotMin) },
+    { header: 'Consultant',  value: r => r.assessorName || '' },
+    { header: 'Status',      value: r => {
+      const past = r.date < todayStr || (r.date === todayStr && r.slotMin < nowMin - 30)
+      return past ? 'Completed' : 'Upcoming'
+    }},
+  ]
+
   return (
     <div style={{ padding: '28px 24px', maxWidth: 1100, margin: '0 auto' }}>
       <div style={{ marginBottom: 20 }}>
@@ -89,6 +111,16 @@ export default function MySessions({ isAr, isDark }) {
           {sessions.length} {isAr ? 'جلسة' : sessions.length === 1 ? 'session' : 'sessions'}
         </p>
       </div>
+
+      <TableToolbar
+        isDark={isDark} isAr={isAr}
+        dateFrom={dateFrom} dateTo={dateTo}
+        onDateChange={(f, t) => { setDateFrom(f); setDateTo(t); setPage(1) }}
+        exportData={filteredSessions}
+        exportCols={msExportCols}
+        exportFilename="my-sessions"
+        exportTitle="My Sessions"
+      />
 
       <div style={{
         background: surface, border: `1px solid ${border}`,
@@ -119,7 +151,7 @@ export default function MySessions({ isAr, isDark }) {
               </tr>
             </thead>
             <tbody>
-              {sessions.map((s, i) => {
+              {filteredSessions.slice((page-1)*25, page*25).map((s, i) => {
                 const joinable = isJoinable(s.date, s.slotMin)
                 const isPast   = s.date < todayStr || (s.date === todayStr && s.slotMin < nowMin - 30)
                 const rowBg    = i % 2 === 0 ? 'transparent' : (isDark ? 'rgba(255,255,255,.015)' : 'rgba(0,0,0,.012)')
@@ -222,6 +254,7 @@ export default function MySessions({ isAr, isDark }) {
           </table>
         </div>
       </div>
+      <Pagination page={page} total={filteredSessions.length} onChange={setPage} isDark={isDark} />
     </div>
   )
 }

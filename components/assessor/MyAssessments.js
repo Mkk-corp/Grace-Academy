@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import EmptyState from '@/components/ui/EmptyState'
+import Pagination from '@/components/ui/Pagination'
+import TableToolbar from '@/components/ui/TableToolbar'
 
 function slotMinToTime(slotMin) {
   const h    = Math.floor(slotMin / 60)
@@ -216,6 +218,9 @@ export default function MyAssessments({ isAr, isDark }) {
   const [loading,        setLoading]        = useState(true)
   const [now,            setNow]            = useState(Date.now())
   const [recordingModal, setRecordingModal] = useState(null)
+  const [page, setPage]                     = useState(1)
+  const [dateFrom, setDateFrom]             = useState('')
+  const [dateTo, setDateTo]                 = useState('')
   const autoPromptedRef = useRef(false)
 
   useEffect(() => {
@@ -280,6 +285,20 @@ export default function MyAssessments({ isAr, isDark }) {
 
   const todayStr = new Date().toLocaleDateString('en-CA')
 
+  const filteredAssessments = assessments.filter(a => {
+    if (dateFrom && a.date < dateFrom) return false
+    if (dateTo   && a.date > dateTo)   return false
+    return true
+  })
+
+  const maExportCols = [
+    { header: 'Date',      value: r => r.date },
+    { header: 'Time',      value: r => slotMinToTime(r.slotMin) },
+    { header: 'Student',   value: r => r.studentName || '' },
+    { header: 'Status',    value: r => r.date < todayStr ? 'Completed' : 'Upcoming' },
+    { header: 'Recording', value: r => r.recordingLink || '' },
+  ]
+
   return (
     <>
       {recordingModal && (
@@ -301,6 +320,16 @@ export default function MyAssessments({ isAr, isDark }) {
             {assessments.length} {isAr ? 'جلسة' : assessments.length === 1 ? 'session' : 'sessions'}
           </p>
         </div>
+
+        <TableToolbar
+          isDark={isDark} isAr={isAr}
+          dateFrom={dateFrom} dateTo={dateTo}
+          onDateChange={(f, t) => { setDateFrom(f); setDateTo(t); setPage(1) }}
+          exportData={filteredAssessments}
+          exportCols={maExportCols}
+          exportFilename="my-assessments"
+          exportTitle="My Assessment Sessions"
+        />
 
         <div style={{
           background: surface, border: `1px solid ${border}`,
@@ -332,7 +361,7 @@ export default function MyAssessments({ isAr, isDark }) {
                 </tr>
               </thead>
               <tbody>
-                {assessments.map((a, i) => {
+                {filteredAssessments.slice((page-1)*25, page*25).map((a, i) => {
                   const joinable = isJoinable(a.date, a.slotMin)
                   const isPast   = a.date < todayStr || (a.date === todayStr && a.slotMin < new Date().getHours() * 60 + new Date().getMinutes() - 30)
                   const rowBg    = i % 2 === 0 ? 'transparent' : (isDark ? 'rgba(255,255,255,.015)' : 'rgba(0,0,0,.012)')
@@ -493,6 +522,7 @@ export default function MyAssessments({ isAr, isDark }) {
             </table>
           </div>
         </div>
+        <Pagination page={page} total={filteredAssessments.length} onChange={setPage} isDark={isDark} />
       </div>
     </>
   )

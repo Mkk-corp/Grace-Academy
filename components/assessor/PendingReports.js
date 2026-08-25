@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import EmptyState from '@/components/ui/EmptyState'
+import Pagination from '@/components/ui/Pagination'
+import TableToolbar from '@/components/ui/TableToolbar'
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
 function slotMinToTime(slotMin) {
@@ -501,7 +503,11 @@ export default function PendingReports({ isAr, isDark }) {
   const [pending,   setPending]   = useState([])
   const [submitted, setSubmitted] = useState([])
   const [loading,   setLoading]   = useState(true)
-  const [tab,       setTab]       = useState('pending')
+  const [tab,          setTab]          = useState('pending')
+  const [pagePending,  setPagePending]  = useState(1)
+  const [pageSubmitted,setPageSubmitted]= useState(1)
+  const [dateFrom, setDateFrom]         = useState('')
+  const [dateTo, setDateTo]             = useState('')
 
   const text  = isDark ? '#f1f5f9' : '#111827'
   const muted = isDark ? 'rgba(241,245,249,.55)' : '#6b7280'
@@ -529,6 +535,26 @@ export default function PendingReports({ isAr, isDark }) {
       }
     }
   }
+
+  const filteredPending   = pending.filter(b => {
+    if (dateFrom && b.date < dateFrom) return false
+    if (dateTo   && b.date > dateTo)   return false
+    return true
+  })
+  const filteredSubmitted = submitted.filter(b => {
+    if (dateFrom && b.date < dateFrom) return false
+    if (dateTo   && b.date > dateTo)   return false
+    return true
+  })
+
+  const prExportCols = [
+    { header: 'Student',        value: r => r.studentName || '' },
+    { header: 'Date',           value: r => r.date        || '' },
+    { header: 'Time',           value: r => slotMinToTime(r.slotMin) },
+    { header: 'Status',         value: r => r.report ? 'Submitted' : 'Pending' },
+    { header: 'Level',          value: r => r.report?.englishLevel  || '—' },
+    { header: 'Suggested Course', value: r => r.report?.suggestedCourse || '—' },
+  ]
 
   const Spinner = () => (
     <div style={{ padding: 60, textAlign: 'center', color: muted }}>
@@ -607,17 +633,29 @@ export default function PendingReports({ isAr, isDark }) {
                 description={isAr ? 'ستظهر التقارير المعلّقة هنا بعد اكتمال الجلسات.' : 'Pending reports will appear here once sessions are completed.'}
               />
             ) : (
-              pending.map((booking, i) => (
-                <ReportCard
-                  key={booking.id}
-                  booking={booking}
-                  report={null}
-                  autoOpen={i === 0}
-                  isAr={isAr}
-                  isDark={isDark}
-                  onReportChange={handleReportChange}
+              <>
+                <TableToolbar
+                  isDark={isDark} isAr={isAr}
+                  dateFrom={dateFrom} dateTo={dateTo}
+                  onDateChange={(f, t) => { setDateFrom(f); setDateTo(t); setPagePending(1); setPageSubmitted(1) }}
+                  exportData={filteredPending}
+                  exportCols={prExportCols}
+                  exportFilename="pending-reports"
+                  exportTitle="Pending Assessment Reports"
                 />
-              ))
+                {filteredPending.slice((pagePending-1)*25, pagePending*25).map((booking, i) => (
+                  <ReportCard
+                    key={booking.id}
+                    booking={booking}
+                    report={null}
+                    autoOpen={i === 0}
+                    isAr={isAr}
+                    isDark={isDark}
+                    onReportChange={handleReportChange}
+                  />
+                ))}
+                <Pagination page={pagePending} total={filteredPending.length} onChange={setPagePending} isDark={isDark} />
+              </>
             )
           ) : (
             submitted.length === 0 ? (
@@ -627,16 +665,28 @@ export default function PendingReports({ isAr, isDark }) {
                 description={isAr ? 'ستظهر التقارير المكتملة هنا بعد إرسالها.' : 'Completed reports will appear here once submitted.'}
               />
             ) : (
-              submitted.map(booking => (
-                <ReportCard
-                  key={booking.id}
-                  booking={booking}
-                  report={booking.report}
-                  autoOpen={false}
-                  isAr={isAr}
-                  isDark={isDark}
+              <>
+                <TableToolbar
+                  isDark={isDark} isAr={isAr}
+                  dateFrom={dateFrom} dateTo={dateTo}
+                  onDateChange={(f, t) => { setDateFrom(f); setDateTo(t); setPagePending(1); setPageSubmitted(1) }}
+                  exportData={filteredSubmitted}
+                  exportCols={prExportCols}
+                  exportFilename="submitted-reports"
+                  exportTitle="Submitted Assessment Reports"
                 />
-              ))
+                {filteredSubmitted.slice((pageSubmitted-1)*25, pageSubmitted*25).map(booking => (
+                  <ReportCard
+                    key={booking.id}
+                    booking={booking}
+                    report={booking.report}
+                    autoOpen={false}
+                    isAr={isAr}
+                    isDark={isDark}
+                  />
+                ))}
+                <Pagination page={pageSubmitted} total={filteredSubmitted.length} onChange={setPageSubmitted} isDark={isDark} />
+              </>
             )
           )}
         </div>

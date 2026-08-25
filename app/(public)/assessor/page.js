@@ -15,6 +15,7 @@ import UpcomingSession from '@/components/shared/UpcomingSession'
 import OnboardingOverlay from '@/components/assessor/OnboardingOverlay'
 import PortalTopbar from '@/components/portal/PortalTopbar'
 import NotificationBell from '@/components/ui/NotificationBell'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 /* ─── icons ──────────────────────────────────────────────────────────── */
 function Icon({ name, size = 18, color = 'currentColor' }) {
@@ -692,6 +693,23 @@ export default function AssessorPage() {
             onLogout={handleLogout}
             onSettings={() => setActiveTab('schedule')}
             notificationBell={<NotificationBell isDark={isDark} isAr={isAr} userId={user?.id} />}
+          />
+
+          {/* ── BREADCRUMB ── */}
+          <Breadcrumb
+            isAr={isAr}
+            isDark={isDark}
+            crumbs={[
+              {
+                label: isAr ? 'بوابة المستشار الأكاديمي' : 'Academic Consultant Portal',
+                onClick: activeTab !== 'dashboard' ? () => setActiveTab('dashboard') : undefined,
+              },
+              {
+                label: isAr
+                  ? (NAV.find(n => n.id === activeTab)?.ar || 'الرئيسية')
+                  : (NAV.find(n => n.id === activeTab)?.en || 'Dashboard'),
+              },
+            ]}
           />
 
           {/* CONTENT */}

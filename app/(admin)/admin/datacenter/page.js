@@ -7,6 +7,8 @@ import EmptyState from '@/components/ui/EmptyState'
 import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
 import Select from '@/components/ui/Select'
+import Pagination from '@/components/ui/Pagination'
+import TableToolbar from '@/components/ui/TableToolbar'
 
 const S = {
   en: {
@@ -68,6 +70,9 @@ export default function DataCenterPage() {
   const [deleteError, setDelErr]      = useState('')
   const [search,      setSearch]      = useState('')
   const [error,       setError]       = useState('')
+  const [page,        setPage]        = useState(1)
+  const [dateFrom,    setDateFrom]    = useState('')
+  const [dateTo,      setDateTo]      = useState('')
 
   function loadTopics() {
     return fetch('/api/topics').then(r => r.json()).then(d => {
@@ -110,12 +115,24 @@ export default function DataCenterPage() {
     return new Date(iso).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
   }
 
-  const filtered = search.trim()
-    ? topics.filter(t =>
-        t.nameEn.toLowerCase().includes(search.toLowerCase()) ||
-        t.nameAr.includes(search)
-      )
-    : topics
+  const filtered = topics.filter(t => {
+    const matchSearch = !search.trim() ||
+      t.nameEn.toLowerCase().includes(search.toLowerCase()) ||
+      t.nameAr.includes(search)
+    const d = t.createdAt ? t.createdAt.substring(0, 10) : null
+    const matchDate =
+      (!dateFrom || (d && d >= dateFrom)) &&
+      (!dateTo   || (d && d <= dateTo))
+    return matchSearch && matchDate
+  })
+
+  const topicExportCols = [
+    { header: 'Topic (EN)', value: r => r.nameEn || '' },
+    { header: 'Topic (AR)', value: r => r.nameAr || '' },
+    { header: 'Status',     value: r => r.active !== false ? 'Active' : 'Inactive' },
+    { header: 'Created By', value: r => r.createdBy === 'system' ? 'System' : (r.createdBy || 'System') },
+    { header: 'Date',       value: r => r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-GB') : '' },
+  ]
 
   const totalActive = topics.filter(t => t.active !== false).length
   const newBlank = () => setEditing({ id: `new${Date.now()}`, nameEn: '', nameAr: '', active: true })
@@ -172,14 +189,14 @@ export default function DataCenterPage() {
           <button className="admin-btn admin-btn--primary" onClick={newBlank}>{s.addBtn}</button>
         </div>
 
-        {/* Search bar */}
-        <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)' }}>
-          <div style={{ position: 'relative', maxWidth: 320 }}>
+        {/* Search bar + toolbar */}
+        <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative', flex: 1, maxWidth: 320 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-40)" strokeWidth="2" width="14" height="14"
               style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
-            <input value={search} onChange={e => setSearch(e.target.value)}
+            <input value={search} onChange={e => { setSearch(e.target.value); setPage(1) }}
               placeholder={s.searchPh}
               style={{
                 width: '100%', padding: '8px 12px 8px 32px',
@@ -191,6 +208,17 @@ export default function DataCenterPage() {
               onBlur={e => e.target.style.borderColor = 'var(--border)'}
             />
           </div>
+          {!loading && topics.length > 0 && (
+            <TableToolbar
+              dateFrom={dateFrom} dateTo={dateTo}
+              onDateChange={(f, t) => { setDateFrom(f); setDateTo(t); setPage(1) }}
+              exportData={filtered}
+              exportCols={topicExportCols}
+              exportFilename="topics"
+              exportTitle="Conversation Topics"
+              isAr={lang === 'ar'}
+            />
+          )}
         </div>
 
         {error && (
@@ -221,7 +249,7 @@ export default function DataCenterPage() {
               <tbody>
                 {loading
                   ? <AdminTableSkeleton cols={6} rows={8} />
-                  : filtered.map(t => (
+                  : filtered.slice((page-1)*25, page*25).map(t => (
                     <tr key={t.id}>
                       <td style={{ fontWeight: 500 }}>{t.nameEn}</td>
                       <td style={{ direction: 'rtl', textAlign: 'right' }}>{t.nameAr}</td>
@@ -254,6 +282,7 @@ export default function DataCenterPage() {
           </div>
         )}
 
+        {!loading && topics.length > 0 && <Pagination page={page} total={filtered.length} onChange={setPage} />}
         {!loading && search.trim() && filtered.length === 0 && topics.length > 0 && (
           <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-60)', fontSize: '.88rem' }}>
             {lang === 'ar' ? 'لا توجد نتائج مطابقة للبحث' : 'No topics match your search'}

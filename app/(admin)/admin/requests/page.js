@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Pagination from '@/components/ui/Pagination'
+import TableToolbar from '@/components/ui/TableToolbar'
 import EmptyState from '@/components/ui/EmptyState'
 import { useLang } from '@/context/LangContext'
 
@@ -459,6 +461,9 @@ export default function AdminRequestsPage() {
   const [rejectNote, setRejectNote]       = useState('')
   const [actionLoading, setActionLoading] = useState(null)
   const [toast, setToast]                 = useState(null)
+  const [page, setPage]                   = useState(1)
+  const [dateFrom, setDateFrom]           = useState('')
+  const [dateTo, setDateTo]               = useState('')
 
   const fetchRequests = useCallback(async () => {
     try {
@@ -542,7 +547,21 @@ export default function AdminRequestsPage() {
   }
 
   const pendingCount = requests.filter(r => r.status === 'pending').length
-  const filtered = filter === 'All' ? requests : requests.filter(r => r.status === filter.toLowerCase())
+  const filtered = (filter === 'All' ? requests : requests.filter(r => r.status === filter.toLowerCase()))
+    .filter(r => {
+      const d = r.createdAt ? r.createdAt.substring(0, 10) : null
+      if (dateFrom && (!d || d < dateFrom)) return false
+      if (dateTo   && (!d || d > dateTo))   return false
+      return true
+    })
+
+  const requestExportCols = [
+    { header: 'Assessor',     value: r => r.assessorName  || '' },
+    { header: 'Email',        value: r => r.assessorEmail || '' },
+    { header: 'Status',       value: r => r.status        || '' },
+    { header: 'Submitted',    value: r => r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-GB') : '' },
+    { header: 'Days Changed', value: r => String(countDaysChanged(r.currentSchedule, r.proposedSchedule)) },
+  ]
 
   return (
     <>
@@ -612,7 +631,7 @@ export default function AdminRequestsPage() {
           return (
             <button
               key={key}
-              onClick={() => setFilter(key)}
+              onClick={() => { setFilter(key); setPage(1) }}
               className="admin-btn"
               style={{
                 background: active ? 'var(--gold)' : 'var(--surface)',
@@ -635,6 +654,18 @@ export default function AdminRequestsPage() {
         })}
       </div>
 
+      {!loading && requests.length > 0 && (
+        <TableToolbar
+          dateFrom={dateFrom} dateTo={dateTo}
+          onDateChange={(f, t) => { setDateFrom(f); setDateTo(t); setPage(1) }}
+          exportData={filtered}
+          exportCols={requestExportCols}
+          exportFilename="slot-requests"
+          exportTitle="Slot Requests"
+          isAr={isAr}
+        />
+      )}
+
       {loading ? (
         <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-40)' }}>{s.loading}</div>
       ) : filtered.length === 0 ? (
@@ -655,7 +686,7 @@ export default function AdminRequestsPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(req => (
+              {filtered.slice((page-1)*25, page*25).map(req => (
                 <>
                   <tr
                     key={req.id}
@@ -768,6 +799,7 @@ export default function AdminRequestsPage() {
               ))}
             </tbody>
           </table>
+          <Pagination page={page} total={filtered.length} onChange={setPage} />
         </div>
       )}
     </>

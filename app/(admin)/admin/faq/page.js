@@ -5,6 +5,8 @@ import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 import Modal from '@/components/ui/Modal'
 import EmptyState from '@/components/ui/EmptyState'
 import { useLang } from '@/context/LangContext'
+import Pagination from '@/components/ui/Pagination'
+import TableToolbar from '@/components/ui/TableToolbar'
 
 const S = {
   en: {
@@ -36,6 +38,7 @@ export default function AdminFaqPage() {
   const [loading, setLoading]     = useState(true)
   const [editing, setEditing]     = useState(null)
   const [deleteTarget, setDelete] = useState(null)
+  const [page, setPage]           = useState(1)
 
   const blank = () => ({ id: `new${Date.now()}`, question: { en: '', ar: '' }, answer: { en: '', ar: '' } })
 
@@ -64,21 +67,39 @@ export default function AdminFaqPage() {
       {!loading && items.length === 0 && (
         <EmptyState title={s.emptyTitle} description={s.emptyDesc} actionLabel={s.emptyAction} onAction={() => setEditing(blank())} />
       )}
+      {!loading && items.length > 0 && (
+        <TableToolbar
+          hasDateFilter={false}
+          exportData={items}
+          exportCols={[
+            { header: 'Question (EN)', value: r => r.question?.en || '' },
+            { header: 'Question (AR)', value: r => r.question?.ar || '' },
+            { header: 'Answer (EN)', value: r => r.answer?.en || '' },
+            { header: 'Answer (AR)', value: r => r.answer?.ar || '' },
+          ]}
+          exportFilename="faq"
+          exportTitle="FAQ"
+          isAr={lang === 'ar'}
+        />
+      )}
       {(loading || items.length > 0) && (
-        <table className="admin-table">
-          <thead><tr><th>{s.colQuestion}</th><th>{s.colActions}</th></tr></thead>
-          <tbody>
-            {loading ? <AdminTableSkeleton cols={2} rows={8} /> : items.map(item => (
-              <tr key={item.id}>
-                <td>{item.question.en}</td>
-                <td style={{ display: 'flex', gap: 8 }}>
-                  <button className="admin-btn" onClick={() => setEditing({ ...item })}>{lang === 'ar' ? 'تعديل' : 'Edit'}</button>
-                  <button className="admin-btn admin-btn--danger" onClick={() => setDelete(item.id)}>{lang === 'ar' ? 'حذف' : 'Delete'}</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div style={{ background: 'var(--surface)', borderRadius: 'var(--r-lg)', overflow: 'hidden', border: '1px solid var(--border)' }}>
+          <table className="admin-table" style={{ borderRadius: 0 }}>
+            <thead><tr><th>{s.colQuestion}</th><th>{s.colActions}</th></tr></thead>
+            <tbody>
+              {loading ? <AdminTableSkeleton cols={2} rows={8} /> : items.slice((page-1)*25, page*25).map(item => (
+                <tr key={item.id}>
+                  <td>{item.question.en}</td>
+                  <td style={{ display: 'flex', gap: 8 }}>
+                    <button className="admin-btn" onClick={() => setEditing({ ...item })}>{lang === 'ar' ? 'تعديل' : 'Edit'}</button>
+                    <button className="admin-btn admin-btn--danger" onClick={() => setDelete(item.id)}>{lang === 'ar' ? 'حذف' : 'Delete'}</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {!loading && <Pagination page={page} total={items.length} onChange={setPage} />}
+        </div>
       )}
 
       {editing && (

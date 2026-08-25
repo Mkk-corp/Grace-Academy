@@ -8,6 +8,7 @@ import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
 import PortalTopbar from '@/components/portal/PortalTopbar'
 import AvailabilitySettings from '@/components/assessor/AvailabilitySettings'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 /* ─── Sidebar icons ───────────────────────────────────────────────── */
 function Icon({ name, size = 17, color = 'currentColor' }) {
@@ -339,6 +340,23 @@ export default function TeacherPage() {
             search={search} onSearchChange={setSearch}
             onLogout={handleLogout}
             onSettings={() => setActiveTab('settings')}
+          />
+
+          {/* ── BREADCRUMB ── */}
+          <Breadcrumb
+            isAr={isAr}
+            isDark={isDark}
+            crumbs={[
+              {
+                label: isAr ? 'بوابة المعلم' : 'Teacher Portal',
+                onClick: activeTab !== 'dashboard' ? () => setActiveTab('dashboard') : undefined,
+              },
+              {
+                label: isAr
+                  ? (activeTab === 'settings' ? 'الإعدادات' : NAV.find(n => n.id === activeTab)?.ar || 'الرئيسية')
+                  : (activeTab === 'settings' ? 'Settings'  : NAV.find(n => n.id === activeTab)?.en || 'Dashboard'),
+              },
+            ]}
           />
 
           <main className="tc-content" key={activeTab}>

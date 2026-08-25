@@ -7,6 +7,8 @@ import EmptyState from '@/components/ui/EmptyState'
 import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
 import Select from '@/components/ui/Select'
+import Pagination from '@/components/ui/Pagination'
+import TableToolbar from '@/components/ui/TableToolbar'
 
 const S = {
   en: {
@@ -40,6 +42,7 @@ export default function AdminBlogPage() {
   const [loading, setLoading]       = useState(true)
   const [editing, setEditing]       = useState(null)
   const [deleteTarget, setDelete]   = useState(null)
+  const [page, setPage]             = useState(1)
 
   const blank = () => ({ id: `new${Date.now()}`, title: { en: '', ar: '' }, excerpt: { en: '', ar: '' }, body: { en: '', ar: '' }, category: { en: '', ar: '' }, date: { en: '', ar: '' }, slug: '', image: '', published: false })
 
@@ -68,27 +71,45 @@ export default function AdminBlogPage() {
       {!loading && items.length === 0 && (
         <EmptyState title={s.emptyTitle} description={s.emptyDesc} actionLabel={s.emptyAction} onAction={() => setEditing(blank())} />
       )}
+      {!loading && items.length > 0 && (
+        <TableToolbar
+          hasDateFilter={false}
+          exportData={items}
+          exportCols={[
+            { header: 'Title', value: r => r.title?.en || '' },
+            { header: 'Category', value: r => r.category?.en || '' },
+            { header: 'Date', value: r => r.date?.en || '' },
+            { header: 'Published', value: r => r.published ? 'Yes' : 'No' },
+          ]}
+          exportFilename="blog-posts"
+          exportTitle="Blog Posts"
+          isAr={lang === 'ar'}
+        />
+      )}
       {(loading || items.length > 0) && (
-        <table className="admin-table">
-          <thead><tr><th>{s.colTitle}</th><th>{s.colCategory}</th><th>{s.colPublished}</th><th>{s.colActions}</th></tr></thead>
-          <tbody>
-            {loading ? <AdminTableSkeleton cols={4} rows={6} /> : items.map(item => (
-              <tr key={item.id}>
-                <td>{item.title.en}</td>
-                <td>{item.category.en}</td>
-                <td>
-                  {item.published
-                    ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="16" height="16" style={{ color: '#4ade80' }}><polyline points="20 6 9 17 4 12"/></svg>
-                    : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16" style={{ color: 'var(--text-40)' }}><line x1="5" y1="12" x2="19" y2="12"/></svg>}
-                </td>
-                <td style={{ display: 'flex', gap: 8 }}>
-                  <button className="admin-btn" onClick={() => setEditing({ ...item })}>{lang === 'ar' ? 'تعديل' : 'Edit'}</button>
-                  <button className="admin-btn admin-btn--danger" onClick={() => setDelete(item.id)}>{lang === 'ar' ? 'حذف' : 'Delete'}</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div style={{ background: 'var(--surface)', borderRadius: 'var(--r-lg)', overflow: 'hidden', border: '1px solid var(--border)' }}>
+          <table className="admin-table" style={{ borderRadius: 0 }}>
+            <thead><tr><th>{s.colTitle}</th><th>{s.colCategory}</th><th>{s.colPublished}</th><th>{s.colActions}</th></tr></thead>
+            <tbody>
+              {loading ? <AdminTableSkeleton cols={4} rows={6} /> : items.slice((page-1)*25, page*25).map(item => (
+                <tr key={item.id}>
+                  <td>{item.title.en}</td>
+                  <td>{item.category.en}</td>
+                  <td>
+                    {item.published
+                      ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="16" height="16" style={{ color: '#4ade80' }}><polyline points="20 6 9 17 4 12"/></svg>
+                      : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16" style={{ color: 'var(--text-40)' }}><line x1="5" y1="12" x2="19" y2="12"/></svg>}
+                  </td>
+                  <td style={{ display: 'flex', gap: 8 }}>
+                    <button className="admin-btn" onClick={() => setEditing({ ...item })}>{lang === 'ar' ? 'تعديل' : 'Edit'}</button>
+                    <button className="admin-btn admin-btn--danger" onClick={() => setDelete(item.id)}>{lang === 'ar' ? 'حذف' : 'Delete'}</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {!loading && <Pagination page={page} total={items.length} onChange={setPage} />}
+        </div>
       )}
 
       {editing && <BlogModal item={editing} onSave={save} onClose={() => setEditing(null)} s={s} />}

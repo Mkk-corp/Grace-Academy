@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import EmptyState from '@/components/ui/EmptyState'
+import Pagination from '@/components/ui/Pagination'
+import TableToolbar from '@/components/ui/TableToolbar'
 
 function slotMinToTime(slotMin) {
   const h    = Math.floor(slotMin / 60)
@@ -16,6 +18,9 @@ export default function AssignedStudents({ isAr, isDark }) {
   const [students, setStudents] = useState([])
   const [loading,  setLoading]  = useState(true)
   const [expanded, setExpanded] = useState(null)
+  const [page, setPage]         = useState(1)
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo]     = useState('')
 
   useEffect(() => {
     fetch('/api/assessor/assigned-students')
@@ -52,6 +57,22 @@ export default function AssignedStudents({ isAr, isDark }) {
     </div>
   )
 
+  const filteredStudents = students.filter(s => {
+    if (!s.sessionDate) return !dateFrom // no session date → only include if no from-filter
+    if (dateFrom && s.sessionDate < dateFrom) return false
+    if (dateTo   && s.sessionDate > dateTo)   return false
+    return true
+  })
+
+  const asExportCols = [
+    { header: 'Name',         value: r => r.name        || '' },
+    { header: 'Date of Birth', value: r => r.dob         || '' },
+    { header: 'Gender',       value: r => r.gender      || '' },
+    { header: 'Country',      value: r => r.country     || '' },
+    { header: 'Session Date', value: r => r.sessionDate || '' },
+    { header: 'Session Time', value: r => r.sessionSlotMin != null ? slotMinToTime(r.sessionSlotMin) : '' },
+  ]
+
   return (
     <div style={{ padding: '28px 24px', maxWidth: 1100, margin: '0 auto' }}>
       <div style={{ marginBottom: 20 }}>
@@ -63,8 +84,18 @@ export default function AssignedStudents({ isAr, isDark }) {
         </p>
       </div>
 
+      <TableToolbar
+        isDark={isDark} isAr={isAr}
+        dateFrom={dateFrom} dateTo={dateTo}
+        onDateChange={(f, t) => { setDateFrom(f); setDateTo(t); setPage(1) }}
+        exportData={filteredStudents}
+        exportCols={asExportCols}
+        exportFilename="assigned-students"
+        exportTitle="Assigned Students"
+      />
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {students.map(s => {
+        {filteredStudents.slice((page-1)*25, page*25).map(s => {
           const isOpen = expanded === s.id
           return (
             <div key={s.id} style={{
@@ -141,6 +172,7 @@ export default function AssignedStudents({ isAr, isDark }) {
           )
         })}
       </div>
+      <Pagination page={page} total={filteredStudents.length} onChange={setPage} isDark={isDark} />
     </div>
   )
 }
