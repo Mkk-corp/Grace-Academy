@@ -599,7 +599,7 @@ export default function AssessorPage() {
                       : 'You have a pending schedule change request. Once approved by the admin, your compliance will be re-verified automatically.'}
                   </div>
                   <button
-                    onClick={() => { setActiveTab('requests') }}
+                    onClick={() => { setComplianceWarning(null); setActiveTab('requests') }}
                     style={{ width: '100%', padding: '13px', border: '1.5px solid rgba(201,147,44,.4)', borderRadius: 12, background: 'rgba(201,147,44,.08)', color: '#c9932c', fontSize: '.9rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s' }}
                   >
                     {isAr ? 'عرض طلبي' : 'View My Request'}
@@ -607,7 +607,7 @@ export default function AssessorPage() {
                 </div>
               ) : (
                 <button
-                  onClick={() => setActiveTab('schedule')}
+                  onClick={() => { setComplianceWarning(null); setActiveTab('requests') }}
                   style={{ width: '100%', padding: '14px', border: 'none', borderRadius: 12, background: 'linear-gradient(135deg, #b91c1c 0%, #ef4444 100%)', color: 'white', fontSize: '.95rem', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 18px rgba(239,68,68,.35)', transition: 'transform .15s, box-shadow .15s' }}
                   onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 24px rgba(239,68,68,.45)' }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 18px rgba(239,68,68,.35)' }}

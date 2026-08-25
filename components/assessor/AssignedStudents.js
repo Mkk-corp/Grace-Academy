@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import EmptyState from '@/components/ui/EmptyState'
 
 function slotMinToTime(slotMin) {
   const h    = Math.floor(slotMin / 60)
@@ -42,23 +43,12 @@ export default function AssignedStudents({ isAr, isDark }) {
   )
 
   if (students.length === 0) return (
-    <div style={{ padding: '60px 24px', textAlign: 'center' }}>
-      <div style={{
-        width: 56, height: 56, borderRadius: '50%', margin: '0 auto 14px',
-        background: 'rgba(201,147,44,.08)', border: '1.5px dashed rgba(201,147,44,.3)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke={gold} strokeWidth="1.8">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
-      </div>
-      <div style={{ fontWeight: 700, color: text, marginBottom: 6 }}>
-        {isAr ? 'لا يوجد طلاب معيّنون بعد' : 'No assigned students yet'}
-      </div>
-      <div style={{ fontSize: '.82rem', color: muted }}>
-        {isAr ? 'ستظهر بيانات الطلاب هنا بعد حجز الجلسات' : 'Student data will appear here once sessions are booked'}
-      </div>
+    <div style={{ padding: '28px 24px' }}>
+      <EmptyState
+        isAdmin={false}
+        title={isAr ? 'لا يوجد طلاب معيّنون بعد' : 'No sessions yet'}
+        description={isAr ? 'ستظهر بيانات الطلاب هنا بعد حجز الجلسات.' : 'Student data will appear here once sessions are booked.'}
+      />
     </div>
   )
 

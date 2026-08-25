@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import EmptyState from '@/components/ui/EmptyState'
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
 function slotMinToTime(slotMin) {
@@ -600,23 +601,11 @@ export default function PendingReports({ isAr, isDark }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, animation: 'asFadeUp .22s ease' }}>
           {tab === 'pending' ? (
             pending.length === 0 ? (
-              <div style={{ padding: '60px 24px', textAlign: 'center' }}>
-                <div style={{
-                  width: 56, height: 56, borderRadius: '50%', margin: '0 auto 14px',
-                  background: 'rgba(16,185,129,.08)', border: '1.5px dashed rgba(16,185,129,.3)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#10b981" strokeWidth="1.8">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </div>
-                <div style={{ fontWeight: 700, color: text, marginBottom: 6 }}>
-                  {isAr ? 'لا توجد تقارير معلّقة' : 'All caught up!'}
-                </div>
-                <div style={{ fontSize: '.82rem', color: muted }}>
-                  {isAr ? 'جميع التقارير مكتملة.' : 'All assessment reports have been submitted.'}
-                </div>
-              </div>
+              <EmptyState
+                isAdmin={false}
+                title={isAr ? 'لا توجد جلسات بعد' : 'No sessions yet'}
+                description={isAr ? 'ستظهر التقارير المعلّقة هنا بعد اكتمال الجلسات.' : 'Pending reports will appear here once sessions are completed.'}
+              />
             ) : (
               pending.map((booking, i) => (
                 <ReportCard
@@ -632,9 +621,11 @@ export default function PendingReports({ isAr, isDark }) {
             )
           ) : (
             submitted.length === 0 ? (
-              <div style={{ padding: '60px 24px', textAlign: 'center', color: muted, fontSize: '.88rem' }}>
-                {isAr ? 'لا توجد تقارير مكتملة بعد.' : 'No submitted reports yet.'}
-              </div>
+              <EmptyState
+                isAdmin={false}
+                title={isAr ? 'لا توجد تقارير مكتملة بعد' : 'No sessions yet'}
+                description={isAr ? 'ستظهر التقارير المكتملة هنا بعد إرسالها.' : 'Completed reports will appear here once submitted.'}
+              />
             ) : (
               submitted.map(booking => (
                 <ReportCard

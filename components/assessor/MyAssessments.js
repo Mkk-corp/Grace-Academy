@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import EmptyState from '@/components/ui/EmptyState'
 
 function slotMinToTime(slotMin) {
   const h    = Math.floor(slotMin / 60)
@@ -268,23 +269,12 @@ export default function MyAssessments({ isAr, isDark }) {
   )
 
   if (assessments.length === 0) return (
-    <div style={{ padding: '60px 24px', textAlign: 'center' }}>
-      <div style={{
-        width: 56, height: 56, borderRadius: '50%', margin: '0 auto 14px',
-        background: 'rgba(201,147,44,.08)', border: '1.5px dashed rgba(201,147,44,.3)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke={gold} strokeWidth="1.8">
-          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-          <rect x="8" y="2" width="8" height="4" rx="1"/>
-        </svg>
-      </div>
-      <div style={{ fontWeight: 700, color: text, marginBottom: 6 }}>
-        {isAr ? 'لا توجد تقييمات بعد' : 'No assessments yet'}
-      </div>
-      <div style={{ fontSize: '.82rem', color: muted }}>
-        {isAr ? 'ستظهر الجلسات هنا بعد حجزها' : 'Sessions will appear here once they are booked'}
-      </div>
+    <div style={{ padding: '28px 24px' }}>
+      <EmptyState
+        isAdmin={false}
+        title={isAr ? 'لا توجد جلسات بعد' : 'No sessions yet'}
+        description={isAr ? 'ستظهر الجلسات هنا بعد حجزها.' : 'Sessions will appear here once they are booked.'}
+      />
     </div>
   )
 
