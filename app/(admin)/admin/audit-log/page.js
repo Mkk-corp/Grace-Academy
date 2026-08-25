@@ -7,142 +7,217 @@ import { useTheme } from '@/context/ThemeContext'
 /* ─── i18n ─────────────────────────────────────────────────────────────── */
 const S = {
   en: {
-    title:         'Audit Log',
-    subtitle:      'Full chronological record of all system activity',
+    title:         'Activity Log',
+    subtitle:      'A clear record of everything that happens on the portal',
     locked:        'Protected Section',
-    lockedSub:     'Enter your admin password to view the audit log.',
+    lockedSub:     'Enter your admin password to view the activity log.',
     pwdPlaceholder:'Admin password',
     unlock:        'Unlock',
-    wrongPwd:      'Incorrect password',
-    filterRole:    'All Roles',
-    filterAction:  'All Actions',
-    filterSearch:  'Search actor, action, entity…',
-    dateFrom:      'From',
-    dateTo:        'To',
-    clear:         'Clear',
-    apply:         'Apply',
-    colTime:       'Timestamp',
-    colActor:      'Actor',
-    colRole:       'Role',
-    colAction:     'Action',
-    colEntity:     'Entity',
+    wrongPwd:      'Incorrect password — please try again.',
+    filterRole:    'All User Types',
+    filterAction:  'All Activity',
+    filterSearch:  'Search by name, action, or keyword…',
+    dateFrom:      'From date',
+    dateTo:        'To date',
+    clear:         'Clear filters',
+    apply:         'Search',
+    colTime:       'When',
+    colActor:      'Who',
+    colRole:       'User Type',
+    colAction:     'What Happened',
+    colEntity:     'Related To',
     colMeta:       'Details',
-    empty:         'No audit records match the current filters.',
-    loading:       'Loading audit log…',
-    prev:          '← Prev',
+    empty:         'No activity found for the selected filters.',
+    loading:       'Loading activity log…',
+    prev:          '← Previous',
     next:          'Next →',
     of:            'of',
     page:          'Page',
-    records:       'records',
+    records:       'entries',
   },
   ar: {
-    title:         'سجل التدقيق',
-    subtitle:      'سجل زمني كامل لجميع أنشطة النظام',
+    title:         'سجل النشاط',
+    subtitle:      'سجل واضح لكل ما يحدث على البوابة',
     locked:        'قسم محمي',
-    lockedSub:     'أدخل كلمة مرور المشرف للاطلاع على سجل التدقيق.',
+    lockedSub:     'أدخل كلمة مرور المشرف للاطلاع على سجل النشاط.',
     pwdPlaceholder:'كلمة مرور المشرف',
     unlock:        'فتح',
-    wrongPwd:      'كلمة المرور غير صحيحة',
-    filterRole:    'جميع الأدوار',
-    filterAction:  'جميع الإجراءات',
-    filterSearch:  'بحث عن المستخدم أو الإجراء…',
-    dateFrom:      'من',
-    dateTo:        'إلى',
-    clear:         'مسح',
-    apply:         'تطبيق',
-    colTime:       'الوقت',
-    colActor:      'المستخدم',
-    colRole:       'الدور',
-    colAction:     'الإجراء',
-    colEntity:     'الكيان',
+    wrongPwd:      'كلمة المرور غير صحيحة — يرجى المحاولة مرة أخرى.',
+    filterRole:    'جميع أنواع المستخدمين',
+    filterAction:  'جميع الأنشطة',
+    filterSearch:  'بحث بالاسم أو النشاط…',
+    dateFrom:      'من تاريخ',
+    dateTo:        'إلى تاريخ',
+    clear:         'مسح الفلاتر',
+    apply:         'بحث',
+    colTime:       'التوقيت',
+    colActor:      'من',
+    colRole:       'نوع المستخدم',
+    colAction:     'ما الذي حدث',
+    colEntity:     'المتعلق بـ',
     colMeta:       'التفاصيل',
-    empty:         'لا توجد سجلات تطابق الفلاتر الحالية.',
-    loading:       'جارٍ تحميل السجل…',
+    empty:         'لا يوجد نشاط يطابق الفلاتر المحددة.',
+    loading:       'جارٍ تحميل سجل النشاط…',
     prev:          '→ السابق',
     next:          'التالي ←',
     of:            'من',
     page:          'صفحة',
-    records:       'سجل',
+    records:       'إدخال',
   },
 }
 
-/* ─── Action category helpers ───────────────────────────────────────────── */
+/* ─── Human-readable label maps ─────────────────────────────────────────── */
+const ACTION_LABELS = {
+  'login.success':                 'Signed in successfully',
+  'login.failed':                  'Failed sign-in attempt',
+  'logout':                        'Signed out',
+  'admin.login':                   'Admin signed in',
+  'admin.login_failed':            'Failed admin sign-in attempt',
+  'admin.logout':                  'Admin signed out',
+  'user.registered':               'New account created',
+  'user.created':                  'Account created by admin',
+  'user.updated':                  'Account updated',
+  'user.deleted':                  'Account deleted',
+  'user.password_reset':           'Password changed',
+  'user.password_reset_requested': 'Password reset requested',
+  'profile.updated':               'Profile updated',
+  'role.created':                  'New user role created',
+  'role.updated':                  'User role updated',
+  'role.deleted':                  'User role deleted',
+  'booking.created':               'Session booked',
+  'booking.recording_added':       'Recording link added to session',
+  'schedule.created':              'Availability schedule set',
+  'slot_request.submitted':        'Schedule change requested',
+  'slot_request.approved':         'Schedule change approved',
+  'slot_request.rejected':         'Schedule change declined',
+  'schedule_limits.updated':       'Booking rules updated',
+  'assessor.preferences_updated':  'Academic Consultant preferences saved',
+  'content.created':               'Website content added',
+  'content.updated':               'Website content updated',
+  'content.deleted':               'Website content removed',
+  'contact.submitted':             'Contact message received',
+  'report.submitted':              'Assessment report submitted',
+  'report.updated':                'Assessment report edited',
+}
+
+const ENTITY_LABELS = {
+  'Booking':            'Assessment Session',
+  'User':               'User Account',
+  'Role':               'User Role',
+  'SlotRequest':        'Schedule Change Request',
+  'ScheduleTemplate':   'Availability Schedule',
+  'AssessorPreference': 'Consultant Preferences',
+  'AssessmentReport':   'Assessment Report',
+  'ContactMessage':     'Contact Message',
+  'blog':               'Blog Post',
+  'services':           'Service',
+  'faq':                'FAQ Item',
+  'portfolio':          'Portfolio Item',
+  'pricing':            'Pricing Plan',
+  'stats':              'Statistics',
+  'site_content':       'Website Content',
+}
+
+const ROLE_LABELS = {
+  'admin':    'Admin',
+  'assessor': 'Academic Consultant',
+  'teacher':  'Teacher',
+  'student':  'Student',
+  'user':     'User',
+  'visitor':  'Website Visitor',
+  'system':   'System',
+  'unknown':  'Unknown',
+}
+
+/* ─── Filter options (human-readable labels) ────────────────────────────── */
 const ACTION_GROUPS = [
-  { value: '',                           label: { en: 'All Actions',           ar: 'جميع الإجراءات' } },
-  { value: 'login.success',             label: { en: 'Login',                 ar: 'تسجيل دخول' } },
-  { value: 'login.failed',              label: { en: 'Login Failed',          ar: 'فشل الدخول' } },
-  { value: 'logout',                    label: { en: 'Logout',                ar: 'تسجيل خروج' } },
-  { value: 'admin.login',               label: { en: 'Admin Login',           ar: 'دخول مشرف' } },
-  { value: 'admin.login_failed',        label: { en: 'Admin Login Failed',    ar: 'فشل دخول مشرف' } },
-  { value: 'admin.logout',              label: { en: 'Admin Logout',          ar: 'خروج مشرف' } },
-  { value: 'user.registered',           label: { en: 'User Registered',       ar: 'تسجيل مستخدم' } },
-  { value: 'user.created',              label: { en: 'User Created (Admin)',   ar: 'إنشاء مستخدم' } },
-  { value: 'user.updated',              label: { en: 'User Updated',          ar: 'تحديث مستخدم' } },
-  { value: 'user.deleted',              label: { en: 'User Deleted',          ar: 'حذف مستخدم' } },
-  { value: 'user.password_reset',       label: { en: 'Password Reset',        ar: 'إعادة تعيين كلمة المرور' } },
-  { value: 'profile.updated',           label: { en: 'Profile Updated',       ar: 'تحديث الملف الشخصي' } },
-  { value: 'role.created',              label: { en: 'Role Created',          ar: 'إنشاء دور' } },
-  { value: 'role.updated',              label: { en: 'Role Updated',          ar: 'تحديث دور' } },
-  { value: 'role.deleted',              label: { en: 'Role Deleted',          ar: 'حذف دور' } },
-  { value: 'booking.created',           label: { en: 'Booking Created',       ar: 'إنشاء حجز' } },
-  { value: 'schedule.created',          label: { en: 'Schedule Set',          ar: 'تعيين جدول' } },
-  { value: 'slot_request',              label: { en: 'Slot Requests',         ar: 'طلبات الجدول' } },
-  { value: 'schedule_limits',           label: { en: 'Schedule Limits',       ar: 'حدود الجدول' } },
-  { value: 'assessor.preferences',      label: { en: 'Assessor Preferences',  ar: 'تفضيلات المستشار' } },
-  { value: 'content',                   label: { en: 'Content Changes',       ar: 'تغييرات المحتوى' } },
-  { value: 'contact.submitted',         label: { en: 'Contact Form',          ar: 'رسالة تواصل' } },
+  { value: '',                           label: { en: 'All Activity',                    ar: 'جميع الأنشطة' } },
+  { value: 'login.success',             label: { en: 'Signed in',                       ar: 'تسجيل دخول' } },
+  { value: 'login.failed',              label: { en: 'Failed sign-in attempt',          ar: 'فشل الدخول' } },
+  { value: 'logout',                    label: { en: 'Signed out',                      ar: 'تسجيل خروج' } },
+  { value: 'admin.login',               label: { en: 'Admin signed in',                 ar: 'دخول مشرف' } },
+  { value: 'admin.login_failed',        label: { en: 'Failed admin sign-in',            ar: 'فشل دخول مشرف' } },
+  { value: 'admin.logout',              label: { en: 'Admin signed out',                ar: 'خروج مشرف' } },
+  { value: 'user.registered',           label: { en: 'New account created',             ar: 'حساب جديد' } },
+  { value: 'user.created',              label: { en: 'Account created by admin',        ar: 'إنشاء حساب' } },
+  { value: 'user.updated',              label: { en: 'Account updated',                 ar: 'تحديث حساب' } },
+  { value: 'user.deleted',              label: { en: 'Account deleted',                 ar: 'حذف حساب' } },
+  { value: 'user.password_reset',       label: { en: 'Password changed',               ar: 'تغيير كلمة المرور' } },
+  { value: 'profile.updated',           label: { en: 'Profile updated',                ar: 'تحديث الملف الشخصي' } },
+  { value: 'role.created',              label: { en: 'New role created',               ar: 'إنشاء دور' } },
+  { value: 'role.updated',              label: { en: 'Role updated',                   ar: 'تحديث دور' } },
+  { value: 'role.deleted',              label: { en: 'Role deleted',                   ar: 'حذف دور' } },
+  { value: 'booking.created',           label: { en: 'Session booked',                 ar: 'حجز جلسة' } },
+  { value: 'booking.recording_added',   label: { en: 'Recording link added',           ar: 'رابط التسجيل' } },
+  { value: 'schedule.created',          label: { en: 'Availability schedule set',      ar: 'تعيين الجدول' } },
+  { value: 'slot_request.submitted',    label: { en: 'Schedule change requested',      ar: 'طلب تغيير الجدول' } },
+  { value: 'slot_request.approved',     label: { en: 'Schedule change approved',       ar: 'الموافقة على الجدول' } },
+  { value: 'slot_request.rejected',     label: { en: 'Schedule change declined',       ar: 'رفض طلب الجدول' } },
+  { value: 'schedule_limits.updated',   label: { en: 'Booking rules updated',          ar: 'قواعد الحجز' } },
+  { value: 'assessor.preferences_updated', label: { en: 'Consultant preferences saved', ar: 'تفضيلات المستشار' } },
+  { value: 'content.created',           label: { en: 'Website content added',          ar: 'محتوى جديد' } },
+  { value: 'content.updated',           label: { en: 'Website content updated',        ar: 'تحديث محتوى' } },
+  { value: 'content.deleted',           label: { en: 'Website content removed',        ar: 'حذف محتوى' } },
+  { value: 'contact.submitted',         label: { en: 'Contact message received',       ar: 'رسالة تواصل' } },
+  { value: 'report.submitted',          label: { en: 'Assessment report submitted',    ar: 'تقرير تقييم' } },
+  { value: 'report.updated',            label: { en: 'Assessment report edited',       ar: 'تعديل تقرير' } },
 ]
 
 const ROLE_OPTIONS = [
-  { value: '',         label: { en: 'All Roles',  ar: 'جميع الأدوار' } },
-  { value: 'admin',    label: { en: 'Admin',      ar: 'مشرف' } },
-  { value: 'assessor', label: { en: 'Assessor',   ar: 'مستشار' } },
-  { value: 'teacher',  label: { en: 'Teacher',    ar: 'معلم' } },
-  { value: 'student',  label: { en: 'Student',    ar: 'طالب' } },
-  { value: 'user',     label: { en: 'User',       ar: 'مستخدم' } },
-  { value: 'visitor',  label: { en: 'Visitor',    ar: 'زائر' } },
-  { value: 'system',   label: { en: 'System',     ar: 'نظام' } },
+  { value: '',         label: { en: 'All User Types',         ar: 'جميع أنواع المستخدمين' } },
+  { value: 'admin',    label: { en: 'Admin',                  ar: 'مشرف' } },
+  { value: 'assessor', label: { en: 'Academic Consultant',    ar: 'مستشار أكاديمي' } },
+  { value: 'teacher',  label: { en: 'Teacher',               ar: 'معلم' } },
+  { value: 'student',  label: { en: 'Student',               ar: 'طالب' } },
+  { value: 'user',     label: { en: 'User',                  ar: 'مستخدم' } },
+  { value: 'visitor',  label: { en: 'Website Visitor',       ar: 'زائر الموقع' } },
+  { value: 'system',   label: { en: 'System',                ar: 'نظام' } },
 ]
 
+/* ─── Action color map ───────────────────────────────────────────────────── */
 const ACTION_COLORS = {
-  'login.success':              { bg: 'rgba(16,185,129,.12)',  text: '#10b981', border: 'rgba(16,185,129,.25)' },
-  'login.failed':               { bg: 'rgba(239,68,68,.12)',   text: '#ef4444', border: 'rgba(239,68,68,.25)' },
-  'logout':                     { bg: 'rgba(107,114,128,.12)', text: '#6b7280', border: 'rgba(107,114,128,.25)' },
-  'admin.login':                { bg: 'rgba(16,185,129,.12)',  text: '#10b981', border: 'rgba(16,185,129,.25)' },
-  'admin.login_failed':         { bg: 'rgba(239,68,68,.12)',   text: '#ef4444', border: 'rgba(239,68,68,.25)' },
-  'admin.logout':               { bg: 'rgba(107,114,128,.12)', text: '#6b7280', border: 'rgba(107,114,128,.25)' },
-  'user.registered':            { bg: 'rgba(59,130,246,.12)',  text: '#3b82f6', border: 'rgba(59,130,246,.25)' },
-  'user.created':               { bg: 'rgba(59,130,246,.12)',  text: '#3b82f6', border: 'rgba(59,130,246,.25)' },
-  'user.updated':               { bg: 'rgba(201,147,44,.12)',  text: '#c9932c', border: 'rgba(201,147,44,.25)' },
-  'user.deleted':               { bg: 'rgba(239,68,68,.12)',   text: '#ef4444', border: 'rgba(239,68,68,.25)' },
-  'user.password_reset':        { bg: 'rgba(245,158,11,.12)',  text: '#f59e0b', border: 'rgba(245,158,11,.25)' },
-  'user.password_reset_requested':{ bg: 'rgba(245,158,11,.12)',text: '#f59e0b', border: 'rgba(245,158,11,.25)' },
-  'profile.updated':            { bg: 'rgba(201,147,44,.12)',  text: '#c9932c', border: 'rgba(201,147,44,.25)' },
-  'role.created':               { bg: 'rgba(59,130,246,.12)',  text: '#3b82f6', border: 'rgba(59,130,246,.25)' },
-  'role.updated':               { bg: 'rgba(201,147,44,.12)',  text: '#c9932c', border: 'rgba(201,147,44,.25)' },
-  'role.deleted':               { bg: 'rgba(239,68,68,.12)',   text: '#ef4444', border: 'rgba(239,68,68,.25)' },
-  'booking.created':            { bg: 'rgba(139,92,246,.12)',  text: '#8b5cf6', border: 'rgba(139,92,246,.25)' },
-  'schedule.created':           { bg: 'rgba(16,185,129,.12)',  text: '#10b981', border: 'rgba(16,185,129,.25)' },
-  'slot_request.submitted':     { bg: 'rgba(245,158,11,.12)',  text: '#f59e0b', border: 'rgba(245,158,11,.25)' },
-  'slot_request.approved':      { bg: 'rgba(16,185,129,.12)',  text: '#10b981', border: 'rgba(16,185,129,.25)' },
-  'slot_request.rejected':      { bg: 'rgba(239,68,68,.12)',   text: '#ef4444', border: 'rgba(239,68,68,.25)' },
-  'schedule_limits.updated':    { bg: 'rgba(201,147,44,.12)',  text: '#c9932c', border: 'rgba(201,147,44,.25)' },
-  'assessor.preferences_updated':{ bg: 'rgba(20,184,166,.12)', text: '#14b8a6', border: 'rgba(20,184,166,.25)' },
-  'content.created':            { bg: 'rgba(59,130,246,.12)',  text: '#3b82f6', border: 'rgba(59,130,246,.25)' },
-  'content.updated':            { bg: 'rgba(201,147,44,.12)',  text: '#c9932c', border: 'rgba(201,147,44,.25)' },
-  'content.deleted':            { bg: 'rgba(239,68,68,.12)',   text: '#ef4444', border: 'rgba(239,68,68,.25)' },
-  'contact.submitted':          { bg: 'rgba(139,92,246,.12)',  text: '#8b5cf6', border: 'rgba(139,92,246,.25)' },
+  'login.success':                 { bg: 'rgba(16,185,129,.12)',  text: '#10b981', border: 'rgba(16,185,129,.25)' },
+  'login.failed':                  { bg: 'rgba(239,68,68,.12)',   text: '#ef4444', border: 'rgba(239,68,68,.25)' },
+  'logout':                        { bg: 'rgba(107,114,128,.12)', text: '#6b7280', border: 'rgba(107,114,128,.25)' },
+  'admin.login':                   { bg: 'rgba(16,185,129,.12)',  text: '#10b981', border: 'rgba(16,185,129,.25)' },
+  'admin.login_failed':            { bg: 'rgba(239,68,68,.12)',   text: '#ef4444', border: 'rgba(239,68,68,.25)' },
+  'admin.logout':                  { bg: 'rgba(107,114,128,.12)', text: '#6b7280', border: 'rgba(107,114,128,.25)' },
+  'user.registered':               { bg: 'rgba(59,130,246,.12)',  text: '#3b82f6', border: 'rgba(59,130,246,.25)' },
+  'user.created':                  { bg: 'rgba(59,130,246,.12)',  text: '#3b82f6', border: 'rgba(59,130,246,.25)' },
+  'user.updated':                  { bg: 'rgba(201,147,44,.12)',  text: '#c9932c', border: 'rgba(201,147,44,.25)' },
+  'user.deleted':                  { bg: 'rgba(239,68,68,.12)',   text: '#ef4444', border: 'rgba(239,68,68,.25)' },
+  'user.password_reset':           { bg: 'rgba(245,158,11,.12)',  text: '#f59e0b', border: 'rgba(245,158,11,.25)' },
+  'user.password_reset_requested': { bg: 'rgba(245,158,11,.12)',  text: '#f59e0b', border: 'rgba(245,158,11,.25)' },
+  'profile.updated':               { bg: 'rgba(201,147,44,.12)',  text: '#c9932c', border: 'rgba(201,147,44,.25)' },
+  'role.created':                  { bg: 'rgba(59,130,246,.12)',  text: '#3b82f6', border: 'rgba(59,130,246,.25)' },
+  'role.updated':                  { bg: 'rgba(201,147,44,.12)',  text: '#c9932c', border: 'rgba(201,147,44,.25)' },
+  'role.deleted':                  { bg: 'rgba(239,68,68,.12)',   text: '#ef4444', border: 'rgba(239,68,68,.25)' },
+  'booking.created':               { bg: 'rgba(139,92,246,.12)',  text: '#8b5cf6', border: 'rgba(139,92,246,.25)' },
+  'booking.recording_added':       { bg: 'rgba(139,92,246,.12)',  text: '#8b5cf6', border: 'rgba(139,92,246,.25)' },
+  'schedule.created':              { bg: 'rgba(16,185,129,.12)',  text: '#10b981', border: 'rgba(16,185,129,.25)' },
+  'slot_request.submitted':        { bg: 'rgba(245,158,11,.12)',  text: '#f59e0b', border: 'rgba(245,158,11,.25)' },
+  'slot_request.approved':         { bg: 'rgba(16,185,129,.12)',  text: '#10b981', border: 'rgba(16,185,129,.25)' },
+  'slot_request.rejected':         { bg: 'rgba(239,68,68,.12)',   text: '#ef4444', border: 'rgba(239,68,68,.25)' },
+  'schedule_limits.updated':       { bg: 'rgba(201,147,44,.12)',  text: '#c9932c', border: 'rgba(201,147,44,.25)' },
+  'assessor.preferences_updated':  { bg: 'rgba(20,184,166,.12)',  text: '#14b8a6', border: 'rgba(20,184,166,.25)' },
+  'content.created':               { bg: 'rgba(59,130,246,.12)',  text: '#3b82f6', border: 'rgba(59,130,246,.25)' },
+  'content.updated':               { bg: 'rgba(201,147,44,.12)',  text: '#c9932c', border: 'rgba(201,147,44,.25)' },
+  'content.deleted':               { bg: 'rgba(239,68,68,.12)',   text: '#ef4444', border: 'rgba(239,68,68,.25)' },
+  'contact.submitted':             { bg: 'rgba(139,92,246,.12)',  text: '#8b5cf6', border: 'rgba(139,92,246,.25)' },
+  'report.submitted':              { bg: 'rgba(16,185,129,.12)',  text: '#10b981', border: 'rgba(16,185,129,.25)' },
+  'report.updated':                { bg: 'rgba(201,147,44,.12)',  text: '#c9932c', border: 'rgba(201,147,44,.25)' },
 }
 
 function actionChip(action, isDark) {
+  const label = ACTION_LABELS[action] || action
   const c = ACTION_COLORS[action] || { bg: isDark ? 'rgba(255,255,255,.06)' : '#f3f4f6', text: isDark ? 'rgba(255,255,255,.55)' : '#6b7280', border: 'transparent' }
   return (
     <span style={{
-      display: 'inline-block', padding: '3px 10px', borderRadius: 100, fontSize: '.72rem',
-      fontWeight: 700, letterSpacing: '.04em',
+      display: 'inline-block', padding: '4px 11px', borderRadius: 100, fontSize: '.72rem',
+      fontWeight: 700, lineHeight: 1.4,
       background: c.bg, color: c.text, border: `1px solid ${c.border}`,
       whiteSpace: 'nowrap',
-    }}>{action}</span>
+    }}>{label}</span>
   )
 }
 
@@ -155,20 +230,117 @@ function roleBadge(role) {
     system:   { bg: 'rgba(107,114,128,.1)', text: '#6b7280' },
   }
   const c = ROLE_COLORS[role] || ROLE_COLORS.system
+  const label = ROLE_LABELS[role] || role || '—'
   return (
     <span style={{
-      display: 'inline-block', padding: '2px 9px', borderRadius: 100, fontSize: '.7rem',
-      fontWeight: 700, background: c.bg, color: c.text,
-    }}>{role || '—'}</span>
+      display: 'inline-block', padding: '3px 10px', borderRadius: 100, fontSize: '.7rem',
+      fontWeight: 700, background: c.bg, color: c.text, whiteSpace: 'nowrap',
+    }}>{label}</span>
   )
 }
 
-function fmtMeta(meta) {
-  if (!meta || Object.keys(meta).length === 0) return '—'
-  return Object.entries(meta)
-    .filter(([, v]) => v !== null && v !== undefined && v !== '')
-    .map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`)
-    .join(' · ')
+/* ─── Human-readable detail formatter ───────────────────────────────────── */
+function fmtMetaHuman(action, meta) {
+  if (!meta || typeof meta !== 'object') return null
+  const m = meta
+  const parts = []
+
+  switch (action) {
+    case 'login.failed':
+      if (m.identifier) parts.push(`Entered: ${m.identifier}`)
+      break
+    case 'login.success':
+    case 'admin.login':
+      // no noise needed — "signed in" is self-explanatory
+      break
+    case 'logout':
+    case 'admin.logout':
+      break
+    case 'user.registered':
+      if (m.email) parts.push(`Email: ${m.email}`)
+      if (m.source && m.source !== 'website') parts.push(`Via: ${m.source}`)
+      break
+    case 'user.created':
+      if (m.name)  parts.push(`Name: ${m.name}`)
+      if (m.email) parts.push(`Email: ${m.email}`)
+      break
+    case 'user.updated':
+      if (m.fields?.length) parts.push(`Fields changed: ${m.fields.join(', ')}`)
+      break
+    case 'user.deleted':
+      if (m.name)  parts.push(`Name: ${m.name}`)
+      if (m.email) parts.push(`Email: ${m.email}`)
+      break
+    case 'user.password_reset':
+    case 'user.password_reset_requested':
+      if (m.email) parts.push(`Email: ${m.email}`)
+      break
+    case 'profile.updated':
+      if (m.fields?.length) parts.push(`Updated: ${m.fields.join(', ')}`)
+      break
+    case 'role.created':
+      if (m.name) parts.push(`Role name: ${m.name}`)
+      if (m.permissions?.length) parts.push(`Permissions: ${m.permissions.length}`)
+      break
+    case 'role.updated':
+      if (m.roleName) parts.push(`Role: ${m.roleName}`)
+      if (m.fields?.length) parts.push(`Changed: ${m.fields.join(', ')}`)
+      break
+    case 'role.deleted':
+      if (m.name) parts.push(`Role: ${m.name}`)
+      break
+    case 'booking.created':
+      if (m.studentName) parts.push(`Student: ${m.studentName}`)
+      if (m.date)        parts.push(`Date: ${m.date}`)
+      break
+    case 'booking.recording_added':
+      if (m.studentName) parts.push(`Student: ${m.studentName}`)
+      if (m.date)        parts.push(`Session date: ${m.date}`)
+      break
+    case 'schedule.created':
+      if (m.totalSlots != null) parts.push(`${m.totalSlots} time slots`)
+      if (m.days)               parts.push(`Days: ${m.days}`)
+      break
+    case 'slot_request.submitted':
+      if (m.reason) parts.push(`Reason: ${m.reason}`)
+      break
+    case 'slot_request.approved':
+    case 'slot_request.rejected':
+      if (m.assessorName) parts.push(`For: ${m.assessorName}`)
+      if (m.adminNote)    parts.push(`Note: ${m.adminNote}`)
+      break
+    case 'schedule_limits.updated':
+      if (m.fields?.length) parts.push(`Updated: ${m.fields.join(', ')}`)
+      break
+    case 'assessor.preferences_updated':
+      if (m.accent)     parts.push(`Accent: ${m.accent}`)
+      if (m.topicCount != null) parts.push(`Topics: ${m.topicCount}`)
+      break
+    case 'content.created':
+    case 'content.updated':
+    case 'content.deleted':
+      if (m.title) parts.push(`"${m.title}"`)
+      break
+    case 'contact.submitted':
+      if (m.email) parts.push(`From: ${m.email}`)
+      break
+    case 'report.submitted':
+      if (m.studentName)    parts.push(`Student: ${m.studentName}`)
+      if (m.englishLevel)   parts.push(`Level: ${m.englishLevel}`)
+      if (m.suggestedCourse) parts.push(`Course: ${m.suggestedCourse}`)
+      break
+    case 'report.updated':
+      if (m.fields?.length) parts.push(`Updated: ${m.fields.join(', ')}`)
+      break
+    default:
+      // fallback: show key-value pairs but skip noisy internal fields
+      Object.entries(m)
+        .filter(([k, v]) => !['id','entityId','redirect'].includes(k) && v !== null && v !== undefined && v !== '')
+        .slice(0, 4)
+        .forEach(([k, v]) => parts.push(`${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`))
+  }
+
+  return parts.length ? parts.join('  ·  ') : null
 }
 
 function fmtTime(iso) {
@@ -193,7 +365,7 @@ function PasswordGate({ s, isDark, onUnlock }) {
     setError('')
     setLoading(true)
     try {
-      const res  = await fetch('/api/admin/audit-log/verify', {
+      const res = await fetch('/api/admin/audit-log/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: pwd }),
@@ -215,19 +387,14 @@ function PasswordGate({ s, isDark, onUnlock }) {
         textAlign: 'center',
         boxShadow: isDark ? '0 8px 40px rgba(0,0,0,.4)' : '0 8px 40px rgba(0,0,0,.1)',
       }}>
-        {/* Lock icon */}
-        <div style={{
-          width: 68, height: 68, borderRadius: 18, margin: '0 auto 24px',
-          background: 'rgba(201,147,44,.1)', border: '1.5px solid rgba(201,147,44,.25)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
+        <div style={{ width: 68, height: 68, borderRadius: 18, margin: '0 auto 24px', background: 'rgba(201,147,44,.1)', border: '1.5px solid rgba(201,147,44,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.8">
             <rect x="3" y="11" width="18" height="11" rx="2"/>
             <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
           </svg>
         </div>
         <div style={{ fontSize: '.72rem', fontWeight: 700, letterSpacing: '.14em', color: GOLD, marginBottom: 8 }}>
-          AUDIT LOG
+          ACTIVITY LOG
         </div>
         <h2 style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--text)', marginBottom: 8 }}>
           {s.locked}
@@ -237,11 +404,8 @@ function PasswordGate({ s, isDark, onUnlock }) {
         </p>
         <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <input
-            type="password"
-            value={pwd}
-            onChange={e => setPwd(e.target.value)}
-            placeholder={s.pwdPlaceholder}
-            autoFocus
+            type="password" value={pwd} onChange={e => setPwd(e.target.value)}
+            placeholder={s.pwdPlaceholder} autoFocus
             style={{
               padding: '12px 16px', borderRadius: 10, fontSize: '.9rem',
               background: 'var(--surface-2)', border: `1.5px solid ${error ? '#ef4444' : 'var(--border)'}`,
@@ -253,8 +417,7 @@ function PasswordGate({ s, isDark, onUnlock }) {
           />
           {error && <div style={{ fontSize: '.8rem', color: '#ef4444', fontWeight: 600 }}>{error}</div>}
           <button
-            type="submit"
-            disabled={loading || !pwd}
+            type="submit" disabled={loading || !pwd}
             style={{
               padding: '12px', borderRadius: 10, border: 'none',
               background: loading || !pwd ? (isDark ? 'rgba(255,255,255,.08)' : '#f3f4f6') : GOLD,
@@ -288,7 +451,6 @@ export default function AuditLogPage() {
   const [page,     setPage]     = useState(1)
   const [loading,  setLoading]  = useState(false)
 
-  // Filter state
   const [actorRole,  setActorRole]  = useState('')
   const [action,     setAction]     = useState('')
   const [search,     setSearch]     = useState('')
@@ -340,6 +502,8 @@ export default function AuditLogPage() {
 
   if (!unlocked) return <PasswordGate s={s} isDark={isDark} onUnlock={() => setUnlocked(true)} />
 
+  const cols = [s.colTime, s.colActor, s.colRole, s.colAction, s.colEntity, s.colMeta]
+
   return (
     <div style={{ padding: '28px 28px 60px', maxWidth: 1400, margin: '0 auto', animation: 'adFadeUp .25s ease' }}>
       <style>{`
@@ -377,44 +541,35 @@ export default function AuditLogPage() {
       </div>
 
       {/* ─── Filters ─── */}
-      <div style={{
-        background: 'var(--surface)', border: '1px solid var(--border)',
-        borderRadius: 14, padding: '16px 20px', marginBottom: 20,
-        display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'flex-end',
-      }}>
-        {/* Role */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, minWidth: 140 }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 20px', marginBottom: 20, display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'flex-end' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, minWidth: 160 }}>
           <label style={{ fontSize: '.68rem', fontWeight: 700, color: 'var(--text-60)', letterSpacing: '.08em', textTransform: 'uppercase' }}>
-            {isAr ? 'الدور' : 'Role'}
+            {isAr ? 'نوع المستخدم' : 'User Type'}
           </label>
           <select value={actorRole} onChange={e => setActorRole(e.target.value)} style={sel}>
             {ROLE_OPTIONS.map(o => <option key={o.value} value={o.value}>{isAr ? o.label.ar : o.label.en}</option>)}
           </select>
         </div>
 
-        {/* Action */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, minWidth: 170 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, minWidth: 200 }}>
           <label style={{ fontSize: '.68rem', fontWeight: 700, color: 'var(--text-60)', letterSpacing: '.08em', textTransform: 'uppercase' }}>
-            {isAr ? 'الإجراء' : 'Action'}
+            {isAr ? 'نوع النشاط' : 'Activity Type'}
           </label>
           <select value={action} onChange={e => setAction(e.target.value)} style={sel}>
             {ACTION_GROUPS.map(o => <option key={o.value} value={o.value}>{isAr ? o.label.ar : o.label.en}</option>)}
           </select>
         </div>
 
-        {/* Date From */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5, minWidth: 140 }}>
           <label style={{ fontSize: '.68rem', fontWeight: 700, color: 'var(--text-60)', letterSpacing: '.08em', textTransform: 'uppercase' }}>{s.dateFrom}</label>
           <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={inp} />
         </div>
 
-        {/* Date To */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5, minWidth: 140 }}>
           <label style={{ fontSize: '.68rem', fontWeight: 700, color: 'var(--text-60)', letterSpacing: '.08em', textTransform: 'uppercase' }}>{s.dateTo}</label>
           <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} style={inp} />
         </div>
 
-        {/* Search */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5, flex: 1, minWidth: 200 }}>
           <label style={{ fontSize: '.68rem', fontWeight: 700, color: 'var(--text-60)', letterSpacing: '.08em', textTransform: 'uppercase' }}>
             {isAr ? 'بحث' : 'Search'}
@@ -431,7 +586,6 @@ export default function AuditLogPage() {
           </div>
         </div>
 
-        {/* Buttons */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
           <button onClick={clearFilters} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border)', background: 'none', color: 'var(--text-60)', fontSize: '.83rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
             {s.clear}
@@ -448,7 +602,6 @@ export default function AuditLogPage() {
           <strong style={{ color: 'var(--text)', fontVariantNumeric: 'tabular-nums' }}>{total.toLocaleString()}</strong>{' '}{s.records}
           {' · '}{s.page} <strong style={{ color: 'var(--text)' }}>{page}</strong> {s.of} <strong style={{ color: 'var(--text)' }}>{pages}</strong>
         </div>
-        {/* Pagination top */}
         <div style={{ display: 'flex', gap: 6 }}>
           <button onClick={() => fetchLogs(page - 1, applied)} disabled={page <= 1 || loading} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'none', color: page <= 1 ? 'var(--text-40)' : 'var(--text)', fontSize: '.8rem', fontWeight: 600, cursor: page <= 1 ? 'default' : 'pointer', fontFamily: 'inherit' }}>
             {s.prev}
@@ -481,7 +634,7 @@ export default function AuditLogPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.83rem' }}>
               <thead>
                 <tr style={{ background: isDark ? 'rgba(255,255,255,.03)' : '#f9fafb', borderBottom: '1px solid var(--border)' }}>
-                  {[s.colTime, s.colActor, s.colRole, s.colAction, s.colEntity, s.colMeta].map(h => (
+                  {cols.map(h => (
                     <th key={h} style={{ padding: '11px 16px', textAlign: isAr ? 'right' : 'left', fontWeight: 700, fontSize: '.72rem', letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--text-60)', whiteSpace: 'nowrap' }}>
                       {h}
                     </th>
@@ -489,42 +642,49 @@ export default function AuditLogPage() {
                 </tr>
               </thead>
               <tbody>
-                {logs.map((log, i) => (
-                  <tr key={log.id} className="al-row">
-                    {/* Timestamp */}
-                    <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap', color: 'var(--text-60)', fontVariantNumeric: 'tabular-nums', fontSize: '.78rem', fontFamily: 'monospace' }}>
-                      {fmtTime(log.createdAt)}
-                    </td>
-                    {/* Actor */}
-                    <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', maxWidth: 160 }}>
-                      <div style={{ fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {log.actorName || <span style={{ color: 'var(--text-40)', fontStyle: 'italic' }}>system</span>}
-                      </div>
-                      {log.actorId && <div style={{ fontSize: '.68rem', color: 'var(--text-40)', marginTop: 2, fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.actorId.slice(0, 12)}…</div>}
-                    </td>
-                    {/* Role */}
-                    <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' }}>
-                      {roleBadge(log.actorRole)}
-                    </td>
-                    {/* Action */}
-                    <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' }}>
-                      {actionChip(log.action, isDark)}
-                    </td>
-                    {/* Entity */}
-                    <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
-                      {log.entity ? (
-                        <div>
-                          <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: '.8rem' }}>{log.entity}</div>
-                          {log.entityId && <div style={{ fontSize: '.68rem', color: 'var(--text-40)', fontFamily: 'monospace', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120 }}>{log.entityId.slice(0, 14)}…</div>}
+                {logs.map(log => {
+                  const detail = fmtMetaHuman(log.action, log.meta)
+                  const entityLabel = ENTITY_LABELS[log.entity] || log.entity
+                  return (
+                    <tr key={log.id} className="al-row">
+                      {/* When */}
+                      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap', color: 'var(--text-60)', fontVariantNumeric: 'tabular-nums', fontSize: '.78rem', fontFamily: 'monospace' }}>
+                        {fmtTime(log.createdAt)}
+                      </td>
+                      {/* Who */}
+                      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', maxWidth: 160 }}>
+                        <div style={{ fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {log.actorName || <span style={{ color: 'var(--text-40)', fontStyle: 'italic' }}>System</span>}
                         </div>
-                      ) : <span style={{ color: 'var(--text-40)' }}>—</span>}
-                    </td>
-                    {/* Meta */}
-                    <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', color: 'var(--text-60)', fontSize: '.76rem', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {fmtMeta(log.meta)}
-                    </td>
-                  </tr>
-                ))}
+                        {log.ip && (
+                          <div style={{ fontSize: '.68rem', color: 'var(--text-40)', marginTop: 2 }}>{log.ip.split(',')[0].trim()}</div>
+                        )}
+                      </td>
+                      {/* User Type */}
+                      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' }}>
+                        {roleBadge(log.actorRole)}
+                      </td>
+                      {/* What Happened */}
+                      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' }}>
+                        {actionChip(log.action, isDark)}
+                      </td>
+                      {/* Related To */}
+                      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
+                        {entityLabel
+                          ? <span style={{ fontWeight: 600, color: 'var(--text)', fontSize: '.8rem' }}>{entityLabel}</span>
+                          : <span style={{ color: 'var(--text-40)' }}>—</span>
+                        }
+                      </td>
+                      {/* Details */}
+                      <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', color: 'var(--text-60)', fontSize: '.78rem', maxWidth: 300 }}>
+                        {detail
+                          ? <span style={{ lineHeight: 1.5 }}>{detail}</span>
+                          : <span style={{ color: 'var(--text-40)' }}>—</span>
+                        }
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
