@@ -496,6 +496,16 @@ export default function ProfilePage() {
   async function handleSave() {
     setError('')
     setSaving(true)
+    if (form.dob) {
+      const birth = new Date(form.dob)
+      const minAge = new Date()
+      minAge.setFullYear(minAge.getFullYear() - 5)
+      if (isNaN(birth.getTime()) || birth > minAge) {
+        setError(isAr ? 'يجب أن يكون عمرك 5 سنوات على الأقل.' : 'You must be at least 5 years old.')
+        setSaving(false)
+        return
+      }
+    }
     const phone = phoneNumber.trim() ? `${phoneCountry.dial} ${phoneNumber.trim()}` : ''
     const res   = await fetch('/api/profile', {
       method:'PUT',

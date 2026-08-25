@@ -88,7 +88,7 @@ export default function AssignedStudents({ isAr, isDark }) {
                 />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 700, fontSize: '.9rem', color: text }}>{s.name}</div>
-                  <div style={{ fontSize: '.75rem', color: muted }}>{s.email}</div>
+                  <div style={{ fontSize: '.75rem', color: muted }}>{s.city || s.country || ''}</div>
                 </div>
                 {s.sessionDate && (
                   <div style={{ textAlign: isAr ? 'left' : 'right', flexShrink: 0 }}>
@@ -117,7 +117,6 @@ export default function AssignedStudents({ isAr, isDark }) {
                   gap: 16,
                 }}>
                   {[
-                    { label: isAr ? 'الهاتف' : 'Phone',               val: s.phone || '—' },
                     { label: isAr ? 'تاريخ الميلاد' : 'Date of Birth', val: s.dob || '—' },
                     { label: isAr ? 'الجنس' : 'Gender',               val: s.gender || '—' },
                     { label: isAr ? 'البلد' : 'Country',              val: s.country || '—' },

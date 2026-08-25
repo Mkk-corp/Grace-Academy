@@ -56,6 +56,14 @@ export async function PUT(request) {
   if (updates.name !== undefined && !updates.name.trim()) {
     return NextResponse.json({ error: 'Name cannot be empty.' }, { status: 400 })
   }
+  if (updates.dob !== undefined && updates.dob) {
+    const birth = new Date(updates.dob)
+    const minAge = new Date()
+    minAge.setFullYear(minAge.getFullYear() - 5)
+    if (isNaN(birth.getTime()) || birth > minAge) {
+      return NextResponse.json({ error: 'You must be at least 5 years old.' }, { status: 400 })
+    }
+  }
 
   const user = await prisma.user.update({ where: { id: userId }, data: updates, select: SAFE_SELECT })
   logAudit({ actorId: userId, actorName: user.name, actorRole: 'user', action: 'profile.updated', entity: 'User', entityId: userId, meta: { fields: Object.keys(updates) } })

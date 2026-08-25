@@ -17,7 +17,7 @@ export async function GET() {
     include: {
       student: {
         select: {
-          id: true, name: true, email: true, phone: true, dob: true, gender: true,
+          id: true, name: true, dob: true, gender: true,
           country: true, city: true, avatar: true,
           educationLevel: true, coursesTaken: true, expectedLevel: true,
           isEmployed: true, jobTitle: true, employer: true, createdAt: true,
