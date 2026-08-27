@@ -13,15 +13,23 @@ async function getAuthPayload() {
   return p?.userId ? p : null
 }
 
-// Report window: opens at session start, closes at 12:00 AM (midnight) of the same day
+// Is it currently within the write window? (session start → midnight same day)
 function isReportOpen(date, slotMin) {
   const [y, mo, d] = date.split('-').map(Number)
   const h = Math.floor(slotMin / 60)
   const m = slotMin % 60
   const sessionStart = new Date(y, mo - 1, d, h, m, 0)
-  const midnight     = new Date(y, mo - 1, d + 1, 0, 0, 0) // 12:00 AM = start of next day
+  const midnight     = new Date(y, mo - 1, d + 1, 0, 0, 0)
   const now = Date.now()
   return now >= sessionStart.getTime() && now < midnight.getTime()
+}
+
+// Has the session started at all? (for determining if a report is overdue)
+function sessionHasStarted(date, slotMin) {
+  const [y, mo, d] = date.split('-').map(Number)
+  const h = Math.floor(slotMin / 60)
+  const m = slotMin % 60
+  return Date.now() >= new Date(y, mo - 1, d, h, m, 0).getTime()
 }
 
 function slotMinToTime(slotMin) {
@@ -50,7 +58,11 @@ export async function GET() {
     orderBy: [{ date: 'desc' }, { slotMin: 'desc' }],
   })
 
-  const pending   = bookings.filter(b => isReportOpen(b.date, b.slotMin) && !b.report)
+  // pending = any session that has started and has no report (window may be open or closed)
+  const pendingRaw = bookings.filter(b => !b.report && sessionHasStarted(b.date, b.slotMin))
+  // attach windowOpen flag so the UI knows if the form is still writable
+  const pending = pendingRaw.map(b => ({ ...b, windowOpen: isReportOpen(b.date, b.slotMin) }))
+
   const submitted = bookings.filter(b => b.report)
 
   return NextResponse.json({ pending, submitted })

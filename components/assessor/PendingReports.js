@@ -469,7 +469,7 @@ function EditReportForm({ report, onSaved, onCancel, isAr, isDark, gold, text, m
 }
 
 /* ─── Report card wrapper ────────────────────────────────────────────────── */
-function ReportCard({ booking, report: initReport, autoOpen, isAr, isDark, onReportChange }) {
+function ReportCard({ booking, report: initReport, autoOpen, isAr, isDark, onReportChange, windowOpen }) {
   const [open,     setOpen]     = useState(autoOpen)
   const [report,   setReport]   = useState(initReport || null)
   const [editing,  setEditing]  = useState(false)
@@ -482,10 +482,14 @@ function ReportCard({ booking, report: initReport, autoOpen, isAr, isDark, onRep
   const surface2 = isDark ? '#0a1820' : '#f9fafb'
 
   const hasReport = !!report
-  const statusColor = hasReport ? '#10b981' : '#f59e0b'
+  const isClosed  = !hasReport && !windowOpen  // started, no report, deadline passed
+
+  const statusColor = hasReport ? '#10b981' : isClosed ? '#6b7280' : '#f59e0b'
   const statusLabel = hasReport
-    ? (isAr ? 'تم إرسال التقرير' : 'Report Submitted')
-    : (isAr ? 'بانتظار التقرير' : 'Report Pending')
+    ? (isAr ? 'تم إرسال التقرير'   : 'Report Submitted')
+    : isClosed
+    ? (isAr ? 'انتهت مهلة التقرير' : 'Window Closed')
+    : (isAr ? 'بانتظار التقرير'    : 'Report Pending')
 
   return (
     <div style={{
@@ -556,7 +560,30 @@ function ReportCard({ booking, report: initReport, autoOpen, isAr, isDark, onRep
           <div style={{ height: 1, background: border }} />
 
           {/* Form / View */}
-          {!hasReport ? (
+          {!hasReport && isClosed ? (
+            /* Window has closed — show info banner, no form */
+            <div style={{
+              display: 'flex', alignItems: 'flex-start', gap: 14,
+              padding: '18px 20px', borderRadius: 12,
+              background: isDark ? 'rgba(107,114,128,.08)' : 'rgba(107,114,128,.06)',
+              border: `1px solid ${isDark ? 'rgba(107,114,128,.2)' : '#d1d5db'}`,
+            }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" width="20" height="20" style={{ flexShrink: 0, marginTop: 2 }}>
+                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '.88rem', color: text, marginBottom: 4 }}>
+                  {isAr ? 'انتهت مهلة كتابة التقرير' : 'Report window has closed'}
+                </div>
+                <div style={{ fontSize: '.8rem', color: muted, lineHeight: 1.6 }}>
+                  {isAr
+                    ? 'كان يمكن كتابة تقرير هذه الجلسة من بداية وقتها وحتى منتصف الليل. لم يُرسل تقرير لهذه الجلسة.'
+                    : 'Reports for this session were available from its start time until 12:00 AM of the same day. No report was submitted.'}
+                </div>
+              </div>
+            </div>
+          ) : !hasReport ? (
             <ReportForm
               booking={booking}
               onSubmitted={r => { setReport(r); onReportChange && onReportChange('submit', booking.id, r) }}
@@ -735,6 +762,7 @@ export default function PendingReports({ isAr, isDark }) {
                     autoOpen={i === 0}
                     isAr={isAr}
                     isDark={isDark}
+                    windowOpen={booking.windowOpen}
                     onReportChange={handleReportChange}
                   />
                 ))}
