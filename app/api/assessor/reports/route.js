@@ -13,13 +13,15 @@ async function getAuthPayload() {
   return p?.userId ? p : null
 }
 
-// A session is "completed" if its start time is more than 30 minutes in the past
-function isCompleted(date, slotMin) {
+// Report window: opens at session start, closes at 12:00 AM (midnight) of the same day
+function isReportOpen(date, slotMin) {
   const [y, mo, d] = date.split('-').map(Number)
   const h = Math.floor(slotMin / 60)
   const m = slotMin % 60
-  const start = new Date(y, mo - 1, d, h, m, 0)
-  return Date.now() - start.getTime() > 30 * 60 * 1000
+  const sessionStart = new Date(y, mo - 1, d, h, m, 0)
+  const midnight     = new Date(y, mo - 1, d + 1, 0, 0, 0) // 12:00 AM = start of next day
+  const now = Date.now()
+  return now >= sessionStart.getTime() && now < midnight.getTime()
 }
 
 function slotMinToTime(slotMin) {
@@ -48,9 +50,8 @@ export async function GET() {
     orderBy: [{ date: 'desc' }, { slotMin: 'desc' }],
   })
 
-  const completed = bookings.filter(b => isCompleted(b.date, b.slotMin))
-  const pending   = completed.filter(b => !b.report)
-  const submitted = completed.filter(b =>  b.report)
+  const pending   = bookings.filter(b => isReportOpen(b.date, b.slotMin) && !b.report)
+  const submitted = bookings.filter(b => b.report)
 
   return NextResponse.json({ pending, submitted })
 }
@@ -78,7 +79,7 @@ export async function POST(req) {
   if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
   if (booking.assessorId !== payload.userId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   if (booking.report) return NextResponse.json({ error: 'Report already submitted' }, { status: 409 })
-  if (!isCompleted(booking.date, booking.slotMin)) return NextResponse.json({ error: 'Session not yet completed' }, { status: 400 })
+  if (!isReportOpen(booking.date, booking.slotMin)) return NextResponse.json({ error: 'Report window is not open for this session' }, { status: 400 })
 
   const report = await prisma.assessmentReport.create({
     data: {

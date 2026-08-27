@@ -11,12 +11,15 @@ async function getAuthPayload() {
   return p?.userId ? p : null
 }
 
-function isCompleted(date, slotMin) {
+// Must match the same window as reports/route.js
+function isReportOpen(date, slotMin) {
   const [y, mo, d] = date.split('-').map(Number)
   const h = Math.floor(slotMin / 60)
   const m = slotMin % 60
-  const start = new Date(y, mo - 1, d, h, m, 0)
-  return Date.now() - start.getTime() > 30 * 60 * 1000
+  const sessionStart = new Date(y, mo - 1, d, h, m, 0)
+  const midnight     = new Date(y, mo - 1, d + 1, 0, 0, 0)
+  const now = Date.now()
+  return now >= sessionStart.getTime() && now < midnight.getTime()
 }
 
 // POST: called client-side each hour — creates a pending_report_reminder notification if needed
@@ -34,7 +37,7 @@ export async function POST() {
     select: { id: true, date: true, slotMin: true, report: true },
   })
 
-  const pendingCount = bookings.filter(b => isCompleted(b.date, b.slotMin) && !b.report).length
+  const pendingCount = bookings.filter(b => isReportOpen(b.date, b.slotMin) && !b.report).length
 
   if (pendingCount === 0) return NextResponse.json({ sent: false, count: 0 })
 

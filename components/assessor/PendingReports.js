@@ -661,8 +661,8 @@ export default function PendingReports({ isAr, isDark }) {
         </h2>
         <p style={{ fontSize: '.82rem', color: muted, margin: 0 }}>
           {isAr
-            ? 'أكمل تقارير التقييم لكل جلسة منتهية'
-            : 'Complete an assessment report for each finished session'}
+            ? 'يمكنك كتابة تقرير كل جلسة من بداية وقتها وحتى منتصف الليل من نفس اليوم'
+            : 'Write each session report from its start time until midnight (12:00 AM) of the same day'}
         </p>
       </div>
 
@@ -714,7 +714,7 @@ export default function PendingReports({ isAr, isDark }) {
               <EmptyState
                 isAdmin={false}
                 title={isAr ? 'لا توجد جلسات بعد' : 'No sessions yet'}
-                description={isAr ? 'ستظهر التقارير المعلّقة هنا بعد اكتمال الجلسات.' : 'Pending reports will appear here once sessions are completed.'}
+                description={isAr ? 'ستظهر التقارير المعلّقة هنا بمجرد بدء الجلسة.' : 'Pending reports appear here as soon as the session begins.'}
               />
             ) : (
               <>
