@@ -20,6 +20,15 @@ function currentMonthStr() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 }
 
+function staffTypeLabel(permissions) {
+  const isAssessor = permissions.includes('access_assessor_portal')
+  const isTeacher  = permissions.includes('access_teacher_portal')
+  if (isAssessor && isTeacher) return 'Academic Consultant & Teacher'
+  if (isAssessor) return 'Academic Consultant'
+  if (isTeacher)  return 'Teacher'
+  return 'Staff'
+}
+
 export async function GET(req) {
   const admin = await requireAdmin()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -35,51 +44,64 @@ export async function GET(req) {
   const speakingRate  = parseFloat(settings.speakingPayPerSession)  || 0
   const currency      = settings.currency || 'USD'
 
-  // All assessors (users with access_assessor_portal permission)
+  // All staff: roles that have assessor OR teacher portal access
   const roles = await prisma.role.findMany({
-    where: { permissions: { has: 'access_assessor_portal' } },
-    select: { id: true },
+    where: {
+      permissions: {
+        hasSome: ['access_assessor_portal', 'access_teacher_portal'],
+      },
+    },
+    select: { id: true, permissions: true },
   })
+
+  // Build a map of roleId → permissions for later labeling
+  const rolePermMap = Object.fromEntries(roles.map(r => [r.id, r.permissions]))
   const roleIds = roles.map(r => r.id)
 
-  const assessors = await prisma.user.findMany({
+  const staffUsers = await prisma.user.findMany({
     where: { roleId: { in: roleIds } },
-    select: { id: true, name: true, email: true },
+    select: { id: true, name: true, email: true, roleId: true },
     orderBy: { name: 'asc' },
   })
 
-  // For each assessor: count sessions in the given month
-  const results = await Promise.all(assessors.map(async a => {
+  // For each staff member: count sessions + check transfer
+  const results = await Promise.all(staffUsers.map(async u => {
+    const perms = rolePermMap[u.roleId] || []
+    const isAssessor = perms.includes('access_assessor_portal')
+
     const [placementCount, transfer] = await Promise.all([
-      prisma.booking.count({
-        where: {
-          assessorId: a.id,
-          status: 'confirmed',
-          date: { startsWith: month, lte: today },
-        },
-      }),
+      // Only assessors can have placement bookings
+      isAssessor
+        ? prisma.booking.count({
+            where: {
+              assessorId: u.id,
+              status: 'confirmed',
+              date: { startsWith: month, lte: today },
+            },
+          })
+        : Promise.resolve(0),
       prisma.payrollTransfer.findFirst({
-        where: { assessorId: a.id, month },
+        where: { assessorId: u.id, month },
         orderBy: { transferredAt: 'desc' },
       }),
     ])
 
-    const speakingCount = 0 // future feature
+    const speakingCount      = 0 // future feature
     const alreadyTransferred = !!transfer
-    const totalAmount = alreadyTransferred
-      ? 0
-      : placementCount * placementRate + speakingCount * speakingRate
+    const rawTotal           = placementCount * placementRate + speakingCount * speakingRate
+    const totalAmount        = alreadyTransferred ? 0 : rawTotal
 
     return {
-      id: a.id,
-      name: a.name,
-      email: a.email,
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      staffType: staffTypeLabel(perms),
       placementCount,
       speakingCount,
       placementRate,
       speakingRate,
-      totalAmount: alreadyTransferred ? 0 : totalAmount,
-      rawTotal: placementCount * placementRate + speakingCount * speakingRate,
+      totalAmount,
+      rawTotal,
       currency,
       alreadyTransferred,
       transferId: transfer?.id || null,

@@ -289,7 +289,7 @@ export default function PayrollPage() {
       {/* Tab bar */}
       <div style={{ display:'inline-flex', gap:4, padding:4, borderRadius:13, background: isDark ? 'rgba(255,255,255,.05)' : '#f3f4f6', marginBottom:28 }}>
         <TabBtn id="settings"  label={isAr ? 'الإعدادات' : 'Settings'}             />
-        <TabBtn id="assessors" label={isAr ? 'المستشارون' : 'Academic Consultants'} />
+        <TabBtn id="assessors" label={isAr ? 'الموظفون' : 'Staff'} />
         <TabBtn id="history"   label={isAr ? 'السجل'      : 'History'}              />
       </div>
 
@@ -387,7 +387,7 @@ export default function PayrollPage() {
             </div>
           ) : assessors && assessors.length === 0 ? (
             <div style={{ background:surf, border:`1px solid ${border}`, borderRadius:14, padding:'56px 40px', textAlign:'center' }}>
-              <div style={{ fontSize:'.88rem', color:muted }}>No academic consultants found on the platform.</div>
+              <div style={{ fontSize:'.88rem', color:muted }}>No staff members found. Assign the teacher or academic consultant portal role to users first.</div>
             </div>
           ) : assessors && (
             <div style={{ background:surf, border:`1px solid ${border}`, borderRadius:14, overflow:'hidden', boxShadow: isDark ? '0 4px 20px rgba(0,0,0,.3)' : '0 1px 8px rgba(0,0,0,.05)' }}>
@@ -395,8 +395,8 @@ export default function PayrollPage() {
                 <table style={{ borderCollapse:'collapse', width:'100%', minWidth:720 }}>
                   <thead>
                     <tr style={{ background: surfBg }}>
-                      {['Assessor','Placement Sessions','Speaking Sessions','Total','Status',''].map((h, i) => (
-                        <th key={i} style={{ padding:'13px 18px', fontSize:'.7rem', fontWeight:700, letterSpacing:'.08em', color:muted, textAlign: i === 0 ? 'left' : i === 5 ? 'center' : 'center', borderBottom:`1px solid ${border}` }}>{h}</th>
+                      {['Staff Member','Role','Placement','Speaking','Total','Status',''].map((h, i) => (
+                        <th key={i} style={{ padding:'13px 18px', fontSize:'.7rem', fontWeight:700, letterSpacing:'.08em', color:muted, textAlign: i === 0 || i === 1 ? 'left' : i === 6 ? 'center' : 'center', borderBottom:`1px solid ${border}` }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -408,6 +408,18 @@ export default function PayrollPage() {
                           <td style={{ padding:'15px 18px' }}>
                             <div style={{ fontWeight:700, fontSize:'.88rem', color:text }}>{a.name}</div>
                             <div style={{ fontSize:'.74rem', color:muted, marginTop:2 }}>{a.email}</div>
+                          </td>
+                          <td style={{ padding:'15px 18px' }}>
+                            {(() => {
+                              const isAC = a.staffType?.includes('Academic Consultant')
+                              const isTe = a.staffType?.includes('Teacher')
+                              return (
+                                <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
+                                  {isAC && <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:100, background:'rgba(59,130,246,.1)', border:'1px solid rgba(59,130,246,.2)', fontSize:'.7rem', fontWeight:700, color:'#3b82f6', width:'fit-content' }}>Academic Consultant</span>}
+                                  {isTe && <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:100, background:'rgba(139,92,246,.1)', border:'1px solid rgba(139,92,246,.2)', fontSize:'.7rem', fontWeight:700, color:'#8b5cf6', width:'fit-content' }}>Teacher</span>}
+                                </div>
+                              )
+                            })()}
                           </td>
                           <td style={{ padding:'15px 18px', textAlign:'center' }}>
                             <div style={{ fontWeight:700, fontSize:'1.05rem', color:'#3b82f6' }}>{a.placementCount}</div>
