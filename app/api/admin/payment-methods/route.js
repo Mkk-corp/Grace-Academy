@@ -46,6 +46,26 @@ export async function POST(req) {
   return NextResponse.json({ ok: true, methods: updated })
 }
 
+export async function PATCH(req) {
+  const admin = await requireAdmin()
+  if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { oldName, newName } = await req.json()
+  if (!oldName?.trim() || !newName?.trim()) return NextResponse.json({ error: 'Both names required' }, { status: 400 })
+
+  const methods = await getMethods()
+  if (!methods.includes(oldName.trim())) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (methods.includes(newName.trim())) return NextResponse.json({ error: 'Already exists' }, { status: 400 })
+
+  const updated = methods.map(m => m === oldName.trim() ? newName.trim() : m)
+  await prisma.siteContent.upsert({
+    where:  { key: KEY },
+    update: { data: { methods: updated } },
+    create: { key: KEY, data: { methods: updated } },
+  })
+  return NextResponse.json({ ok: true, methods: updated })
+}
+
 export async function DELETE(req) {
   const admin = await requireAdmin()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
