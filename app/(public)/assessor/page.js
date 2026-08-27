@@ -160,6 +160,7 @@ export default function AssessorPage() {
   const [pendingStep,      setPendingStep]      = useState(null) // 2 | null
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [complianceWarning, setComplianceWarning] = useState(null)
+  const [pendingReminderToast, setPendingReminderToast] = useState(null)
 
   useEffect(() => {
     if (window.innerWidth < 768) setSidebarOpen(false)
@@ -208,6 +209,32 @@ export default function AssessorPage() {
     }
     init()
   }, [router])
+
+  // Hourly pending-report reminder — fires every hour while there are pending reports, until midnight
+  useEffect(() => {
+    if (!user || !onboardingDone) return
+
+    async function checkAndNotify() {
+      const now = new Date()
+      if (now.getHours() === 0) return // no reminders at midnight
+      const dayKey  = now.toLocaleDateString('en-CA') // YYYY-MM-DD
+      const hourKey = `ga_pending_reminder_${dayKey}_${now.getHours()}`
+      if (typeof window !== 'undefined' && localStorage.getItem(hourKey)) return
+      try {
+        const res  = await fetch('/api/assessor/reports/reminder', { method: 'POST' })
+        if (!res.ok) return
+        const data = await res.json()
+        if (data.sent) {
+          localStorage.setItem(hourKey, '1')
+          setPendingReminderToast({ count: data.count })
+        }
+      } catch {}
+    }
+
+    checkAndNotify()
+    const t = setInterval(checkAndNotify, 60 * 60 * 1000)
+    return () => clearInterval(t)
+  }, [user, onboardingDone])
 
   async function handleLogout() {
     await fetch('/api/logout', { method: 'POST' })
@@ -711,6 +738,49 @@ export default function AssessorPage() {
               },
             ]}
           />
+
+          {/* ── Pending reports reminder toast ── */}
+          {pendingReminderToast && (
+            <div style={{
+              margin: '0',
+              padding: '11px 20px',
+              background: isDark ? 'rgba(245,158,11,.12)' : '#fffbeb',
+              borderBottom: `1px solid ${isDark ? 'rgba(245,158,11,.25)' : '#fde68a'}`,
+              display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+            }}>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f59e0b" strokeWidth="2" style={{ flexShrink: 0 }}>
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              <span style={{ flex: 1, fontSize: '.83rem', color: isDark ? 'rgba(255,255,255,.75)' : '#92400e', fontWeight: 500 }}>
+                {isAr
+                  ? `لديك ${pendingReminderToast.count} تقرير${pendingReminderToast.count !== 1 ? '' : ''} بانتظار الإرسال. يرجى إكمالها قبل نهاية اليوم.`
+                  : `You have ${pendingReminderToast.count} pending report${pendingReminderToast.count !== 1 ? 's' : ''} awaiting submission. Please complete them before the end of the day.`}
+              </span>
+              <button
+                onClick={() => { setActiveTab('reports'); setPendingReminderToast(null) }}
+                style={{
+                  padding: '5px 14px', borderRadius: 8, border: '1px solid rgba(245,158,11,.4)',
+                  background: 'rgba(245,158,11,.12)', color: '#f59e0b',
+                  fontSize: '.78rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                  flexShrink: 0,
+                }}
+              >
+                {isAr ? 'عرض التقارير' : 'View Reports'}
+              </button>
+              <button
+                onClick={() => setPendingReminderToast(null)}
+                style={{
+                  padding: '4px 8px', borderRadius: 7, border: 'none',
+                  background: 'none', color: isDark ? 'rgba(255,255,255,.35)' : '#b45309',
+                  fontSize: '1rem', cursor: 'pointer', lineHeight: 1, flexShrink: 0,
+                }}
+                title={isAr ? 'إغلاق' : 'Dismiss'}
+              >
+                ×
+              </button>
+            </div>
+          )}
 
           {/* CONTENT */}
           <main className="as-content" key={activeTab}>

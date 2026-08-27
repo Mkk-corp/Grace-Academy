@@ -105,12 +105,12 @@ export default function PortalPage() {
       const alreadyDone = !!localStorage.getItem(lsKey)
 
       try {
-        const placRes  = await fetch('/api/placement/upcoming')
+        const placRes  = await fetch('/api/placement/my-report')
         const placData = await placRes.json()
-        const hasBooking = !!placData?.booking
-        setStats(s => ({ ...s, placement: hasBooking ? 'confirmed' : null }))
-        if (hasBooking && !alreadyDone) localStorage.setItem(lsKey, '1')
-        if (!isStaff && !alreadyDone && !hasBooking) setShowOnboarding(true)
+        const hasAnyActivity = placData?.status !== 'none'
+        setStats(s => ({ ...s, placement: hasAnyActivity ? 'confirmed' : null }))
+        if (hasAnyActivity && !alreadyDone) localStorage.setItem(lsKey, '1')
+        if (!isStaff && !alreadyDone && !hasAnyActivity) setShowOnboarding(true)
       } catch {
         if (!isStaff && !alreadyDone) setShowOnboarding(true)
       }

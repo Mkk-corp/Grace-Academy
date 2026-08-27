@@ -17,32 +17,41 @@ function slotMinToTime(m) {
   return `${h12}:${String(min).padStart(2, '0')} ${ampm}`
 }
 
-function formatDate(dateStr) {
+function formatDate(dateStr, locale = 'en-US') {
   const [y, mo, d] = dateStr.split('-').map(Number)
-  return new Date(y, mo - 1, d).toLocaleDateString('en-US', {
+  return new Date(y, mo - 1, d).toLocaleDateString(locale, {
     month: 'short', day: 'numeric', year: 'numeric',
   })
 }
 
-function weekdayFromDate(dateStr) {
+function weekdayFromDate(dateStr, locale = 'en-US') {
   const [y, mo, d] = dateStr.split('-').map(Number)
-  return new Date(y, mo - 1, d).toLocaleDateString('en-US', { weekday: 'long' })
+  return new Date(y, mo - 1, d).toLocaleDateString(locale, { weekday: 'long' })
 }
 
 function computeStatus(booking) {
   if (booking.report) return 'done'
   const [y, mo, d] = booking.date.split('-').map(Number)
   const end = new Date(y, mo - 1, d, Math.floor(booking.slotMin / 60), booking.slotMin % 60)
-  end.setHours(end.getHours() + 1)
+  end.setMinutes(end.getMinutes() + 30)
   return new Date() > end ? 'awaiting' : 'upcoming'
 }
 
 /* ─── sub-components ──────────────────────────────────────────────── */
-function StatusBadge({ status, isDark }) {
+function StatusBadge({ status, isDark, isAr }) {
   const cfg = {
-    done:     { label: 'Done',            dot: '#22c55e', bg: isDark ? 'rgba(34,197,94,.18)'  : 'rgba(34,197,94,.1)',  color: isDark ? '#4ade80' : '#16a34a' },
-    upcoming: { label: 'Upcoming',        dot: '#3b82f6', bg: isDark ? 'rgba(59,130,246,.18)' : 'rgba(59,130,246,.1)', color: isDark ? '#60a5fa' : '#1d4ed8' },
-    awaiting: { label: 'Awaiting Report', dot: '#f59e0b', bg: isDark ? 'rgba(245,158,11,.18)' : 'rgba(245,158,11,.1)', color: isDark ? '#fbbf24' : '#92400e' },
+    done:     {
+      label: isAr ? 'مكتملة'          : 'Done',
+      dot: '#22c55e', bg: isDark ? 'rgba(34,197,94,.18)'  : 'rgba(34,197,94,.1)',  color: isDark ? '#4ade80' : '#16a34a',
+    },
+    upcoming: {
+      label: isAr ? 'قادمة'            : 'Upcoming',
+      dot: '#3b82f6', bg: isDark ? 'rgba(59,130,246,.18)' : 'rgba(59,130,246,.1)', color: isDark ? '#60a5fa' : '#1d4ed8',
+    },
+    awaiting: {
+      label: isAr ? 'بانتظار التقرير' : 'Awaiting Report',
+      dot: '#f59e0b', bg: isDark ? 'rgba(245,158,11,.18)' : 'rgba(245,158,11,.1)', color: isDark ? '#fbbf24' : '#92400e',
+    },
   }[status] || { label: status, dot: '#9ca3af', bg: 'transparent', color: '#9ca3af' }
 
   return (
@@ -99,6 +108,7 @@ export default function PlacementTestsPage() {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
   const isAr   = lang === 'ar'
+  const locale  = isAr ? 'ar-SA' : 'en-US'
 
   const [bookings, setBookings] = useState([])
   const [loading,  setLoading]  = useState(true)
@@ -118,11 +128,11 @@ export default function PlacementTestsPage() {
       const data = await res.json()
       setBookings(data.bookings || [])
     } catch {
-      setError('Failed to load sessions. Please try again.')
+      setError(isAr ? 'فشل تحميل الجلسات. يرجى المحاولة مجدداً.' : 'Failed to load sessions. Please try again.')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [isAr])
 
   useEffect(() => { load() }, [load])
 
@@ -160,16 +170,16 @@ export default function PlacementTestsPage() {
     { header: 'Date',       value: r => r.date         || '' },
     { header: 'Weekday',    value: r => weekdayFromDate(r.date) },
     { header: 'Time',       value: r => slotMinToTime(r.slotMin) },
-    { header: 'Duration',   value: _  => '60 min' },
+    { header: 'Duration',   value: _  => '30 min' },
     { header: 'Status',     value: r => r._status      || '' },
     { header: 'Level',      value: r => r.report?.englishLevel || '—' },
   ]
 
   const FILTERS = [
-    { key: 'all',      label: 'All',            count: stats.total },
-    { key: 'upcoming', label: 'Upcoming',        count: stats.upcoming },
-    { key: 'awaiting', label: 'Awaiting Report', count: stats.awaiting },
-    { key: 'done',     label: 'Done',            count: stats.done },
+    { key: 'all',      label: isAr ? 'الكل'              : 'All',            count: stats.total },
+    { key: 'upcoming', label: isAr ? 'قادمة'             : 'Upcoming',        count: stats.upcoming },
+    { key: 'awaiting', label: isAr ? 'بانتظار التقرير'  : 'Awaiting Report', count: stats.awaiting },
+    { key: 'done',     label: isAr ? 'مكتملة'            : 'Done',            count: stats.done },
   ]
 
   return (
@@ -189,11 +199,13 @@ export default function PlacementTestsPage() {
       <div className="admin-header">
         <div>
           <p style={{ fontSize: '.68rem', fontWeight: 800, letterSpacing: '.14em', color: 'var(--gold)', marginBottom: 4 }}>
-            MANAGEMENT
+            {isAr ? 'الإدارة' : 'MANAGEMENT'}
           </p>
-          <h1>Placement Tests</h1>
+          <h1>{isAr ? 'اختبارات التحديد' : 'Placement Tests'}</h1>
           <p style={{ fontSize: '.85rem', color: 'var(--text-60)', marginTop: 4 }}>
-            All placement test sessions — view sessions, feedback, and results.
+            {isAr
+              ? 'جميع جلسات اختبارات التحديد — عرض الجلسات والتغذية الراجعة والنتائج.'
+              : 'All placement test sessions — view sessions, feedback, and results.'}
           </p>
         </div>
         <button className="admin-btn" onClick={load} disabled={loading}
@@ -203,16 +215,16 @@ export default function PlacementTestsPage() {
             <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
           </svg>
-          Refresh
+          {isAr ? 'تحديث' : 'Refresh'}
         </button>
       </div>
 
       {/* Stats */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 22, flexWrap: 'wrap' }}>
-        <StatChip label="Total" count={stats.total} />
-        <StatChip label="Upcoming"        count={stats.upcoming} dot="#3b82f6" />
-        <StatChip label="Awaiting Report" count={stats.awaiting} dot="#f59e0b" />
-        <StatChip label="Done"            count={stats.done}     dot="#22c55e" />
+        <StatChip label={isAr ? 'الإجمالي'         : 'Total'}           count={stats.total} />
+        <StatChip label={isAr ? 'قادمة'             : 'Upcoming'}        count={stats.upcoming} dot="#3b82f6" />
+        <StatChip label={isAr ? 'بانتظار التقرير'  : 'Awaiting Report'} count={stats.awaiting} dot="#f59e0b" />
+        <StatChip label={isAr ? 'مكتملة'            : 'Done'}            count={stats.done}     dot="#22c55e" />
       </div>
 
       {/* Filters + Search */}
@@ -224,7 +236,8 @@ export default function PlacementTestsPage() {
               style={{ color: filter === f.key ? '#fff' : 'var(--text-60)' }}>
               {f.label}
               <span style={{
-                marginLeft: 6, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                marginLeft: isAr ? 0 : 6, marginRight: isAr ? 6 : 0,
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 width: 18, height: 18, borderRadius: '50%', fontSize: '.65rem', fontWeight: 800,
                 background: filter === f.key ? 'rgba(255,255,255,.2)' : 'var(--surface-2)',
                 color: filter === f.key ? '#fff' : 'var(--text-60)',
@@ -242,7 +255,7 @@ export default function PlacementTestsPage() {
           <input
             className="pt-search"
             type="text"
-            placeholder="Search by student or consultant name…"
+            placeholder={isAr ? 'ابحث باسم الطالب أو المستشار...' : 'Search by student or consultant name…'}
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1) }}
           />
@@ -294,9 +307,13 @@ export default function PlacementTestsPage() {
               <rect x="8" y="2" width="8" height="4" rx="1"/>
               <line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/>
             </svg>
-            <p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>No sessions found</p>
+            <p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
+              {isAr ? 'لم يتم العثور على جلسات' : 'No sessions found'}
+            </p>
             <p style={{ fontSize: '.85rem', color: 'var(--text-60)' }}>
-              {search ? 'No sessions match your search.' : 'No placement test sessions have been booked yet.'}
+              {search
+                ? (isAr ? 'لا توجد جلسات تطابق بحثك.' : 'No sessions match your search.')
+                : (isAr ? 'لم يتم حجز أي جلسات اختبار تحديد بعد.' : 'No placement test sessions have been booked yet.')}
             </p>
           </div>
         ) : (
@@ -304,14 +321,14 @@ export default function PlacementTestsPage() {
             <table className="admin-table" style={{ borderRadius: 0 }}>
               <thead>
                 <tr>
-                  <th>Student</th>
-                  <th>Consultant</th>
-                  <th>Date</th>
-                  <th>Weekday</th>
-                  <th>Time</th>
-                  <th>Duration</th>
-                  <th>Status</th>
-                  <th>Level</th>
+                  <th>{isAr ? 'الطالب'              : 'Student'}</th>
+                  <th>{isAr ? 'المستشار الأكاديمي' : 'Consultant'}</th>
+                  <th>{isAr ? 'التاريخ'             : 'Date'}</th>
+                  <th>{isAr ? 'اليوم'               : 'Weekday'}</th>
+                  <th>{isAr ? 'الوقت'               : 'Time'}</th>
+                  <th>{isAr ? 'المدة'               : 'Duration'}</th>
+                  <th>{isAr ? 'الحالة'              : 'Status'}</th>
+                  <th>{isAr ? 'المستوى'             : 'Level'}</th>
                 </tr>
               </thead>
               <tbody>
@@ -358,12 +375,12 @@ export default function PlacementTestsPage() {
 
                     {/* Date */}
                     <td style={{ whiteSpace: 'nowrap', fontWeight: 500, fontSize: '.84rem' }}>
-                      {formatDate(b.date)}
+                      {formatDate(b.date, locale)}
                     </td>
 
                     {/* Weekday */}
                     <td style={{ color: 'var(--text-60)', fontSize: '.84rem' }}>
-                      {weekdayFromDate(b.date)}
+                      {weekdayFromDate(b.date, locale)}
                     </td>
 
                     {/* Time */}
@@ -373,12 +390,12 @@ export default function PlacementTestsPage() {
 
                     {/* Duration */}
                     <td style={{ color: 'var(--text-60)', fontSize: '.84rem' }}>
-                      60 min
+                      {isAr ? '30 دقيقة' : '30 min'}
                     </td>
 
                     {/* Status */}
                     <td>
-                      <StatusBadge status={b._status} isDark={isDark} />
+                      <StatusBadge status={b._status} isDark={isDark} isAr={isAr} />
                     </td>
 
                     {/* Level */}

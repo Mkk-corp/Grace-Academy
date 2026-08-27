@@ -62,7 +62,7 @@ function SessionHeader({ booking, isAr, isDark, gold, text, muted, border }) {
           {isAr ? 'موعد الجلسة' : 'SESSION'}
         </div>
         <div style={{ fontWeight: 800, color: text, fontSize: '.9rem', marginBottom: 2 }}>{fmtDate(booking.date)}</div>
-        <div style={{ fontSize: '.8rem', color: muted }}>{slotMinToTime(booking.slotMin)} · 60 {isAr ? 'دقيقة' : 'min'}</div>
+        <div style={{ fontSize: '.8rem', color: muted }}>{slotMinToTime(booking.slotMin)} · 30 {isAr ? 'دقيقة' : 'min'}</div>
       </div>
 
       <div style={{ width: 1, height: 48, background: isDark ? 'rgba(201,147,44,.2)' : 'rgba(201,147,44,.18)', margin: '0 20px' }} />
@@ -82,26 +82,30 @@ function SessionHeader({ booking, isAr, isDark, gold, text, muted, border }) {
 /* ─── Report form (inline expandable) ───────────────────────────────────── */
 function ReportForm({ booking, onSubmitted, isAr, isDark, gold, text, muted, border, surface2 }) {
   const [feedback,        setFeedback]        = useState('')
+  const [feedbackAr,      setFeedbackAr]      = useState('')
   const [englishLevel,    setEnglishLevel]    = useState('')
   const [suggestedCourse, setSuggestedCourse] = useState('')
   const [saving,          setSaving]          = useState(false)
   const [error,           setError]           = useState('')
   const textareaRef = useRef(null)
 
-  const charCount = feedback.length
+  const charCount   = feedback.length
+  const charCountAr = feedbackAr.length
 
   async function submit() {
-    if (!feedback.trim())       { setError(isAr ? 'الرجاء كتابة التقرير'        : 'Please write your feedback');          return }
-    if (feedback.trim().length < 50) { setError(isAr ? 'التقرير قصير جداً (50 حرف على الأقل)' : 'Feedback too short — at least 50 characters'); return }
-    if (!englishLevel)          { setError(isAr ? 'الرجاء اختيار مستوى اللغة'  : 'Please select the English level');       return }
-    if (!suggestedCourse.trim()){ setError(isAr ? 'الرجاء كتابة الكورس المقترح' : 'Please enter the suggested course');     return }
+    if (!feedback.trim())            { setError(isAr ? 'الرجاء كتابة التقرير بالإنجليزية'      : 'Please write the English feedback');             return }
+    if (feedback.trim().length < 50) { setError(isAr ? 'التقرير الإنجليزي قصير جداً (50 حرف)' : 'English feedback too short — at least 50 chars'); return }
+    if (!feedbackAr.trim())          { setError(isAr ? 'الرجاء كتابة التقرير بالعربية'         : 'Please write the Arabic feedback');               return }
+    if (feedbackAr.trim().length < 50) { setError(isAr ? 'التقرير العربي قصير جداً (50 حرف)'  : 'Arabic feedback too short — at least 50 chars');  return }
+    if (!englishLevel)               { setError(isAr ? 'الرجاء اختيار مستوى اللغة'            : 'Please select the English level');                 return }
+    if (!suggestedCourse.trim())     { setError(isAr ? 'الرجاء كتابة الكورس المقترح'           : 'Please enter the suggested course');               return }
 
     setSaving(true); setError('')
     try {
       const res  = await fetch('/api/assessor/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookingId: booking.id, feedback, englishLevel, suggestedCourse }),
+        body: JSON.stringify({ bookingId: booking.id, feedback, feedbackAr, englishLevel, suggestedCourse }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || 'Failed to save'); return }
@@ -122,25 +126,37 @@ function ReportForm({ booking, onSubmitted, isAr, isDark, gold, text, muted, bor
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
-      {/* ── Feedback ── */}
+      {/* ── Bilingual feedback notice ── */}
+      <div style={{
+        padding: '10px 14px', borderRadius: 9,
+        background: isDark ? 'rgba(201,147,44,.06)' : 'rgba(201,147,44,.05)',
+        border: '1px solid rgba(201,147,44,.2)',
+        fontSize: '.78rem', color: muted, lineHeight: 1.6,
+        display: 'flex', alignItems: 'flex-start', gap: 8,
+      }}>
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke={gold} strokeWidth="2" style={{ marginTop: 2, flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>{isAr ? 'يجب كتابة التقرير باللغتين العربية والإنجليزية — كلاهما إلزامي.' : 'Feedback is required in both English and Arabic — both are mandatory.'}</span>
+      </div>
+
+      {/* ── English Feedback ── */}
       <div>
         <label style={{ display: 'block', fontSize: '.72rem', fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: muted, marginBottom: 8 }}>
-          {isAr ? 'التقرير التفصيلي' : 'Detailed Assessment Feedback'} <span style={{ color: '#ef4444' }}>*</span>
+          Detailed Assessment Feedback — English <span style={{ color: '#ef4444' }}>*</span>
         </label>
         <div style={{ position: 'relative' }}>
           <textarea
             ref={textareaRef}
+            dir="ltr"
             value={feedback}
             onChange={e => { setFeedback(e.target.value); setError('') }}
-            placeholder={isAr
-              ? 'اكتب تقييمك التفصيلي للطالب هنا — شمل نقاط القوة والضعف وتوصياتك...'
-              : 'Write your detailed assessment of the student here — include strengths, areas for improvement, specific observations, and recommendations...'}
-            rows={8}
+            placeholder="Write your detailed assessment of the student here — include strengths, areas for improvement, specific observations, and recommendations..."
+            rows={7}
             style={{
               ...inp,
               padding: '14px 16px',
               fontSize: '.88rem', lineHeight: 1.7,
-              resize: 'vertical', minHeight: 180,
+              resize: 'vertical', minHeight: 160,
+              textAlign: 'left', direction: 'ltr',
             }}
             onFocus={e => { e.target.style.borderColor = gold }}
             onBlur={e => { e.target.style.borderColor = border }}
@@ -150,7 +166,39 @@ function ReportForm({ booking, onSubmitted, isAr, isDark, gold, text, muted, bor
             fontSize: '.68rem', color: charCount < 50 ? '#ef4444' : muted,
             fontWeight: charCount < 50 ? 700 : 400, pointerEvents: 'none',
           }}>
-            {charCount} {isAr ? 'حرف' : 'chars'} {charCount < 50 ? `(${isAr ? 'الحد الأدنى' : 'min'} 50)` : ''}
+            {charCount} chars {charCount < 50 ? '(min 50)' : ''}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Arabic Feedback ── */}
+      <div>
+        <label style={{ display: 'block', fontSize: '.72rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: muted, marginBottom: 8, textAlign: 'right', direction: 'rtl' }}>
+          التقرير التفصيلي — العربية <span style={{ color: '#ef4444' }}>*</span>
+        </label>
+        <div style={{ position: 'relative' }}>
+          <textarea
+            dir="rtl"
+            value={feedbackAr}
+            onChange={e => { setFeedbackAr(e.target.value); setError('') }}
+            placeholder="اكتب تقييمك التفصيلي للطالب هنا — شمل نقاط القوة والضعف والملاحظات والتوصيات..."
+            rows={7}
+            style={{
+              ...inp,
+              padding: '14px 16px',
+              fontSize: '.88rem', lineHeight: 1.8,
+              resize: 'vertical', minHeight: 160,
+              textAlign: 'right', direction: 'rtl',
+            }}
+            onFocus={e => { e.target.style.borderColor = gold }}
+            onBlur={e => { e.target.style.borderColor = border }}
+          />
+          <div style={{
+            position: 'absolute', bottom: 10, left: 12,
+            fontSize: '.68rem', color: charCountAr < 50 ? '#ef4444' : muted,
+            fontWeight: charCountAr < 50 ? 700 : 400, pointerEvents: 'none',
+          }}>
+            {charCountAr} حرف {charCountAr < 50 ? '(الحد الأدنى 50)' : ''}
           </div>
         </div>
       </div>
@@ -269,15 +317,37 @@ function ReportView({ report, booking, onEdit, isAr, isDark, gold, text, muted, 
         </div>
       </div>
 
-      {/* Feedback block */}
-      <div style={{
-        background: surface2, border: `1px solid ${border}`,
-        borderRadius: 12, padding: '18px 20px',
-        fontSize: '.88rem', color: text, lineHeight: 1.8,
-        whiteSpace: 'pre-wrap',
-      }}>
-        {report.feedback}
+      {/* English feedback */}
+      <div>
+        <div style={{ fontSize: '.63rem', fontWeight: 700, letterSpacing: '.1em', color: muted, marginBottom: 6, textTransform: 'uppercase' }}>
+          Feedback — English
+        </div>
+        <div style={{
+          background: surface2, border: `1px solid ${border}`,
+          borderRadius: 12, padding: '16px 18px',
+          fontSize: '.87rem', color: text, lineHeight: 1.8,
+          whiteSpace: 'pre-wrap', direction: 'ltr', textAlign: 'left',
+        }}>
+          {report.feedback}
+        </div>
       </div>
+
+      {/* Arabic feedback */}
+      {report.feedbackAr && (
+        <div>
+          <div style={{ fontSize: '.63rem', fontWeight: 700, letterSpacing: '.06em', color: muted, marginBottom: 6, textAlign: 'right', direction: 'rtl', textTransform: 'uppercase' }}>
+            التقييم — العربية
+          </div>
+          <div style={{
+            background: surface2, border: `1px solid ${isDark ? 'rgba(201,147,44,.15)' : 'rgba(201,147,44,.12)'}`,
+            borderRadius: 12, padding: '16px 18px',
+            fontSize: '.87rem', color: text, lineHeight: 1.9,
+            whiteSpace: 'pre-wrap', direction: 'rtl', textAlign: 'right',
+          }}>
+            {report.feedbackAr}
+          </div>
+        </div>
+      )}
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
         <span style={{ fontSize: '.72rem', color: muted }}>
@@ -310,13 +380,15 @@ function ReportView({ report, booking, onEdit, isAr, isDark, gold, text, muted, 
 /* ─── Edit report form ───────────────────────────────────────────────────── */
 function EditReportForm({ report, onSaved, onCancel, isAr, isDark, gold, text, muted, border, surface2 }) {
   const [feedback,        setFeedback]        = useState(report.feedback)
+  const [feedbackAr,      setFeedbackAr]      = useState(report.feedbackAr || '')
   const [englishLevel,    setEnglishLevel]    = useState(report.englishLevel)
   const [suggestedCourse, setSuggestedCourse] = useState(report.suggestedCourse)
   const [saving,          setSaving]          = useState(false)
   const [error,           setError]           = useState('')
 
   async function save() {
-    if (!feedback.trim() || feedback.trim().length < 50) { setError(isAr ? 'التقرير قصير جداً' : 'Feedback too short'); return }
+    if (!feedback.trim() || feedback.trim().length < 50)   { setError(isAr ? 'التقرير الإنجليزي قصير جداً' : 'English feedback too short (min 50)'); return }
+    if (!feedbackAr.trim() || feedbackAr.trim().length < 50) { setError(isAr ? 'التقرير العربي قصير جداً'   : 'Arabic feedback too short (min 50)');   return }
     if (!englishLevel)           { setError(isAr ? 'اختر مستوى اللغة'   : 'Select English level');    return }
     if (!suggestedCourse.trim()) { setError(isAr ? 'أدخل الكورس المقترح' : 'Enter the suggested course'); return }
     setSaving(true); setError('')
@@ -324,7 +396,7 @@ function EditReportForm({ report, onSaved, onCancel, isAr, isDark, gold, text, m
       const res  = await fetch('/api/assessor/reports', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: report.id, feedback, englishLevel, suggestedCourse }),
+        body: JSON.stringify({ id: report.id, feedback, feedbackAr, englishLevel, suggestedCourse }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || 'Failed'); return }
@@ -340,10 +412,22 @@ function EditReportForm({ report, onSaved, onCancel, isAr, isDark, gold, text, m
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-      <textarea value={feedback} onChange={e => setFeedback(e.target.value)} rows={8}
-        style={{ ...inp, padding: '14px 16px', fontSize: '.88rem', lineHeight: 1.7, resize: 'vertical', minHeight: 180 }}
-        onFocus={e => { e.target.style.borderColor = gold }} onBlur={e => { e.target.style.borderColor = border }}
-      />
+      {/* English feedback */}
+      <div>
+        <div style={{ fontSize: '.65rem', fontWeight: 700, letterSpacing: '.08em', color: muted, marginBottom: 6, textTransform: 'uppercase' }}>Feedback — English *</div>
+        <textarea dir="ltr" value={feedback} onChange={e => setFeedback(e.target.value)} rows={7}
+          style={{ ...inp, padding: '14px 16px', fontSize: '.88rem', lineHeight: 1.7, resize: 'vertical', minHeight: 160, textAlign: 'left', direction: 'ltr' }}
+          onFocus={e => { e.target.style.borderColor = gold }} onBlur={e => { e.target.style.borderColor = border }}
+        />
+      </div>
+      {/* Arabic feedback */}
+      <div>
+        <div style={{ fontSize: '.65rem', fontWeight: 700, letterSpacing: '.06em', color: muted, marginBottom: 6, textAlign: 'right', direction: 'rtl', textTransform: 'uppercase' }}>التقييم — العربية *</div>
+        <textarea dir="rtl" value={feedbackAr} onChange={e => setFeedbackAr(e.target.value)} rows={7}
+          style={{ ...inp, padding: '14px 16px', fontSize: '.88rem', lineHeight: 1.8, resize: 'vertical', minHeight: 160, textAlign: 'right', direction: 'rtl' }}
+          onFocus={e => { e.target.style.borderColor = gold }} onBlur={e => { e.target.style.borderColor = border }}
+        />
+      </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {LEVELS.map(lvl => {
           const active = englishLevel === lvl

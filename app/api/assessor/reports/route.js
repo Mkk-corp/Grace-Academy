@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { logAudit } from '@/lib/audit'
+import { sendAssessmentReportEmail } from '@/lib/mailer'
 
 async function getAuthPayload() {
   const jar = await cookies()
@@ -19,6 +20,22 @@ function isCompleted(date, slotMin) {
   const m = slotMin % 60
   const start = new Date(y, mo - 1, d, h, m, 0)
   return Date.now() - start.getTime() > 30 * 60 * 1000
+}
+
+function slotMinToTime(slotMin) {
+  const h    = Math.floor(slotMin / 60)
+  const m    = slotMin % 60
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  const h12  = h > 12 ? h - 12 : h === 0 ? 12 : h
+  return `${h12}:${String(m).padStart(2, '0')} ${ampm}`
+}
+
+function fmtDate(dateStr) {
+  try {
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-GB', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    })
+  } catch { return dateStr }
 }
 
 export async function GET() {
@@ -42,11 +59,15 @@ export async function POST(req) {
   const payload = await getAuthPayload()
   if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { bookingId, feedback, englishLevel, suggestedCourse } = await req.json()
+  const { bookingId, feedback, feedbackAr, englishLevel, suggestedCourse } = await req.json()
 
-  if (!bookingId || !feedback?.trim() || !englishLevel || !suggestedCourse?.trim()) {
-    return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
-  }
+  if (!bookingId)                { return NextResponse.json({ error: 'Booking ID required' },                        { status: 400 }) }
+  if (!feedback?.trim())         { return NextResponse.json({ error: 'English feedback is required' },               { status: 400 }) }
+  if (feedback.trim().length < 50) { return NextResponse.json({ error: 'English feedback must be at least 50 characters' }, { status: 400 }) }
+  if (!feedbackAr?.trim())       { return NextResponse.json({ error: 'Arabic feedback is required' },                { status: 400 }) }
+  if (feedbackAr.trim().length < 50) { return NextResponse.json({ error: 'Arabic feedback must be at least 50 characters' }, { status: 400 }) }
+  if (!englishLevel)             { return NextResponse.json({ error: 'English level is required' },                  { status: 400 }) }
+  if (!suggestedCourse?.trim())  { return NextResponse.json({ error: 'Suggested course is required' },               { status: 400 }) }
 
   const VALID_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
   if (!VALID_LEVELS.includes(englishLevel)) {
@@ -70,6 +91,7 @@ export async function POST(req) {
       date:           booking.date,
       slotMin:        booking.slotMin,
       feedback:       feedback.trim(),
+      feedbackAr:     feedbackAr.trim(),
       englishLevel,
       suggestedCourse: suggestedCourse.trim(),
     },
@@ -81,6 +103,31 @@ export async function POST(req) {
     meta: { studentName: booking.studentName, date: booking.date, englishLevel, suggestedCourse },
   })
 
+  // Send email to student (non-blocking)
+  sendAssessmentReportEmail({
+    to:             booking.studentEmail,
+    studentName:    booking.studentName,
+    assessorName:   booking.assessorName,
+    date:           fmtDate(booking.date),
+    englishLevel,
+    suggestedCourse: suggestedCourse.trim(),
+    feedbackEn:     feedback.trim(),
+    feedbackAr:     feedbackAr.trim(),
+  }).catch(err => console.error('[mailer] report email failed:', err))
+
+  // Create in-app notification for the assessor confirming submission
+  prisma.notification.create({
+    data: {
+      recipientType: 'user',
+      recipientId:   booking.assessorId,
+      type:          'report_submitted',
+      title:         'Report Submitted Successfully',
+      body:          `Your assessment report for ${booking.studentName} (${englishLevel}) has been submitted and sent to the student.`,
+      meta:          { level: englishLevel, course: suggestedCourse.trim(), studentName: booking.studentName },
+      read:          false,
+    },
+  }).catch(err => console.error('[notification] report_submitted failed:', err))
+
   return NextResponse.json({ report }, { status: 201 })
 }
 
@@ -88,7 +135,7 @@ export async function PUT(req) {
   const payload = await getAuthPayload()
   if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { id, feedback, englishLevel, suggestedCourse } = await req.json()
+  const { id, feedback, feedbackAr, englishLevel, suggestedCourse } = await req.json()
   if (!id) return NextResponse.json({ error: 'Report ID required' }, { status: 400 })
 
   const existing = await prisma.assessmentReport.findUnique({ where: { id } })
@@ -102,6 +149,7 @@ export async function PUT(req) {
 
   const data = {}
   if (feedback?.trim())        data.feedback        = feedback.trim()
+  if (feedbackAr?.trim())      data.feedbackAr      = feedbackAr.trim()
   if (englishLevel)            data.englishLevel    = englishLevel
   if (suggestedCourse?.trim()) data.suggestedCourse = suggestedCourse.trim()
 

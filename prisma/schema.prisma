@@ -90,6 +90,7 @@ model AssessmentReport {
   date            String
   slotMin         Int
   feedback        String
+  feedbackAr      String   @default("")
   englishLevel    String
   suggestedCourse String
   submittedAt     DateTime @default(now())

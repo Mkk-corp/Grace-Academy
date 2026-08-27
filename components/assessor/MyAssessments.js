@@ -26,7 +26,7 @@ function sessionEndedMs(date, slotMin) {
   const [y, mo, d] = date.split('-').map(Number)
   const h = Math.floor(slotMin / 60)
   const m = slotMin % 60
-  const end = new Date(y, mo - 1, d, h, m + 60, 0) // assume 60-min session
+  const end = new Date(y, mo - 1, d, h, m + 30, 0)
   return Date.now() - end.getTime()
 }
 
