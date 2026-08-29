@@ -5,6 +5,24 @@ import EmptyState from '@/components/ui/EmptyState'
 import Pagination from '@/components/ui/Pagination'
 import TableToolbar from '@/components/ui/TableToolbar'
 
+/* ─── Client-side time helpers (use browser clock, never server time) ───── */
+function sessionHasStarted(date, slotMin) {
+  const [y, mo, d] = date.split('-').map(Number)
+  const h = Math.floor(slotMin / 60)
+  const m = slotMin % 60
+  return Date.now() >= new Date(y, mo - 1, d, h, m, 0).getTime()
+}
+
+function isReportOpen(date, slotMin) {
+  const [y, mo, d] = date.split('-').map(Number)
+  const h = Math.floor(slotMin / 60)
+  const m = slotMin % 60
+  const sessionStart = new Date(y, mo - 1, d, h, m, 0)
+  const midnight     = new Date(y, mo - 1, d + 1, 0, 0, 0)
+  const now = Date.now()
+  return now >= sessionStart.getTime() && now < midnight.getTime()
+}
+
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
 function slotMinToTime(slotMin) {
   const h    = Math.floor(slotMin / 60)
@@ -464,10 +482,14 @@ function EditReportForm({ report, onSaved, onCancel, isAr, isDark, gold, text, m
 }
 
 /* ─── Report card wrapper ────────────────────────────────────────────────── */
-function ReportCard({ booking, report: initReport, autoOpen, isAr, isDark, onReportChange, windowOpen, upcoming }) {
-  const [open,     setOpen]     = useState(autoOpen && !upcoming)
-  const [report,   setReport]   = useState(initReport || null)
-  const [editing,  setEditing]  = useState(false)
+function ReportCard({ booking, report: initReport, autoOpen, isAr, isDark, onReportChange }) {
+  // Compute from client clock so timezone always matches what the assessor sees
+  const windowOpen = isReportOpen(booking.date, booking.slotMin)
+  const upcoming   = !sessionHasStarted(booking.date, booking.slotMin)
+
+  const [open,    setOpen]   = useState(autoOpen && !upcoming)
+  const [report,  setReport] = useState(initReport || null)
+  const [editing, setEditing] = useState(false)
 
   const gold    = '#c9932c'
   const text    = isDark ? '#f1f5f9' : '#111827'
@@ -477,8 +499,8 @@ function ReportCard({ booking, report: initReport, autoOpen, isAr, isDark, onRep
   const surface2 = isDark ? '#0a1820' : '#f9fafb'
 
   const hasReport  = !!report
-  const isUpcoming = !hasReport && !!upcoming                     // session hasn't started yet
-  const isClosed   = !hasReport && !windowOpen && !upcoming      // started, past midnight, no report
+  const isUpcoming = !hasReport && upcoming
+  const isClosed   = !hasReport && !windowOpen && !upcoming
 
   const statusColor = hasReport   ? '#10b981'
                     : isUpcoming  ? '#3b82f6'
@@ -679,11 +701,23 @@ export default function PendingReports({ isAr, isDark }) {
     }
   }
 
-  const filteredPending   = pending.filter(b => {
-    if (dateFrom && b.date < dateFrom) return false
-    if (dateTo   && b.date > dateTo)   return false
-    return true
-  })
+  const filteredPending   = pending
+    .filter(b => {
+      if (dateFrom && b.date < dateFrom) return false
+      if (dateTo   && b.date > dateTo)   return false
+      return true
+    })
+    .sort((a, b) => {
+      // Active window first, then upcoming (soonest first), then closed (most recent first)
+      const aOpen = isReportOpen(a.date, a.slotMin)
+      const bOpen = isReportOpen(b.date, b.slotMin)
+      const aUp   = !sessionHasStarted(a.date, a.slotMin)
+      const bUp   = !sessionHasStarted(b.date, b.slotMin)
+      if (aOpen !== bOpen) return aOpen ? -1 : 1
+      if (aUp   !== bUp)   return aUp   ? -1 : 1
+      if (aUp) return a.date < b.date ? -1 : a.date > b.date ? 1 : a.slotMin - b.slotMin
+      return a.date > b.date ? -1 : a.date < b.date ? 1 : b.slotMin - a.slotMin
+    })
   const filteredSubmitted = submitted.filter(b => {
     if (dateFrom && b.date < dateFrom) return false
     if (dateTo   && b.date > dateTo)   return false
@@ -794,8 +828,6 @@ export default function PendingReports({ isAr, isDark }) {
                     autoOpen={i === 0}
                     isAr={isAr}
                     isDark={isDark}
-                    windowOpen={booking.windowOpen}
-                    upcoming={booking.upcoming}
                     onReportChange={handleReportChange}
                   />
                 ))}

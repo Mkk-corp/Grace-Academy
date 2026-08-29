@@ -69,26 +69,11 @@ export async function GET(req) {
     orderBy: [{ date: 'desc' }, { slotMin: 'desc' }],
   })
 
-  // All confirmed sessions without a report — past, active, and upcoming
-  // upcoming: session hasn't started yet → show card but lock the form
-  // windowOpen: session has started and it's before midnight → form is writable
+  // Return all confirmed sessions without a report — client computes windowOpen/upcoming
+  // using browser local time so there is no server-timezone mismatch
   const pending = bookings
     .filter(b => !b.report)
-    .map(b => {
-      const started = sessionHasStarted(b.date, b.slotMin)
-      return {
-        ...b,
-        windowOpen: isReportOpen(b.date, b.slotMin),
-        upcoming: !started,
-      }
-    })
-    .sort((a, b) => {
-      // Active (windowOpen) first, then upcoming (soonest first), then closed (most recent first)
-      if (a.windowOpen !== b.windowOpen) return a.windowOpen ? -1 : 1
-      if (a.upcoming   !== b.upcoming)   return a.upcoming   ? -1 : 1
-      if (a.upcoming) return a.date < b.date ? -1 : a.date > b.date ? 1 : a.slotMin - b.slotMin
-      return a.date > b.date ? -1 : a.date < b.date ? 1 : b.slotMin - a.slotMin
-    })
+    .sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : b.slotMin - a.slotMin)
 
   const submitted = bookings.filter(b => b.report)
 
