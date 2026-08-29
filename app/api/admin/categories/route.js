@@ -3,8 +3,6 @@ import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
-const KEY = 'course_categories'
-
 async function requireAdmin() {
   const jar = await cookies()
   const token = jar.get('ga-admin')?.value
@@ -17,74 +15,72 @@ async function requireAdmin() {
   return isAdmin ? payload : null
 }
 
-async function getCategories() {
-  const record = await prisma.siteContent.findUnique({ where: { key: KEY } })
-  return record?.data?.categories || []
+function shape(cat) {
+  return {
+    id:          cat.id,
+    nameEn:      cat.nameEn,
+    nameAr:      cat.nameAr,
+    courseCount: cat._count?.courses ?? 0,
+    createdAt:   cat.createdAt,
+  }
 }
 
 export async function GET() {
-  const cats = await getCategories()
-  return NextResponse.json({ categories: cats })
+  const cats = await prisma.category.findMany({
+    orderBy: { createdAt: 'asc' },
+    include: { _count: { select: { courses: true } } },
+  })
+  return NextResponse.json({ categories: cats.map(shape) })
 }
 
 export async function POST(req) {
   const admin = await requireAdmin()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { nameEn, nameAr } = await req.json()
   if (!nameEn?.trim()) return NextResponse.json({ error: 'English name is required' }, { status: 400 })
-  const cats = await getCategories()
-  const dup = cats.find(c => c.nameEn.toLowerCase() === nameEn.trim().toLowerCase())
+
+  const dup = await prisma.category.findFirst({ where: { nameEn: { equals: nameEn.trim(), mode: 'insensitive' } } })
   if (dup) return NextResponse.json({ error: 'A category with this English name already exists' }, { status: 400 })
-  const newCat = {
-    id: `cat_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-    nameEn: nameEn.trim(),
-    nameAr: nameAr?.trim() || '',
-    courseCount: 0,
-    createdAt: new Date().toISOString(),
-  }
-  const updated = [...cats, newCat]
-  await prisma.siteContent.upsert({
-    where: { key: KEY },
-    update: { data: { categories: updated } },
-    create: { key: KEY, data: { categories: updated } },
+
+  const cat = await prisma.category.create({
+    data: { nameEn: nameEn.trim(), nameAr: nameAr?.trim() || '' },
+    include: { _count: { select: { courses: true } } },
   })
-  return NextResponse.json({ category: newCat, categories: updated }, { status: 201 })
+  return NextResponse.json({ category: shape(cat) }, { status: 201 })
 }
 
 export async function PATCH(req) {
   const admin = await requireAdmin()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { id, nameEn, nameAr } = await req.json()
-  if (!id) return NextResponse.json({ error: 'Category ID required' }, { status: 400 })
+  if (!id)             return NextResponse.json({ error: 'Category ID required' }, { status: 400 })
   if (!nameEn?.trim()) return NextResponse.json({ error: 'English name is required' }, { status: 400 })
-  const cats = await getCategories()
-  const idx = cats.findIndex(c => c.id === id)
-  if (idx === -1) return NextResponse.json({ error: 'Category not found' }, { status: 404 })
-  const dup = cats.find(c => c.id !== id && c.nameEn.toLowerCase() === nameEn.trim().toLowerCase())
-  if (dup) return NextResponse.json({ error: 'A category with this English name already exists' }, { status: 400 })
-  cats[idx] = { ...cats[idx], nameEn: nameEn.trim(), nameAr: nameAr?.trim() || '' }
-  await prisma.siteContent.upsert({
-    where: { key: KEY },
-    update: { data: { categories: cats } },
-    create: { key: KEY, data: { categories: cats } },
+
+  const dup = await prisma.category.findFirst({
+    where: { nameEn: { equals: nameEn.trim(), mode: 'insensitive' }, NOT: { id } },
   })
-  return NextResponse.json({ category: cats[idx], categories: cats })
+  if (dup) return NextResponse.json({ error: 'A category with this English name already exists' }, { status: 400 })
+
+  const cat = await prisma.category.update({
+    where: { id },
+    data:  { nameEn: nameEn.trim(), nameAr: nameAr?.trim() || '' },
+    include: { _count: { select: { courses: true } } },
+  })
+  return NextResponse.json({ category: shape(cat) })
 }
 
 export async function DELETE(req) {
   const admin = await requireAdmin()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { id } = await req.json()
   if (!id) return NextResponse.json({ error: 'Category ID required' }, { status: 400 })
-  const cats = await getCategories()
-  const target = cats.find(c => c.id === id)
-  if (!target) return NextResponse.json({ error: 'Category not found' }, { status: 404 })
-  if (target.courseCount > 0) return NextResponse.json({ error: `Cannot delete — ${target.courseCount} course(s) are assigned to this category` }, { status: 400 })
-  const updated = cats.filter(c => c.id !== id)
-  await prisma.siteContent.upsert({
-    where: { key: KEY },
-    update: { data: { categories: updated } },
-    create: { key: KEY, data: { categories: updated } },
-  })
-  return NextResponse.json({ ok: true, categories: updated })
+
+  const count = await prisma.course.count({ where: { categoryId: id } })
+  if (count > 0) return NextResponse.json({ error: `Cannot delete — ${count} course${count !== 1 ? 's are' : ' is'} assigned to this category` }, { status: 400 })
+
+  await prisma.category.delete({ where: { id } })
+  return NextResponse.json({ ok: true })
 }

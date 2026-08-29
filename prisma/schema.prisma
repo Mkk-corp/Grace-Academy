@@ -203,6 +203,38 @@ model PayrollTransfer {
   @@index([month])
 }
 
+model Category {
+  id        String   @id @default(cuid())
+  nameEn    String
+  nameAr    String   @default("")
+  createdAt DateTime @default(now())
+  courses   Course[]
+}
+
+model Course {
+  id               String    @id @default(cuid())
+  nameEn           String
+  nameAr           String    @default("")
+  descEn           String
+  descAr           String    @default("")
+  marketingEn      String
+  marketingAr      String    @default("")
+  durationMonths   Int?
+  durationSessions Int
+  teacherCount     Int       @default(0)
+  studentCount     Int       @default(0)
+  needsSpeaking    Boolean   @default(false)
+  speakingSessions Int?
+  needsLibrary     Boolean   @default(false)
+  libraryTypes     String[]  @default([])
+  categoryId       String?
+  category         Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([categoryId])
+}
+
 model AuditLog {
   id        String   @id @default(cuid())
   actorId   String?
