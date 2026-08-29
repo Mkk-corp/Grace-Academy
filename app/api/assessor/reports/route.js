@@ -109,7 +109,7 @@ export async function POST(req) {
   const payload = await getAuthPayload()
   if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { bookingId, feedback, feedbackAr, englishLevel, suggestedCourse, clientNow } = await req.json()
+  const { bookingId, feedback, feedbackAr, englishLevel, suggestedCourse, clientNow, clientSessionStart, clientMidnight } = await req.json()
 
   if (!bookingId)                { return NextResponse.json({ error: 'Booking ID required' },                        { status: 400 }) }
   if (!feedback?.trim())         { return NextResponse.json({ error: 'English feedback is required' },               { status: 400 }) }
@@ -127,16 +127,14 @@ export async function POST(req) {
   if (booking.assessorId !== payload.userId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   if (booking.report) return NextResponse.json({ error: 'Report already submitted' }, { status: 409 })
 
-  // Validate the report window using the client's clock (avoids server-timezone mismatch)
-  // clientNow is Date.now() sent by the browser; fall back to server time if not provided
-  const now = (typeof clientNow === 'number' && clientNow > 0) ? clientNow : Date.now()
-  const [y, mo, d] = booking.date.split('-').map(Number)
-  const h = Math.floor(booking.slotMin / 60)
-  const m = booking.slotMin % 60
-  const sessionStart = new Date(y, mo - 1, d, h, m, 0).getTime()
-  const midnight     = new Date(y, mo - 1, d + 1, 0, 0, 0).getTime()
-  if (now < sessionStart) return NextResponse.json({ error: 'The session has not started yet'                                                                  }, { status: 400 })
-  if (now >= midnight)    return NextResponse.json({ error: 'This is too late to write the report, you should have done that earlier' }, { status: 400 })
+  // All timestamps are from the client browser — avoids server-timezone mismatch entirely.
+  // clientSessionStart and clientMidnight are computed in PendingReports.js using new Date()
+  // in the browser's local timezone, so "6:00 PM" means 6:00 PM wherever the assessor is.
+  const now           = typeof clientNow          === 'number' && clientNow > 0          ? clientNow          : Date.now()
+  const sessionStart  = typeof clientSessionStart === 'number' && clientSessionStart > 0 ? clientSessionStart : 0
+  const midnight      = typeof clientMidnight     === 'number' && clientMidnight > 0     ? clientMidnight     : Infinity
+  if (sessionStart > 0 && now < sessionStart) return NextResponse.json({ error: 'The session has not started yet' }, { status: 400 })
+  if (midnight < Infinity && now >= midnight)  return NextResponse.json({ error: 'This is too late to write the report, you should have done that earlier' }, { status: 400 })
 
   const report = await prisma.assessmentReport.create({
     data: {

@@ -121,7 +121,20 @@ function ReportForm({ booking, onSubmitted, isAr, isDark, gold, text, muted, bor
       const res  = await fetch('/api/assessor/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookingId: booking.id, feedback, feedbackAr, englishLevel, suggestedCourse, clientNow: Date.now() }),
+        body: JSON.stringify({
+          bookingId: booking.id, feedback, feedbackAr, englishLevel, suggestedCourse,
+          clientNow: Date.now(),
+          clientSessionStart: (() => {
+            const [y, mo, d] = booking.date.split('-').map(Number)
+            const h = Math.floor(booking.slotMin / 60)
+            const m = booking.slotMin % 60
+            return new Date(y, mo - 1, d, h, m, 0).getTime()
+          })(),
+          clientMidnight: (() => {
+            const [y, mo, d] = booking.date.split('-').map(Number)
+            return new Date(y, mo - 1, d + 1, 0, 0, 0).getTime()
+          })(),
+        }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || 'Failed to save'); return }
