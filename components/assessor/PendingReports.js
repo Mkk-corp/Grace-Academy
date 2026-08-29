@@ -121,7 +121,7 @@ function ReportForm({ booking, onSubmitted, isAr, isDark, gold, text, muted, bor
       const res  = await fetch('/api/assessor/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookingId: booking.id, feedback, feedbackAr, englishLevel, suggestedCourse }),
+        body: JSON.stringify({ bookingId: booking.id, feedback, feedbackAr, englishLevel, suggestedCourse, clientNow: Date.now() }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || 'Failed to save'); return }
@@ -511,7 +511,7 @@ function ReportCard({ booking, report: initReport, autoOpen, isAr, isDark, onRep
     : isUpcoming
     ? (isAr ? 'الجلسة لم تبدأ بعد'  : 'Upcoming')
     : isClosed
-    ? (isAr ? 'انتهت مهلة التقرير'  : 'Window Closed')
+    ? (isAr ? 'فات الأوان'          : 'Too Late')
     : (isAr ? 'بانتظار التقرير'     : 'Report Pending')
 
   return (
@@ -620,12 +620,12 @@ function ReportCard({ booking, report: initReport, autoOpen, isAr, isDark, onRep
               </svg>
               <div>
                 <div style={{ fontWeight: 700, fontSize: '.88rem', color: text, marginBottom: 4 }}>
-                  {isAr ? 'انتهت مهلة كتابة التقرير' : 'Report window has closed'}
+                  {isAr ? 'فات الأوان لكتابة التقرير' : 'It\'s too late to write the report'}
                 </div>
                 <div style={{ fontSize: '.8rem', color: muted, lineHeight: 1.6 }}>
                   {isAr
-                    ? 'كان يمكن كتابة تقرير هذه الجلسة من بداية وقتها وحتى منتصف الليل. لم يُرسل تقرير لهذه الجلسة.'
-                    : 'Reports for this session were available from its start time until 12:00 AM of the same day. No report was submitted.'}
+                    ? 'كان يجب كتابة التقرير من بداية الجلسة وحتى منتصف الليل من نفس اليوم. كان يجب عليك كتابته في وقته.'
+                    : 'This is too late to write the report, you should have done that earlier. Reports are only available from the session start until 12:00 AM of the same day.'}
                 </div>
               </div>
             </div>
