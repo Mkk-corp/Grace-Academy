@@ -45,6 +45,23 @@ const CARDS = [
     ),
     fetchCount: () => fetch('/api/admin/payment-methods').then(r => r.json()).then(d => (d.methods || []).length),
   },
+  {
+    id: 'categories',
+    href: '/admin/datacenter/categories',
+    labelEn: 'Course Categories',
+    labelAr: 'فئات الدورات',
+    descEn: 'Manage categories used to organise and group courses on the platform',
+    descAr: 'إدارة الفئات المستخدمة لتنظيم الدورات وتصنيفها على المنصة',
+    color: '#8b5cf6',
+    statEn: (n) => `${n} categor${n !== 1 ? 'ies' : 'y'}`,
+    statAr: (n) => `${n} فئة`,
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="22" height="22">
+        <path d="M4 7h16M4 12h10M4 17h7"/>
+      </svg>
+    ),
+    fetchCount: () => fetch('/api/admin/categories').then(r => r.json()).then(d => (d.categories || []).length),
+  },
 ]
 
 export default function DataCenterPage() {
