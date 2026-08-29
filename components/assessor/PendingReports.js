@@ -95,8 +95,6 @@ function ReportForm({ booking, onSubmitted, isAr, isDark, gold, text, muted, bor
   async function submit() {
     if (!feedback.trim())            { setError(isAr ? 'الرجاء كتابة التقرير بالإنجليزية'      : 'Please write the English feedback');             return }
     if (feedback.trim().length < 50) { setError(isAr ? 'التقرير الإنجليزي قصير جداً (50 حرف)' : 'English feedback too short — at least 50 chars'); return }
-    if (!feedbackAr.trim())          { setError(isAr ? 'الرجاء كتابة التقرير بالعربية'         : 'Please write the Arabic feedback');               return }
-    if (feedbackAr.trim().length < 50) { setError(isAr ? 'التقرير العربي قصير جداً (50 حرف)'  : 'Arabic feedback too short — at least 50 chars');  return }
     if (!englishLevel)               { setError(isAr ? 'الرجاء اختيار مستوى اللغة'            : 'Please select the English level');                 return }
     if (!suggestedCourse.trim())     { setError(isAr ? 'الرجاء كتابة الكورس المقترح'           : 'Please enter the suggested course');               return }
 
@@ -135,7 +133,7 @@ function ReportForm({ booking, onSubmitted, isAr, isDark, gold, text, muted, bor
         display: 'flex', alignItems: 'flex-start', gap: 8,
       }}>
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke={gold} strokeWidth="2" style={{ marginTop: 2, flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <span>{isAr ? 'يجب كتابة التقرير باللغتين العربية والإنجليزية — كلاهما إلزامي.' : 'Feedback is required in both English and Arabic — both are mandatory.'}</span>
+        <span>{isAr ? 'التقرير الإنجليزي إلزامي. العربي اختياري.' : 'English feedback is required. Arabic feedback is optional.'}</span>
       </div>
 
       {/* ── English Feedback ── */}
@@ -174,7 +172,8 @@ function ReportForm({ booking, onSubmitted, isAr, isDark, gold, text, muted, bor
       {/* ── Arabic Feedback ── */}
       <div>
         <label style={{ display: 'block', fontSize: '.72rem', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: muted, marginBottom: 8, textAlign: 'right', direction: 'rtl' }}>
-          التقرير التفصيلي — العربية <span style={{ color: '#ef4444' }}>*</span>
+          التقرير التفصيلي — العربية
+          <span style={{ fontSize: '.68rem', fontWeight: 500, color: muted, marginRight: 6 }}>(اختياري)</span>
         </label>
         <div style={{ position: 'relative' }}>
           <textarea
@@ -193,12 +192,8 @@ function ReportForm({ booking, onSubmitted, isAr, isDark, gold, text, muted, bor
             onFocus={e => { e.target.style.borderColor = gold }}
             onBlur={e => { e.target.style.borderColor = border }}
           />
-          <div style={{
-            position: 'absolute', bottom: 10, left: 12,
-            fontSize: '.68rem', color: charCountAr < 50 ? '#ef4444' : muted,
-            fontWeight: charCountAr < 50 ? 700 : 400, pointerEvents: 'none',
-          }}>
-            {charCountAr} حرف {charCountAr < 50 ? '(الحد الأدنى 50)' : ''}
+          <div style={{ position: 'absolute', bottom: 10, left: 12, fontSize: '.68rem', color: muted, pointerEvents: 'none' }}>
+            {charCountAr} حرف
           </div>
         </div>
       </div>

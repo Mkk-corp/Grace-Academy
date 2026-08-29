@@ -168,7 +168,7 @@ function RecordingModal({ booking, onClose, onSaved, isAr, isDark }) {
               value={link}
               onChange={e => { setLink(e.target.value); setError('') }}
               onKeyDown={e => e.key === 'Enter' && save()}
-              placeholder={isAr ? 'https://...' : 'https://drive.google.com/...'}
+              placeholder="https://..."
               style={{
                 width: '100%', padding: '11px 12px 11px 36px',
                 background: surf2, border: `1.5px solid ${error ? '#ef4444' : bord}`,

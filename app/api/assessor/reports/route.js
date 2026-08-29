@@ -113,8 +113,6 @@ export async function POST(req) {
   if (!bookingId)                { return NextResponse.json({ error: 'Booking ID required' },                        { status: 400 }) }
   if (!feedback?.trim())         { return NextResponse.json({ error: 'English feedback is required' },               { status: 400 }) }
   if (feedback.trim().length < 50) { return NextResponse.json({ error: 'English feedback must be at least 50 characters' }, { status: 400 }) }
-  if (!feedbackAr?.trim())       { return NextResponse.json({ error: 'Arabic feedback is required' },                { status: 400 }) }
-  if (feedbackAr.trim().length < 50) { return NextResponse.json({ error: 'Arabic feedback must be at least 50 characters' }, { status: 400 }) }
   if (!englishLevel)             { return NextResponse.json({ error: 'English level is required' },                  { status: 400 }) }
   if (!suggestedCourse?.trim())  { return NextResponse.json({ error: 'Suggested course is required' },               { status: 400 }) }
 
@@ -140,7 +138,7 @@ export async function POST(req) {
       date:           booking.date,
       slotMin:        booking.slotMin,
       feedback:       feedback.trim(),
-      feedbackAr:     feedbackAr.trim(),
+      feedbackAr:     feedbackAr?.trim() || '',
       englishLevel,
       suggestedCourse: suggestedCourse.trim(),
     },
@@ -161,7 +159,7 @@ export async function POST(req) {
     englishLevel,
     suggestedCourse: suggestedCourse.trim(),
     feedbackEn:     feedback.trim(),
-    feedbackAr:     feedbackAr.trim(),
+    feedbackAr:     feedbackAr?.trim() || '',
   }).catch(err => console.error('[mailer] report email failed:', err))
 
   // Create in-app notification for the assessor confirming submission
