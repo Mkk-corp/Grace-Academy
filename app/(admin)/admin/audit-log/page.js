@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
+import Select from '@/components/ui/Select'
 
 /* ─── i18n ─────────────────────────────────────────────────────────────── */
 const S = {
@@ -546,18 +547,26 @@ export default function AuditLogPage() {
           <label style={{ fontSize: '.68rem', fontWeight: 700, color: 'var(--text-60)', letterSpacing: '.08em', textTransform: 'uppercase' }}>
             {isAr ? 'نوع المستخدم' : 'User Type'}
           </label>
-          <select value={actorRole} onChange={e => setActorRole(e.target.value)} style={sel}>
-            {ROLE_OPTIONS.map(o => <option key={o.value} value={o.value}>{isAr ? o.label.ar : o.label.en}</option>)}
-          </select>
+          <Select
+            value={actorRole}
+            onChange={setActorRole}
+            options={ROLE_OPTIONS.map(o => ({ value: o.value, label: o.label.en, labelAr: o.label.ar }))}
+            isAr={isAr}
+            isDark={isDark}
+          />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5, minWidth: 200 }}>
           <label style={{ fontSize: '.68rem', fontWeight: 700, color: 'var(--text-60)', letterSpacing: '.08em', textTransform: 'uppercase' }}>
             {isAr ? 'نوع النشاط' : 'Activity Type'}
           </label>
-          <select value={action} onChange={e => setAction(e.target.value)} style={sel}>
-            {ACTION_GROUPS.map(o => <option key={o.value} value={o.value}>{isAr ? o.label.ar : o.label.en}</option>)}
-          </select>
+          <Select
+            value={action}
+            onChange={setAction}
+            options={ACTION_GROUPS.map(o => ({ value: o.value, label: o.label.en, labelAr: o.label.ar }))}
+            isAr={isAr}
+            isDark={isDark}
+          />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5, minWidth: 140 }}>

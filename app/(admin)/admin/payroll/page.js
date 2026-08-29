@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
+import Select from '@/components/ui/Select'
 
 const CURRENCIES = [
   { code:'USD', sym:'$',   label:'USD — US Dollar'      },
@@ -29,7 +30,7 @@ function currentMonthStr() {
 }
 
 /* ── Transfer modal ─────────────────────────────────────────────── */
-function TransferModal({ assessor, methods, currency, month, onClose, onSuccess, isDark }) {
+function TransferModal({ assessor, methods, currency, month, onClose, onSuccess, isDark, isAr }) {
   const sym = symFor(currency)
   const [payMethod,  setPayMethod]  = useState(methods[0] || '')
   const [evidFile,   setEvidFile]   = useState(null)
@@ -109,14 +110,14 @@ function TransferModal({ assessor, methods, currency, month, onClose, onSuccess,
               No payment methods configured. Add them in the Data Center.
             </div>
           ) : (
-            <select
+            <Select
               value={payMethod}
-              onChange={e => setPayMethod(e.target.value)}
-              style={{ width:'100%', padding:'10px 12px', borderRadius:9, border:`1px solid ${border}`, background:isDark ? 'rgba(255,255,255,.05)' : '#f9fafb', color:text, fontSize:'.88rem', fontFamily:'inherit', outline:'none', cursor:'pointer' }}
-            >
-              <option value="">Select method…</option>
-              {methods.map(m => <option key={m} value={m}>{m}</option>)}
-            </select>
+              onChange={setPayMethod}
+              options={methods.map(m => ({ value: m, label: m }))}
+              placeholder={isAr ? 'اختر طريقة...' : 'Select method…'}
+              isAr={isAr}
+              isDark={isDark}
+            />
           )}
         </div>
 
@@ -316,9 +317,13 @@ export default function PayrollPage() {
                 <div style={{ fontWeight:600, fontSize:'.85rem', color:text }}>Currency</div>
                 <div style={{ fontSize:'.75rem', color:muted, marginTop:3 }}>Applied to all consultant payouts</div>
               </div>
-              <select value={currency} onChange={e => setCurrency(e.target.value)} style={{ padding:'8px 12px', borderRadius:8, border:`1px solid ${border}`, background: isDark ? 'rgba(255,255,255,.05)' : '#f9fafb', color:text, fontSize:'.85rem', fontFamily:'inherit', cursor:'pointer', outline:'none', minWidth:200 }}>
-                {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
-              </select>
+              <Select
+                value={currency}
+                onChange={setCurrency}
+                options={CURRENCIES.map(c => ({ value: c.code, label: c.label }))}
+                isAr={isAr}
+                isDark={isDark}
+              />
             </div>
 
             {/* Placement rate */}
@@ -534,6 +539,7 @@ export default function PayrollPage() {
           currency={currency}
           month={assMonth}
           isDark={isDark}
+          isAr={isAr}
           onClose={() => setTransferModal(null)}
           onSuccess={handleTransferSuccess}
         />
