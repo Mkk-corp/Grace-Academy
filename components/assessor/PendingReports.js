@@ -464,8 +464,8 @@ function EditReportForm({ report, onSaved, onCancel, isAr, isDark, gold, text, m
 }
 
 /* ─── Report card wrapper ────────────────────────────────────────────────── */
-function ReportCard({ booking, report: initReport, autoOpen, isAr, isDark, onReportChange, windowOpen }) {
-  const [open,     setOpen]     = useState(autoOpen)
+function ReportCard({ booking, report: initReport, autoOpen, isAr, isDark, onReportChange, windowOpen, upcoming }) {
+  const [open,     setOpen]     = useState(autoOpen && !upcoming)
   const [report,   setReport]   = useState(initReport || null)
   const [editing,  setEditing]  = useState(false)
 
@@ -476,15 +476,21 @@ function ReportCard({ booking, report: initReport, autoOpen, isAr, isDark, onRep
   const surface = isDark ? '#10222b' : '#fff'
   const surface2 = isDark ? '#0a1820' : '#f9fafb'
 
-  const hasReport = !!report
-  const isClosed  = !hasReport && !windowOpen  // started, no report, deadline passed
+  const hasReport  = !!report
+  const isUpcoming = !hasReport && !!upcoming                     // session hasn't started yet
+  const isClosed   = !hasReport && !windowOpen && !upcoming      // started, past midnight, no report
 
-  const statusColor = hasReport ? '#10b981' : isClosed ? '#6b7280' : '#f59e0b'
+  const statusColor = hasReport   ? '#10b981'
+                    : isUpcoming  ? '#3b82f6'
+                    : isClosed    ? '#6b7280'
+                    : '#f59e0b'
   const statusLabel = hasReport
-    ? (isAr ? 'تم إرسال التقرير'   : 'Report Submitted')
+    ? (isAr ? 'تم إرسال التقرير'    : 'Report Submitted')
+    : isUpcoming
+    ? (isAr ? 'الجلسة لم تبدأ بعد'  : 'Upcoming')
     : isClosed
-    ? (isAr ? 'انتهت مهلة التقرير' : 'Window Closed')
-    : (isAr ? 'بانتظار التقرير'    : 'Report Pending')
+    ? (isAr ? 'انتهت مهلة التقرير'  : 'Window Closed')
+    : (isAr ? 'بانتظار التقرير'     : 'Report Pending')
 
   return (
     <div style={{
@@ -555,7 +561,30 @@ function ReportCard({ booking, report: initReport, autoOpen, isAr, isDark, onRep
           <div style={{ height: 1, background: border }} />
 
           {/* Form / View */}
-          {!hasReport && isClosed ? (
+          {isUpcoming ? (
+            /* Session hasn't started yet — locked with start-time notice */
+            <div style={{
+              display: 'flex', alignItems: 'flex-start', gap: 14,
+              padding: '18px 20px', borderRadius: 12,
+              background: isDark ? 'rgba(59,130,246,.07)' : 'rgba(59,130,246,.05)',
+              border: `1px solid ${isDark ? 'rgba(59,130,246,.25)' : 'rgba(59,130,246,.2)'}`,
+            }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" width="20" height="20" style={{ flexShrink: 0, marginTop: 2 }}>
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '.88rem', color: text, marginBottom: 4 }}>
+                  {isAr ? 'لم تبدأ الجلسة بعد' : 'Session has not started yet'}
+                </div>
+                <div style={{ fontSize: '.8rem', color: muted, lineHeight: 1.6 }}>
+                  {isAr
+                    ? `سيصبح التقرير متاحاً للكتابة حين تبدأ الجلسة الساعة ${slotMinToTime(booking.slotMin)}. سيتجدد هذا الصفحة تلقائياً.`
+                    : `The report form will unlock as soon as the session begins at ${slotMinToTime(booking.slotMin)}. This page refreshes automatically.`}
+                </div>
+              </div>
+            </div>
+          ) : !hasReport && isClosed ? (
             /* Window has closed — show info banner, no form */
             <div style={{
               display: 'flex', alignItems: 'flex-start', gap: 14,
@@ -621,14 +650,22 @@ export default function PendingReports({ isAr, isDark }) {
   const border = isDark ? 'rgba(255,255,255,.08)' : '#e5e7eb'
 
   useEffect(() => {
-    fetch('/api/assessor/reports')
-      .then(r => r.ok ? r.json() : { pending: [], submitted: [] })
-      .then(d => {
-        setPending(d.pending   || [])
-        setSubmitted(d.submitted || [])
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
+    let mounted = true
+    function load() {
+      fetch('/api/assessor/reports')
+        .then(r => r.ok ? r.json() : { pending: [], submitted: [] })
+        .then(d => {
+          if (!mounted) return
+          setPending(d.pending   || [])
+          setSubmitted(d.submitted || [])
+          setLoading(false)
+        })
+        .catch(() => { if (mounted) setLoading(false) })
+    }
+    load()
+    // Re-poll every 60 s so the form unlocks automatically when a session starts
+    const timer = setInterval(load, 60000)
+    return () => { mounted = false; clearInterval(timer) }
   }, [])
 
   function handleReportChange(type, bookingId, report) {
@@ -683,8 +720,8 @@ export default function PendingReports({ isAr, isDark }) {
         </h2>
         <p style={{ fontSize: '.82rem', color: muted, margin: 0 }}>
           {isAr
-            ? 'يمكنك كتابة تقرير كل جلسة من بداية وقتها وحتى منتصف الليل من نفس اليوم'
-            : 'Write each session report from its start time until midnight (12:00 AM) of the same day'}
+            ? 'يصبح التقرير متاحاً للكتابة حين تبدأ الجلسة، وتنتهي المهلة عند منتصف الليل من نفس اليوم'
+            : 'The report form unlocks the moment a session starts and closes at midnight (12:00 AM) of the same day'}
         </p>
       </div>
 
@@ -758,6 +795,7 @@ export default function PendingReports({ isAr, isDark }) {
                     isAr={isAr}
                     isDark={isDark}
                     windowOpen={booking.windowOpen}
+                    upcoming={booking.upcoming}
                     onReportChange={handleReportChange}
                   />
                 ))}
