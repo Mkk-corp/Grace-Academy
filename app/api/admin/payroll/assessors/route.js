@@ -69,24 +69,27 @@ export async function GET(req) {
     const perms = rolePermMap[u.roleId] || []
     const isAssessor = perms.includes('access_assessor_portal')
 
-    const [placementCount, transfer] = await Promise.all([
-      // Only assessors can have placement bookings
-      isAssessor
-        ? prisma.booking.count({
-            where: {
-              assessorId: u.id,
-              status: 'confirmed',
-              date: { startsWith: month, lte: today },
-            },
-          })
-        : Promise.resolve(0),
-      prisma.payrollTransfer.findFirst({
+    const placementCount = isAssessor
+      ? await prisma.booking.count({
+          where: {
+            assessorId: u.id,
+            status: 'confirmed',
+            date: { startsWith: month, lte: today },
+          },
+        })
+      : 0
+
+    let transfer = null
+    try {
+      transfer = await prisma.payrollTransfer.findFirst({
         where: { assessorId: u.id, month },
         orderBy: { transferredAt: 'desc' },
-      }),
-    ])
+      })
+    } catch {
+      // PayrollTransfer table may not exist yet — run the pending migration in Supabase
+    }
 
-    const speakingCount      = 0 // future feature
+    const speakingCount      = 0
     const alreadyTransferred = !!transfer
     const rawTotal           = placementCount * placementRate + speakingCount * speakingRate
     const totalAmount        = alreadyTransferred ? 0 : rawTotal

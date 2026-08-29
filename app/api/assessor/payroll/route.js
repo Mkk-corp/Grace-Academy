@@ -25,19 +25,23 @@ export async function GET(req) {
   const speakingRate  = parseFloat(settings.speakingPayPerSession)  || 0
   const currency      = settings.currency || 'USD'
 
-  const [placementCount, transfer] = await Promise.all([
-    prisma.booking.count({
-      where: {
-        assessorId: payload.userId,
-        status: 'confirmed',
-        date: { startsWith: month, lte: today },
-      },
-    }),
-    prisma.payrollTransfer.findFirst({
+  const placementCount = await prisma.booking.count({
+    where: {
+      assessorId: payload.userId,
+      status: 'confirmed',
+      date: { startsWith: month, lte: today },
+    },
+  })
+
+  let transfer = null
+  try {
+    transfer = await prisma.payrollTransfer.findFirst({
       where: { assessorId: payload.userId, month },
       orderBy: { transferredAt: 'desc' },
-    }),
-  ])
+    })
+  } catch {
+    // PayrollTransfer table may not exist yet — run the pending migration in Supabase
+  }
 
   const speakingCount = 0
   const subtotal = placementCount * placementRate + speakingCount * speakingRate

@@ -48,9 +48,20 @@ function fmtDate(dateStr) {
   } catch { return dateStr }
 }
 
-export async function GET() {
+export async function GET(req) {
   const payload = await getAuthPayload()
   if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const debug = new URL(req.url).searchParams.get('debug') === '1'
+
+  // Fetch ALL bookings for this assessor (no status filter) for diagnostics
+  const allBookings = debug
+    ? await prisma.booking.findMany({
+        where: { assessorId: payload.userId },
+        include: { report: true },
+        orderBy: [{ date: 'desc' }, { slotMin: 'desc' }],
+      })
+    : null
 
   const bookings = await prisma.booking.findMany({
     where: { assessorId: payload.userId, status: 'confirmed' },
@@ -64,6 +75,31 @@ export async function GET() {
   const pending = pendingRaw.map(b => ({ ...b, windowOpen: isReportOpen(b.date, b.slotMin) }))
 
   const submitted = bookings.filter(b => b.report)
+
+  if (debug) {
+    const now = new Date()
+    return NextResponse.json({
+      debug: {
+        userId: payload.userId,
+        serverTime: now.toISOString(),
+        serverTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        totalAllStatuses: allBookings.length,
+        totalConfirmed: bookings.length,
+        allBookingsSummary: allBookings.map(b => ({
+          id: b.id,
+          status: b.status,
+          date: b.date,
+          slotMin: b.slotMin,
+          slotTime: slotMinToTime(b.slotMin),
+          hasReport: !!b.report,
+          sessionHasStarted: sessionHasStarted(b.date, b.slotMin),
+          windowOpen: isReportOpen(b.date, b.slotMin),
+        })),
+      },
+      pending,
+      submitted,
+    })
+  }
 
   return NextResponse.json({ pending, submitted })
 }

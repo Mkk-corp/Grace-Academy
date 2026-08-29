@@ -16,7 +16,12 @@ export async function GET(req, { params }) {
   const isAssessor = perms.includes('access_assessor_portal') && !hasAdmin
 
   const { id } = await params
-  const transfer = await prisma.payrollTransfer.findUnique({ where: { id } })
+  let transfer = null
+  try {
+    transfer = await prisma.payrollTransfer.findUnique({ where: { id } })
+  } catch {
+    // PayrollTransfer table may not exist yet
+  }
   if (!transfer) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   // Assessors can only see their own payslips

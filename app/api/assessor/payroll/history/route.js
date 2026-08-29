@@ -10,23 +10,28 @@ export async function GET() {
   const payload = verifyToken(token)
   if (!payload?.userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const transfers = await prisma.payrollTransfer.findMany({
-    where: { assessorId: payload.userId },
-    orderBy: { transferredAt: 'desc' },
-    select: {
-      id: true,
-      month: true,
-      placementCount: true,
-      speakingCount: true,
-      placementRate: true,
-      speakingRate: true,
-      totalAmount: true,
-      currency: true,
-      paymentMethod: true,
-      evidenceName: true,
-      transferredAt: true,
-    },
-  })
+  let transfers = []
+  try {
+    transfers = await prisma.payrollTransfer.findMany({
+      where: { assessorId: payload.userId },
+      orderBy: { transferredAt: 'desc' },
+      select: {
+        id: true,
+        month: true,
+        placementCount: true,
+        speakingCount: true,
+        placementRate: true,
+        speakingRate: true,
+        totalAmount: true,
+        currency: true,
+        paymentMethod: true,
+        evidenceName: true,
+        transferredAt: true,
+      },
+    })
+  } catch {
+    // PayrollTransfer table may not exist yet — run the pending migration in Supabase
+  }
 
   return NextResponse.json({ transfers })
 }
