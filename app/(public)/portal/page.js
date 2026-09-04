@@ -8,6 +8,7 @@ import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
 import AvailabilitySettings from '@/components/assessor/AvailabilitySettings'
 import PlacementTest from '@/components/student/PlacementTest'
+import PlacementResult from '@/components/student/PlacementResult'
 import MySessions from '@/components/student/MySessions'
 import UpcomingSession from '@/components/shared/UpcomingSession'
 import PortalTopbar from '@/components/portal/PortalTopbar'
@@ -76,6 +77,7 @@ export default function PortalPage() {
   const [loading,        setLoading]        = useState(true)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [stats,          setStats]          = useState({ placement: null, courses: 0, certificates: 0, hours: 0 })
+  const [placStatus,     setPlacStatus]     = useState(null)
 
   function greeting() {
     const h = new Date().getHours()
@@ -109,6 +111,7 @@ export default function PortalPage() {
         const placData = await placRes.json()
         const hasAnyActivity = placData?.status !== 'none'
         setStats(s => ({ ...s, placement: hasAnyActivity ? 'confirmed' : null }))
+        setPlacStatus(placData?.status || 'none')
         if (hasAnyActivity && !alreadyDone) localStorage.setItem(lsKey, '1')
         if (!isStaff && !alreadyDone && !hasAnyActivity) setShowOnboarding(true)
       } catch {
@@ -544,14 +547,19 @@ export default function PortalPage() {
           {activeNav === 'settings' ? (
             <AvailabilitySettings user={user} isAr={isAr} isDark={isDark} />
           ) : activeNav === 'placement' ? (
-            <PlacementTest
-              user={user} isAr={isAr} isDark={isDark}
-              onBooked={() => {
-                if (user?.id) localStorage.setItem(`ga_placement_done_${user.id}`, '1')
-                setShowOnboarding(false)
-                setStats(s => ({ ...s, placement: 'confirmed' }))
-              }}
-            />
+            (placStatus === 'report_pending' || placStatus === 'report_ready') ? (
+              <PlacementResult isAr={isAr} isDark={isDark} />
+            ) : (
+              <PlacementTest
+                user={user} isAr={isAr} isDark={isDark}
+                onBooked={() => {
+                  if (user?.id) localStorage.setItem(`ga_placement_done_${user.id}`, '1')
+                  setShowOnboarding(false)
+                  setStats(s => ({ ...s, placement: 'confirmed' }))
+                  setPlacStatus('booked')
+                }}
+              />
+            )
           ) : activeNav === 'my-sessions' ? (
             <MySessions isAr={isAr} isDark={isDark} />
           ) : (<>

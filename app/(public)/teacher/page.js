@@ -7,7 +7,6 @@ import Link from 'next/link'
 import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
 import PortalTopbar from '@/components/portal/PortalTopbar'
-import AvailabilitySettings from '@/components/assessor/AvailabilitySettings'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 
 /* ─── Sidebar icons ───────────────────────────────────────────────── */
@@ -30,34 +29,6 @@ function Icon({ name, size = 17, color = 'currentColor' }) {
   }
 }
 
-/* ─── Nav items ───────────────────────────────────────────────────── */
-const NAV = [
-  { id: 'dashboard', icon: 'dashboard', en: 'Dashboard',          ar: 'الرئيسية'         },
-  { id: 'classes',   icon: 'classes',   en: 'My Classes',         ar: 'صفوفي'            },
-  { id: 'students',  icon: 'students',  en: 'My Students',        ar: 'طلابي'            },
-  { id: 'assign',    icon: 'assign',    en: 'Assignments',        ar: 'الواجبات'         },
-  { id: 'attend',    icon: 'attend',    en: 'Attendance',         ar: 'الحضور والغياب'   },
-  { id: 'grades',    icon: 'grades',    en: 'Grades & Reports',   ar: 'الدرجات والتقارير'},
-  { id: 'schedule',  icon: 'schedule',  en: 'My Schedule',        ar: 'جدولي'            },
-  { id: 'resources', icon: 'resources', en: 'Resources',          ar: 'الموارد'          },
-  { id: 'messages',  icon: 'messages',  en: 'Messages',           ar: 'الرسائل'          },
-]
-
-/* ─── Placeholder tab ─────────────────────────────────────────────── */
-function ComingSoon({ tab, isAr, isDark }) {
-  const item = NAV.find(n => n.id === tab) || NAV[0]
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 340, gap: 14, padding: 40 }}>
-      <div style={{ width: 60, height: 60, borderRadius: 16, background: 'var(--tc-gold-bg)', border: '1px solid var(--tc-gold-bd)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Icon name={item.icon} size={26} color="var(--tc-gold)" />
-      </div>
-      <div style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--tc-text)' }}>{isAr ? item.ar : item.en}</div>
-      <div style={{ fontSize: '.85rem', color: 'var(--tc-muted)', textAlign: 'center', maxWidth: 320 }}>
-        {isAr ? 'هذا القسم قيد التطوير. ستظهر المحتويات هنا قريباً.' : 'This section is under development. Content will appear here soon.'}
-      </div>
-    </div>
-  )
-}
 
 /* ─── Dashboard tab ───────────────────────────────────────────────── */
 function DashboardTab({ user, isAr }) {
@@ -138,7 +109,6 @@ export default function TeacherPage() {
   const [user,        setUser]        = useState(null)
   const [loading,     setLoading]     = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [activeTab,   setActiveTab]   = useState('dashboard')
   const [search,      setSearch]      = useState('')
 
   useEffect(() => {
@@ -294,29 +264,14 @@ export default function TeacherPage() {
           </div>
 
           <nav className="tc-sb-nav">
-            {NAV.map(item => (
-              <button
-                key={item.id}
-                className={`tc-ni${activeTab === item.id ? ' active' : ''}`}
-                onClick={() => setActiveTab(item.id)}
-                title={sidebarOpen ? undefined : (isAr ? item.ar : item.en)}
-              >
-                <Icon name={item.icon} size={17} color={activeTab === item.id ? 'var(--tc-gold)' : 'currentColor'} />
-                <span className="tc-ni-lbl">{isAr ? item.ar : item.en}</span>
-              </button>
-            ))}
+            <button className="tc-ni active" title={sidebarOpen ? undefined : (isAr ? 'الرئيسية' : 'Dashboard')}>
+              <Icon name="dashboard" size={17} color="var(--tc-gold)" />
+              <span className="tc-ni-lbl">{isAr ? 'الرئيسية' : 'Dashboard'}</span>
+            </button>
           </nav>
 
           <div className="tc-sb-bot">
             <div className="tc-sb-divider" />
-            <button
-              className={`tc-ni${activeTab === 'settings' ? ' active' : ''}`}
-              onClick={() => setActiveTab('settings')}
-              title={sidebarOpen ? undefined : (isAr ? 'الإعدادات' : 'Settings')}
-            >
-              <Icon name="settings" size={17} color={activeTab === 'settings' ? 'var(--tc-gold)' : 'currentColor'} />
-              <span className="tc-ni-lbl">{isAr ? 'الإعدادات' : 'Settings'}</span>
-            </button>
             <Link href="/profile" style={{ textDecoration: 'none' }}>
               <button className="tc-ni" title={sidebarOpen ? undefined : (isAr ? 'ملفي الشخصي' : 'My Profile')}>
                 <Icon name="user" size={17} color="currentColor" />
@@ -339,7 +294,6 @@ export default function TeacherPage() {
             sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(o => !o)}
             search={search} onSearchChange={setSearch}
             onLogout={handleLogout}
-            onSettings={() => setActiveTab('settings')}
           />
 
           {/* ── BREADCRUMB ── */}
@@ -347,25 +301,13 @@ export default function TeacherPage() {
             isAr={isAr}
             isDark={isDark}
             crumbs={[
-              {
-                label: isAr ? 'بوابة المعلم' : 'Teacher Portal',
-                onClick: activeTab !== 'dashboard' ? () => setActiveTab('dashboard') : undefined,
-              },
-              {
-                label: isAr
-                  ? (activeTab === 'settings' ? 'الإعدادات' : NAV.find(n => n.id === activeTab)?.ar || 'الرئيسية')
-                  : (activeTab === 'settings' ? 'Settings'  : NAV.find(n => n.id === activeTab)?.en || 'Dashboard'),
-              },
+              { label: isAr ? 'بوابة المعلم' : 'Teacher Portal' },
+              { label: isAr ? 'الرئيسية' : 'Dashboard' },
             ]}
           />
 
-          <main className="tc-content" key={activeTab}>
-            {activeTab === 'dashboard'
-              ? <DashboardTab user={user} isAr={isAr} />
-              : activeTab === 'settings'
-              ? <AvailabilitySettings user={user} isAr={isAr} isDark={isDark} />
-              : <ComingSoon tab={activeTab} isAr={isAr} isDark={isDark} />
-            }
+          <main className="tc-content">
+            <DashboardTab user={user} isAr={isAr} />
           </main>
         </div>
       </div>

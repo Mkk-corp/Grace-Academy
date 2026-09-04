@@ -98,7 +98,7 @@ function SessionHeader({ booking, isAr, isDark, gold, text, muted, border }) {
 }
 
 /* ─── Report form (inline expandable) ───────────────────────────────────── */
-function ReportForm({ booking, onSubmitted, isAr, isDark, gold, text, muted, border, surface2 }) {
+function ReportForm({ booking, onSubmitted, isAr, isDark, gold, text, muted, border, surface2, courses = [] }) {
   const [feedback,        setFeedback]        = useState('')
   const [feedbackAr,      setFeedbackAr]      = useState('')
   const [englishLevel,    setEnglishLevel]    = useState('')
@@ -266,15 +266,38 @@ function ReportForm({ booking, onSubmitted, isAr, isDark, gold, text, muted, bor
         <label style={{ display: 'block', fontSize: '.72rem', fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: muted, marginBottom: 8 }}>
           {isAr ? 'الكورس المقترح' : 'Suggested Course to Start With'} <span style={{ color: '#ef4444' }}>*</span>
         </label>
-        <input
-          type="text"
-          value={suggestedCourse}
-          onChange={e => { setSuggestedCourse(e.target.value); setError('') }}
-          placeholder={isAr ? 'مثال: General English A1 Foundation' : 'e.g. General English A1 Foundation, Business English B1…'}
-          style={{ ...inp, padding: '11px 14px', fontSize: '.88rem' }}
-          onFocus={e => { e.target.style.borderColor = gold }}
-          onBlur={e => { e.target.style.borderColor = border }}
-        />
+        <div style={{ position: 'relative' }}>
+          <select
+            value={suggestedCourse}
+            onChange={e => { setSuggestedCourse(e.target.value); setError('') }}
+            style={{
+              ...inp,
+              padding: '11px 40px 11px 14px',
+              fontSize: '.88rem',
+              fontFamily: "'Comfortaa', var(--font-comfortaa), cursive",
+              cursor: 'pointer',
+              appearance: 'none',
+              WebkitAppearance: 'none',
+              color: suggestedCourse ? text : muted,
+            }}
+            onFocus={e => { e.target.style.borderColor = gold }}
+            onBlur={e => { e.target.style.borderColor = border }}
+          >
+            <option value="" disabled style={{ color: muted }}>
+              {isAr ? 'اختر كورساً…' : 'Select a course…'}
+            </option>
+            {courses.map(c => (
+              <option key={c.id} value={c.nameEn} style={{ fontFamily: "'Comfortaa', cursive", color: text }}>
+                {c.nameEn}{c.nameAr ? ` — ${c.nameAr}` : ''}
+              </option>
+            ))}
+          </select>
+          {/* Custom dropdown arrow */}
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke={muted} strokeWidth="2.2"
+            style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', flexShrink: 0 }}>
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
       </div>
 
       {/* ── Error + Submit ── */}
@@ -404,7 +427,7 @@ function ReportView({ report, booking, onEdit, isAr, isDark, gold, text, muted, 
 }
 
 /* ─── Edit report form ───────────────────────────────────────────────────── */
-function EditReportForm({ report, onSaved, onCancel, isAr, isDark, gold, text, muted, border, surface2 }) {
+function EditReportForm({ report, onSaved, onCancel, isAr, isDark, gold, text, muted, border, surface2, courses = [] }) {
   const [feedback,        setFeedback]        = useState(report.feedback)
   const [feedbackAr,      setFeedbackAr]      = useState(report.feedbackAr || '')
   const [englishLevel,    setEnglishLevel]    = useState(report.englishLevel)
@@ -471,10 +494,41 @@ function EditReportForm({ report, onSaved, onCancel, isAr, isDark, gold, text, m
           )
         })}
       </div>
-      <input type="text" value={suggestedCourse} onChange={e => setSuggestedCourse(e.target.value)}
-        style={{ ...inp, padding: '11px 14px', fontSize: '.88rem' }}
-        onFocus={e => { e.target.style.borderColor = gold }} onBlur={e => { e.target.style.borderColor = border }}
-      />
+      <div style={{ position: 'relative' }}>
+        <select
+          value={suggestedCourse}
+          onChange={e => setSuggestedCourse(e.target.value)}
+          style={{
+            ...inp,
+            padding: '11px 40px 11px 14px',
+            fontSize: '.88rem',
+            fontFamily: "'Comfortaa', var(--font-comfortaa), cursive",
+            cursor: 'pointer',
+            appearance: 'none',
+            WebkitAppearance: 'none',
+            color: suggestedCourse ? text : muted,
+          }}
+          onFocus={e => { e.target.style.borderColor = gold }}
+          onBlur={e => { e.target.style.borderColor = border }}
+        >
+          <option value="" disabled style={{ color: muted }}>
+            {isAr ? 'اختر كورساً…' : 'Select a course…'}
+          </option>
+          {/* If existing value doesn't match any course (legacy text), show it as an option */}
+          {suggestedCourse && !courses.find(c => c.nameEn === suggestedCourse) && (
+            <option value={suggestedCourse}>{suggestedCourse}</option>
+          )}
+          {courses.map(c => (
+            <option key={c.id} value={c.nameEn} style={{ fontFamily: "'Comfortaa', cursive", color: text }}>
+              {c.nameEn}{c.nameAr ? ` — ${c.nameAr}` : ''}
+            </option>
+          ))}
+        </select>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke={muted} strokeWidth="2.2"
+          style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', flexShrink: 0 }}>
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </div>
       {error && <div style={{ padding: '10px 14px', borderRadius: 9, fontSize: '.82rem', fontWeight: 600, color: '#ef4444', background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)' }}>{error}</div>}
       <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
         <button onClick={onCancel} style={{ padding: '9px 18px', borderRadius: 9, border: `1px solid ${border}`, background: 'none', color: muted, fontSize: '.83rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -495,7 +549,7 @@ function EditReportForm({ report, onSaved, onCancel, isAr, isDark, gold, text, m
 }
 
 /* ─── Report card wrapper ────────────────────────────────────────────────── */
-function ReportCard({ booking, report: initReport, autoOpen, isAr, isDark, onReportChange }) {
+function ReportCard({ booking, report: initReport, autoOpen, isAr, isDark, courses = [], onReportChange }) {
   // Compute from client clock so timezone always matches what the assessor sees
   const windowOpen = isReportOpen(booking.date, booking.slotMin)
   const upcoming   = !sessionHasStarted(booking.date, booking.slotMin)
@@ -647,6 +701,7 @@ function ReportCard({ booking, report: initReport, autoOpen, isAr, isDark, onRep
               booking={booking}
               onSubmitted={r => { setReport(r); onReportChange && onReportChange('submit', booking.id, r) }}
               isAr={isAr} isDark={isDark} gold={gold} text={text} muted={muted} border={border} surface2={surface2}
+              courses={courses}
             />
           ) : editing ? (
             <EditReportForm
@@ -654,6 +709,7 @@ function ReportCard({ booking, report: initReport, autoOpen, isAr, isDark, onRep
               onSaved={r => { setReport(r); setEditing(false); onReportChange && onReportChange('update', booking.id, r) }}
               onCancel={() => setEditing(false)}
               isAr={isAr} isDark={isDark} gold={gold} text={text} muted={muted} border={border} surface2={surface2}
+              courses={courses}
             />
           ) : (
             <ReportView
@@ -672,6 +728,7 @@ function ReportCard({ booking, report: initReport, autoOpen, isAr, isDark, onRep
 export default function PendingReports({ isAr, isDark }) {
   const [pending,   setPending]   = useState([])
   const [submitted, setSubmitted] = useState([])
+  const [courses,   setCourses]   = useState([])
   const [loading,   setLoading]   = useState(true)
   const [tab,          setTab]          = useState('pending')
   const [pagePending,  setPagePending]  = useState(1)
@@ -687,12 +744,15 @@ export default function PendingReports({ isAr, isDark }) {
   useEffect(() => {
     let mounted = true
     function load() {
-      fetch('/api/assessor/reports')
-        .then(r => r.ok ? r.json() : { pending: [], submitted: [] })
-        .then(d => {
+      Promise.all([
+        fetch('/api/assessor/reports').then(r => r.ok ? r.json() : { pending: [], submitted: [] }),
+        fetch('/api/admin/courses').then(r => r.ok ? r.json() : { courses: [] }),
+      ])
+        .then(([d, c]) => {
           if (!mounted) return
           setPending(d.pending   || [])
           setSubmitted(d.submitted || [])
+          setCourses(c.courses   || [])
           setLoading(false)
         })
         .catch(() => { if (mounted) setLoading(false) })
@@ -841,6 +901,7 @@ export default function PendingReports({ isAr, isDark }) {
                     autoOpen={i === 0}
                     isAr={isAr}
                     isDark={isDark}
+                    courses={courses}
                     onReportChange={handleReportChange}
                   />
                 ))}
@@ -873,6 +934,7 @@ export default function PendingReports({ isAr, isDark }) {
                     autoOpen={false}
                     isAr={isAr}
                     isDark={isDark}
+                    courses={courses}
                   />
                 ))}
                 <Pagination page={pageSubmitted} total={filteredSubmitted.length} onChange={setPageSubmitted} isDark={isDark} />
