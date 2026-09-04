@@ -75,6 +75,59 @@ function ComingSoon({ tab, isAr, isDark }) {
 
 /* ─── dashboard tab ──────────────────────────────────────────────────── */
 function DashboardTab({ user, isAr, isDark }) {
+  const [dashStats, setDashStats]         = useState({ assignedStudents: null, pendingAssessments: null, pendingReports: null, completedToday: null })
+  const [todaySessions, setTodaySessions] = useState(null) // null = loading
+  const [pendingReports, setPendingReports] = useState(null) // null = loading
+
+  useEffect(() => {
+    async function loadStats() {
+      const today = new Date().toLocaleDateString('en-CA')
+      const [studentsRes, assessmentsRes, reportsRes] = await Promise.all([
+        fetch('/api/assessor/assigned-students').catch(() => null),
+        fetch('/api/assessor/assessments').catch(() => null),
+        fetch('/api/assessor/reports').catch(() => null),
+      ])
+      const studentsData    = studentsRes    ? await studentsRes.json().catch(() => null)    : null
+      const assessmentsData = assessmentsRes ? await assessmentsRes.json().catch(() => null) : null
+      const reportsData     = reportsRes     ? await reportsRes.json().catch(() => null)     : null
+
+      // today's sessions — confirmed bookings on today's date, sorted by time
+      const sessions = assessmentsData?.assessments
+        ? assessmentsData.assessments
+            .filter(a => a.date === today)
+            .sort((a, b) => a.slotMin - b.slotMin)
+        : []
+      setTodaySessions(sessions)
+
+      // pending reports — sessions that have started but have no report yet
+      const pending = (reportsData?.pending || [])
+        .slice()
+        .sort((a, b) => {
+          if (a.date !== b.date) return a.date < b.date ? 1 : -1 // newest date first
+          return b.slotMin - a.slotMin
+        })
+      setPendingReports(pending)
+
+      // collect submitted report bookingIds for "done" badge
+      const doneIds = new Set((reportsData?.submitted || []).map(r => r.bookingId))
+      setDoneBookingIds(doneIds)
+
+      setDashStats({
+        assignedStudents:   studentsData?.students != null   ? studentsData.students.length : '—',
+        pendingAssessments: assessmentsData?.assessments != null
+          ? assessmentsData.assessments.filter(a => a.date >= today).length
+          : '—',
+        pendingReports:     reportsData?.pending != null     ? reportsData.pending.length : '—',
+        completedToday:     reportsData?.submitted != null
+          ? reportsData.submitted.filter(r => r.date === today).length
+          : '—',
+      })
+    }
+    loadStats()
+  }, [])
+
+  const [doneBookingIds, setDoneBookingIds] = useState(new Set())
+
   function greeting() {
     const h = new Date().getHours()
     if (isAr) return h < 12 ? 'صباح الخير' : h < 17 ? 'مساء الخير' : 'مساء النور'
@@ -83,10 +136,10 @@ function DashboardTab({ user, isAr, isDark }) {
   const firstName = user?.name?.split(' ')[0] || (isAr ? 'مستشار أكاديمي' : 'Academic Consultant')
 
   const STATS = [
-    { icon: 'students',  en: 'Assigned Students', ar: 'الطلاب المعيّنون', value: '—', color: '#3b82f6' },
-    { icon: 'clipboard', en: 'Pending Assessments', ar: 'تقييمات معلّقة',  value: '—', color: '#c9932c' },
-    { icon: 'report',    en: 'Pending Reports',    ar: 'تقارير معلّقة',   value: '—', color: '#ef4444' },
-    { icon: 'history',   en: 'Completed Today',    ar: 'مكتمل اليوم',     value: '—', color: '#10b981' },
+    { icon: 'students',  en: 'Assigned Students',  ar: 'الطلاب المعيّنون', value: dashStats.assignedStudents   ?? '…', color: '#3b82f6' },
+    { icon: 'clipboard', en: 'Pending Assessments', ar: 'تقييمات معلّقة',  value: dashStats.pendingAssessments ?? '…', color: '#c9932c' },
+    { icon: 'report',    en: 'Pending Reports',     ar: 'تقارير معلّقة',   value: dashStats.pendingReports     ?? '…', color: '#ef4444' },
+    { icon: 'history',   en: 'Completed Today',     ar: 'مكتمل اليوم',     value: dashStats.completedToday     ?? '…', color: '#10b981' },
   ]
 
   return (
@@ -125,21 +178,219 @@ function DashboardTab({ user, isAr, isDark }) {
         ))}
       </div>
 
-      {/* Placeholder sections */}
-      {[
-        { titleEn: "Today's Schedule", titleAr: 'جدول اليوم', icon: 'schedule' },
-        { titleEn: 'Recent Activity',  titleAr: 'النشاط الأخير', icon: 'history' },
-      ].map(sec => (
-        <div key={sec.titleEn} style={{ background: 'var(--as-surface)', border: '1px solid var(--as-border)', borderRadius: 14, padding: '20px 22px', marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-            <Icon name={sec.icon} size={16} color="var(--as-gold)" />
-            <span style={{ fontSize: '.88rem', fontWeight: 700, color: 'var(--as-text)' }}>{isAr ? sec.titleAr : sec.titleEn}</span>
-          </div>
-          <div style={{ padding: '28px 0', textAlign: 'center', color: 'var(--as-xmuted)', fontSize: '.84rem' }}>
-            {isAr ? 'لا يوجد محتوى بعد — ستظهر البيانات هنا قريباً.' : 'No content yet — data will appear here soon.'}
-          </div>
+      {/* Today's Schedule */}
+      <div style={{ background: 'var(--as-surface)', border: '1px solid var(--as-border)', borderRadius: 14, padding: '20px 22px', marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <Icon name="schedule" size={16} color="var(--as-gold)" />
+          <span style={{ fontSize: '.88rem', fontWeight: 700, color: 'var(--as-text)', flex: 1 }}>
+            {isAr ? 'جدول اليوم' : "Today's Schedule"}
+          </span>
+          {todaySessions !== null && todaySessions.length > 0 && (
+            <span style={{ fontSize: '.72rem', fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: 'var(--as-gold-bg)', border: '1px solid var(--as-gold-bd)', color: 'var(--as-gold)' }}>
+              {todaySessions.length} {isAr ? 'جلسة' : todaySessions.length === 1 ? 'session' : 'sessions'}
+            </span>
+          )}
         </div>
-      ))}
+
+        {todaySessions === null ? (
+          <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--as-xmuted)', fontSize: '.84rem' }}>
+            {isAr ? 'جارٍ التحميل…' : 'Loading…'}
+          </div>
+        ) : todaySessions.length === 0 ? (
+          <div style={{ padding: '28px 0', textAlign: 'center' }}>
+            <div style={{ fontSize: '2rem', marginBottom: 8 }}>☀️</div>
+            <div style={{ fontSize: '.88rem', fontWeight: 600, color: 'var(--as-text)', marginBottom: 4 }}>
+              {isAr ? 'لا جلسات اليوم' : 'No sessions today'}
+            </div>
+            <div style={{ fontSize: '.8rem', color: 'var(--as-xmuted)' }}>
+              {isAr ? 'يومك خالٍ من الجلسات — استرح أو راجع تقاريرك.' : 'Your day is clear — rest up or review your reports.'}
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {todaySessions.map((session, idx) => {
+              const nowMin    = new Date().getHours() * 60 + new Date().getMinutes()
+              const isPast    = session.slotMin + 60 < nowMin
+              const isNow     = session.slotMin <= nowMin && nowMin < session.slotMin + 60
+              const isDone    = doneBookingIds.has(session.id)
+              const h         = Math.floor(session.slotMin / 60)
+              const m         = session.slotMin % 60
+              const ampm      = h >= 12 ? 'PM' : 'AM'
+              const h12       = h > 12 ? h - 12 : h === 0 ? 12 : h
+              const timeLabel = `${h12}:${String(m).padStart(2, '0')} ${ampm}`
+
+              const statusColor = isDone ? '#10b981' : isNow ? '#c9932c' : isPast ? '#ef4444' : '#3b82f6'
+              const statusBg    = isDone ? 'rgba(16,185,129,.1)' : isNow ? 'rgba(201,147,44,.1)' : isPast ? 'rgba(239,68,68,.1)' : 'rgba(59,130,246,.1)'
+              const statusLabel = isDone
+                ? (isAr ? 'مكتملة' : 'Done')
+                : isNow
+                ? (isAr ? 'الآن' : 'Now')
+                : isPast
+                ? (isAr ? 'انتهت' : 'Ended')
+                : (isAr ? 'قادمة' : 'Upcoming')
+
+              return (
+                <div key={session.id} style={{
+                  display: 'flex', alignItems: 'center', gap: 14,
+                  padding: '12px 14px', borderRadius: 10,
+                  background: isNow ? 'rgba(201,147,44,.05)' : 'var(--as-hover)',
+                  border: `1px solid ${isNow ? 'rgba(201,147,44,.2)' : 'var(--as-border)'}`,
+                  flexWrap: 'wrap',
+                }}>
+                  {/* Time */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 52, flexShrink: 0 }}>
+                    <div style={{ fontSize: '.95rem', fontWeight: 800, color: 'var(--as-text)', lineHeight: 1 }}>{timeLabel.split(' ')[0]}</div>
+                    <div style={{ fontSize: '.65rem', fontWeight: 600, color: 'var(--as-muted)', letterSpacing: '.04em' }}>{timeLabel.split(' ')[1]}</div>
+                  </div>
+
+                  {/* Divider */}
+                  <div style={{ width: 1, height: 36, background: 'var(--as-border)', flexShrink: 0 }} />
+
+                  {/* Student info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '.88rem', fontWeight: 700, color: 'var(--as-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {session.studentName || (isAr ? 'طالب' : 'Student')}
+                    </div>
+                    {session.studentEmail && (
+                      <div style={{ fontSize: '.75rem', color: 'var(--as-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {session.studentEmail}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Status badge */}
+                  <div style={{ fontSize: '.72rem', fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: statusBg, border: `1px solid ${statusColor}30`, color: statusColor, flexShrink: 0 }}>
+                    {statusLabel}
+                  </div>
+
+                  {/* Meet link */}
+                  {session.meetLink && (
+                    <a
+                      href={session.meetLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 5,
+                        padding: '6px 12px', borderRadius: 8,
+                        background: isNow ? '#c9932c' : 'var(--as-gold-bg)',
+                        border: '1px solid var(--as-gold-bd)',
+                        color: isNow ? '#fff' : 'var(--as-gold)',
+                        fontSize: '.76rem', fontWeight: 700,
+                        textDecoration: 'none', flexShrink: 0,
+                        transition: 'opacity .15s',
+                      }}
+                    >
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M15 10l4.553-2.069A1 1 0 0 1 21 8.87v6.26a1 1 0 0 1-1.447.893L15 14"/><rect x="3" y="6" width="12" height="12" rx="2"/></svg>
+                      {isAr ? 'انضم' : 'Join'}
+                    </a>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Pending Reports */}
+      <div style={{ background: 'var(--as-surface)', border: `1px solid ${pendingReports?.length ? 'rgba(239,68,68,.25)' : 'var(--as-border)'}`, borderRadius: 14, padding: '20px 22px', marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <Icon name="report" size={16} color={pendingReports?.length ? '#ef4444' : 'var(--as-gold)'} />
+          <span style={{ fontSize: '.88rem', fontWeight: 700, color: 'var(--as-text)', flex: 1 }}>
+            {isAr ? 'التقارير المعلّقة' : 'Pending Reports'}
+          </span>
+          {pendingReports !== null && pendingReports.length > 0 && (
+            <span style={{ fontSize: '.72rem', fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.25)', color: '#ef4444' }}>
+              {pendingReports.length} {isAr ? 'معلّق' : pendingReports.length === 1 ? 'pending' : 'pending'}
+            </span>
+          )}
+        </div>
+
+        {pendingReports === null ? (
+          <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--as-xmuted)', fontSize: '.84rem' }}>
+            {isAr ? 'جارٍ التحميل…' : 'Loading…'}
+          </div>
+        ) : pendingReports.length === 0 ? (
+          <div style={{ padding: '20px 0', textAlign: 'center' }}>
+            <div style={{ fontSize: '1.6rem', marginBottom: 6 }}>✅</div>
+            <div style={{ fontSize: '.88rem', fontWeight: 600, color: '#10b981', marginBottom: 3 }}>
+              {isAr ? 'لا تقارير معلّقة' : 'All reports submitted'}
+            </div>
+            <div style={{ fontSize: '.78rem', color: 'var(--as-xmuted)' }}>
+              {isAr ? 'أحسنت! جميع تقاريرك مكتملة.' : "Great job! You're all caught up."}
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {pendingReports.map(report => {
+              const h     = Math.floor(report.slotMin / 60)
+              const m     = report.slotMin % 60
+              const ampm  = h >= 12 ? 'PM' : 'AM'
+              const h12   = h > 12 ? h - 12 : h === 0 ? 12 : h
+              const time  = `${h12}:${String(m).padStart(2, '0')} ${ampm}`
+
+              // parse date for display
+              let dateFmt = report.date
+              try {
+                dateFmt = new Date(report.date + 'T00:00:00').toLocaleDateString(isAr ? 'ar-EG' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+              } catch {}
+
+              const isToday = report.date === new Date().toLocaleDateString('en-CA')
+              const isOverdue = !isToday && report.date < new Date().toLocaleDateString('en-CA')
+
+              return (
+                <div key={report.id} style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '11px 14px', borderRadius: 10,
+                  background: isOverdue ? 'rgba(239,68,68,.05)' : 'var(--as-hover)',
+                  border: `1px solid ${isOverdue ? 'rgba(239,68,68,.2)' : 'var(--as-border)'}`,
+                  flexWrap: 'wrap',
+                }}>
+                  {/* Alert dot */}
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: isOverdue ? '#ef4444' : '#f59e0b', flexShrink: 0 }} />
+
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '.86rem', fontWeight: 700, color: 'var(--as-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {report.studentName || (isAr ? 'طالب' : 'Student')}
+                    </div>
+                    <div style={{ fontSize: '.74rem', color: 'var(--as-muted)', marginTop: 2 }}>
+                      {dateFmt} · {time}
+                    </div>
+                  </div>
+
+                  {/* Overdue label */}
+                  {isOverdue && (
+                    <span style={{ fontSize: '.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'rgba(239,68,68,.12)', border: '1px solid rgba(239,68,68,.25)', color: '#ef4444', flexShrink: 0 }}>
+                      {isAr ? 'متأخر' : 'Overdue'}
+                    </span>
+                  )}
+                  {isToday && !isOverdue && (
+                    <span style={{ fontSize: '.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.25)', color: '#f59e0b', flexShrink: 0 }}>
+                      {isAr ? 'اليوم' : 'Today'}
+                    </span>
+                  )}
+                </div>
+              )
+            })}
+
+            {/* CTA */}
+            <button
+              onClick={() => {
+                // bubble up tab switch via a custom event the parent page listens to
+                window.dispatchEvent(new CustomEvent('assessor-nav', { detail: 'reports' }))
+              }}
+              style={{
+                marginTop: 4, width: '100%', padding: '10px', border: '1px solid rgba(239,68,68,.3)',
+                borderRadius: 10, background: 'rgba(239,68,68,.06)',
+                color: '#ef4444', fontSize: '.82rem', fontWeight: 700,
+                cursor: 'pointer', fontFamily: 'inherit', transition: 'background .15s',
+              }}
+            >
+              {isAr ? 'عرض جميع التقارير المعلّقة ←' : 'View all pending reports →'}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -167,6 +418,12 @@ export default function AssessorPage() {
 
   useEffect(() => {
     if (window.innerWidth < 768) setSidebarOpen(false)
+  }, [])
+
+  useEffect(() => {
+    function handleAssessorNav(e) { setActiveTab(e.detail) }
+    window.addEventListener('assessor-nav', handleAssessorNav)
+    return () => window.removeEventListener('assessor-nav', handleAssessorNav)
   }, [])
 
   useEffect(() => {
