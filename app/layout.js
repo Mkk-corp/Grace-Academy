@@ -38,7 +38,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" dir="ltr" data-theme="light" suppressHydrationWarning>
-      <body className={`${gotham.variable} ${tajawal.variable} ${comfortaa.variable}`}>
+      <body className={`${gotham.variable} ${tajawal.variable} ${comfortaa.variable}`} suppressHydrationWarning>
         <ThemeProvider>
           <LangProvider>
             {children}
