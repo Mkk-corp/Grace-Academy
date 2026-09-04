@@ -30,17 +30,18 @@ export async function GET() {
     return NextResponse.json({ status: 'none', booking: null, report: null })
   }
 
-  // Completed sessions take precedence (most recent first)
-  const completed = bookings.filter(b => isCompleted(b.date, b.slotMin))
-  if (completed.length > 0) {
-    const latest = completed[0]
-    if (latest.report) {
-      return NextResponse.json({ status: 'report_ready', booking: latest, report: latest.report })
-    }
-    return NextResponse.json({ status: 'report_pending', booking: latest, report: null })
+  // A submitted report is always ready — regardless of the time threshold
+  const withReport = bookings.find(b => !!b.report)
+  if (withReport) {
+    return NextResponse.json({ status: 'report_ready', booking: withReport, report: withReport.report })
   }
 
-  // No completed booking — check for a future/active one
+  // No report yet — use the 30-min threshold to distinguish pending vs upcoming
+  const completed = bookings.filter(b => isCompleted(b.date, b.slotMin))
+  if (completed.length > 0) {
+    return NextResponse.json({ status: 'report_pending', booking: completed[0], report: null })
+  }
+
   const upcoming = bookings.find(b => !isCompleted(b.date, b.slotMin))
   if (upcoming) {
     return NextResponse.json({ status: 'booked', booking: upcoming, report: null })
