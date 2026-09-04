@@ -547,7 +547,7 @@ export default function PortalPage() {
           {activeNav === 'settings' ? (
             <AvailabilitySettings user={user} isAr={isAr} isDark={isDark} />
           ) : activeNav === 'placement' ? (
-            (placStatus === 'report_pending' || placStatus === 'report_ready') ? (
+            (placStatus === 'booked' || placStatus === 'report_pending' || placStatus === 'report_ready') ? (
               <PlacementResult isAr={isAr} isDark={isDark} />
             ) : (
               <PlacementTest

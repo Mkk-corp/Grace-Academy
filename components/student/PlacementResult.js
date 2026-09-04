@@ -2,6 +2,22 @@
 
 import { useState, useEffect, useRef } from 'react'
 
+/* ── time helpers ──────────────────────────────────────────────── */
+function slotMinToLabel(min) {
+  const h   = Math.floor(min / 60)
+  const m   = min % 60
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  const h12  = h % 12 || 12
+  return `${h12}:${String(m).padStart(2, '0')} ${ampm}`
+}
+
+function fmtDate(dateStr, isAr) {
+  try {
+    const d = new Date(dateStr + 'T00:00:00')
+    return d.toLocaleDateString(isAr ? 'ar-EG' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  } catch { return dateStr }
+}
+
 /* ── level config ──────────────────────────────────────────────── */
 const LEVEL_META = {
   A1: { label: 'Beginner',           ar: 'مبتدئ',        color: '#10b981', bar: 1 },
@@ -105,6 +121,142 @@ function Confetti({ active }) {
   }, [active])
   if (!active) return null
   return <canvas ref={ref} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9000 }} />
+}
+
+/* ── booked screen ─────────────────────────────────────────────── */
+function BookedScreen({ isAr, isDark, booking }) {
+  const [countdown, setCountdown] = useState('')
+
+  useEffect(() => {
+    function tick() {
+      if (!booking) return
+      const [y, mo, d] = booking.date.split('-').map(Number)
+      const h = Math.floor(booking.slotMin / 60)
+      const m = booking.slotMin % 60
+      const target = new Date(y, mo - 1, d, h, m, 0)
+      const diff   = target - Date.now()
+      if (diff <= 0) { setCountdown(isAr ? 'الجلسة جارية الآن' : 'Session is live now'); return }
+      const days    = Math.floor(diff / 86400000)
+      const hours   = Math.floor((diff % 86400000) / 3600000)
+      const minutes = Math.floor((diff % 3600000) / 60000)
+      const secs    = Math.floor((diff % 60000) / 1000)
+      if (days > 0)   setCountdown(isAr ? `${days} يوم ${hours} ساعة` : `${days}d ${hours}h`)
+      else if (hours > 0) setCountdown(isAr ? `${hours} ساعة ${minutes} دقيقة` : `${hours}h ${minutes}m`)
+      else setCountdown(isAr ? `${minutes}:${String(secs).padStart(2,'0')}` : `${minutes}m ${String(secs).padStart(2,'0')}s`)
+    }
+    tick()
+    const t = setInterval(tick, 1000)
+    return () => clearInterval(t)
+  }, [booking, isAr])
+
+  const surface = isDark ? '#10222b' : '#fff'
+  const text    = isDark ? '#f1f5f9' : '#111827'
+  const muted   = isDark ? 'rgba(241,245,249,.55)' : '#6b7280'
+  const gold    = '#c9932c'
+  const border  = isDark ? 'rgba(255,255,255,.08)' : '#e5e7eb'
+  const green   = '#10b981'
+
+  const rows = [
+    { labelEn: 'DATE',      labelAr: 'التاريخ',  value: booking ? fmtDate(booking.date, isAr) : '—' },
+    { labelEn: 'TIME',      labelAr: 'الوقت',    value: booking ? `${slotMinToLabel(booking.slotMin)} (UTC)` : '—' },
+    { labelEn: 'ASSESSOR',  labelAr: 'المستشار', value: booking?.assessorName || '—' },
+    { labelEn: 'DURATION',  labelAr: 'المدة',    value: isAr ? '٣٠ دقيقة' : '30 minutes' },
+  ]
+
+  return (
+    <div style={{ maxWidth: 620, margin: '0 auto', padding: '0 4px' }}>
+      <style>{`@keyframes bsPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.06);opacity:.85}}`}</style>
+
+      {/* Header card */}
+      <div style={{
+        background: surface, border: `1px solid ${border}`, borderRadius: 20,
+        padding: '48px 40px 36px', textAlign: 'center', marginBottom: 16,
+        boxShadow: isDark ? '0 4px 24px rgba(0,0,0,.35)' : '0 4px 20px rgba(0,0,0,.07)',
+      }}>
+        {/* Check circle */}
+        <div style={{
+          width: 72, height: 72, borderRadius: '50%', margin: '0 auto 20px',
+          background: `${green}14`, border: `2px solid ${green}40`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: 'bsPulse 2.5s ease-in-out infinite',
+        }}>
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke={green} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+
+        {/* Badge */}
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          padding: '5px 16px', borderRadius: 100, marginBottom: 20,
+          background: `${green}10`, border: `1px solid ${green}35`,
+        }}>
+          <div style={{ width: 6, height: 6, borderRadius: '50%', background: green, animation: 'bsPulse 1.5s ease-in-out infinite' }}/>
+          <span style={{ fontSize: '.65rem', fontWeight: 700, letterSpacing: '.14em', color: green }}>
+            {isAr ? 'تم تأكيد الجلسة' : 'SESSION CONFIRMED'}
+          </span>
+        </div>
+
+        <h2 style={{ fontSize: 'clamp(1.3rem, 2.5vw, 1.7rem)', fontWeight: 900, color: text, marginBottom: 10 }}>
+          {isAr ? 'تم حجز جلسة التقييم' : 'Your Assessment is Booked'}
+        </h2>
+        <p style={{ fontSize: '.85rem', color: muted, lineHeight: 1.65, maxWidth: 420, margin: '0 auto 28px' }}>
+          {isAr
+            ? 'يمكنك حضور جلسة واحدة فقط في كل مرة. سيتم إرسال تقرير التقييم بعد انتهاء الجلسة.'
+            : 'You can only hold one session at a time. Your assessment report will be sent after the session is complete.'}
+        </p>
+
+        {/* Session details table */}
+        <div style={{ border: `1px solid ${border}`, borderRadius: 14, overflow: 'hidden', textAlign: isAr ? 'right' : 'left' }}>
+          {rows.map((row, i) => (
+            <div key={row.labelEn} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '14px 20px',
+              borderBottom: i < rows.length - 1 ? `1px solid ${border}` : 'none',
+              flexDirection: isAr ? 'row-reverse' : 'row',
+            }}>
+              <span style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '.1em', color: muted }}>
+                {isAr ? row.labelAr : row.labelEn}
+              </span>
+              <span style={{ fontSize: '.9rem', fontWeight: 700, color: text }}>{row.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Countdown card */}
+      {countdown && (
+        <div style={{
+          background: isDark ? 'rgba(201,147,44,.06)' : '#fffbf0',
+          border: `1px solid rgba(201,147,44,.25)`, borderRadius: 14,
+          padding: '16px 20px', marginBottom: 12,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          flexDirection: isAr ? 'row-reverse' : 'row',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexDirection: isAr ? 'row-reverse' : 'row' }}>
+            <IcClock size={16} color={gold} sw="2"/>
+            <span style={{ fontSize: '.8rem', color: muted }}>{isAr ? 'يبدأ خلال' : 'Starts in'}</span>
+          </div>
+          <span style={{ fontFamily: 'monospace', fontWeight: 900, fontSize: '1rem', color: gold }}>{countdown}</span>
+        </div>
+      )}
+
+      {/* Email note */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 10, padding: '14px 20px',
+        borderRadius: 14, background: isDark ? 'rgba(255,255,255,.04)' : '#f8fafc',
+        border: `1px solid ${border}`,
+        flexDirection: isAr ? 'row-reverse' : 'row',
+      }}>
+        <IcMail size={16} color={muted} sw="1.8"/>
+        <span style={{ fontSize: '.8rem', color: muted, lineHeight: 1.5 }}>
+          {isAr
+            ? 'ستتلقى رابط الاجتماع قبل 5 دقائق من بدء الجلسة عبر البريد الإلكتروني والإشعارات'
+            : 'You will receive your meeting link 5 minutes before the session starts via email and notifications'}
+        </span>
+      </div>
+    </div>
+  )
 }
 
 /* ── report pending screen ─────────────────────────────────────── */
@@ -758,7 +910,11 @@ export default function PlacementResult({ isAr, isDark }) {
     </div>
   )
 
-  if (!data || data.status === 'none' || data.status === 'booked') return null
+  if (!data || data.status === 'none') return null
+
+  if (data.status === 'booked') {
+    return <BookedScreen isAr={isAr} isDark={isDark} booking={data.booking} />
+  }
 
   if (data.status === 'report_pending') {
     return <PendingScreen isAr={isAr} isDark={isDark} booking={data.booking} onRefresh={load} />
