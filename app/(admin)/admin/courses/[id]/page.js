@@ -20,8 +20,17 @@ const LIBRARY_OPTIONS = [
   { value: 'others', labelEn: 'Others',            labelAr: 'أخرى' },
 ]
 
+const LEVELS = [
+  { value: 'A1', color: '#10b981' },
+  { value: 'A2', color: '#06b6d4' },
+  { value: 'B1', color: '#3b82f6' },
+  { value: 'B2', color: '#6366f1' },
+  { value: 'C1', color: '#8b5cf6' },
+  { value: 'C2', color: '#c9932c' },
+]
+
 const BLANK = {
-  nameEn: '', nameAr: '', categoryId: '',
+  nameEn: '', nameAr: '', categoryId: '', level: '',
   descEn: '', descAr: '',
   marketingEn: '', marketingAr: '',
   durationMonths: '', durationSessions: '',
@@ -162,6 +171,7 @@ export default function CourseDetailPage() {
             marketingAr:      c.marketingAr     || '',
             durationMonths:   c.durationMonths  ?? '',
             durationSessions: c.durationSessions ?? '',
+            level:            c.level           || '',
             needsSpeaking:    !!c.needsSpeaking,
             speakingSessions: c.speakingSessions ?? '',
             needsLibrary:     !!c.needsLibrary,
@@ -346,6 +356,37 @@ export default function CourseDetailPage() {
                 isAr={isAr}
                 isDark={isDark}
               />
+            </Field>
+            <Field {...fp} label={isAr ? 'المستوى' : 'English Level'} optional>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {LEVELS.map(({ value, color }) => {
+                  const active = form.level === value
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => set('level', active ? '' : value)}
+                      style={{
+                        padding: '7px 18px', borderRadius: 100, fontWeight: 800,
+                        fontSize: '.85rem', letterSpacing: '.04em', cursor: 'pointer',
+                        fontFamily: 'inherit', transition: 'all .15s',
+                        border: `2px solid ${active ? color : (isDark ? 'rgba(255,255,255,.12)' : '#e5e7eb')}`,
+                        background: active ? color : 'transparent',
+                        color: active ? '#fff' : (isDark ? 'rgba(255,255,255,.5)' : '#9ca3af'),
+                        transform: active ? 'scale(1.08)' : 'scale(1)',
+                        boxShadow: active ? `0 4px 14px ${color}45` : 'none',
+                      }}
+                    >
+                      {value}
+                    </button>
+                  )
+                })}
+              </div>
+              {form.level && (
+                <div style={{ marginTop: 8, fontSize: '.75rem', color: LEVELS.find(l => l.value === form.level)?.color, fontWeight: 600 }}>
+                  {isAr ? `المستوى المختار: ${form.level}` : `Selected: ${form.level}`}
+                </div>
+              )}
             </Field>
           </SectionCard>
 

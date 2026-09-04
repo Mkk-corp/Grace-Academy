@@ -3,6 +3,8 @@ node_modules
 dev.log
 .env
 .env.local
+.env.local.*
+.env.*.local
 .env.development.local
 .env.production.local
 /lib/generated/prisma

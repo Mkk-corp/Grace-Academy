@@ -144,7 +144,7 @@ export default function HomeClient({ stats }) {
               </div>
               <div className="stats">
                 {[
-                  { value: stats.reviews.value, suffix: stats.reviews.suffix, labelKey: 'stat1', word: null },
+                  { value: stats.reviews?.value, suffix: stats.reviews?.suffix, labelKey: 'stat1', word: null },
                   { value: null, suffix: null, labelKey: 'stat2', word: 'stat2word' },
                   { value: null, suffix: null, labelKey: 'stat3', word: null, text: '24/7' },
                   { value: null, suffix: null, labelKey: 'stat4', word: null, text: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{width:'2rem',height:'2rem'}}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> },

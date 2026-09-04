@@ -227,6 +227,7 @@ model Course {
   speakingSessions Int?
   needsLibrary     Boolean   @default(false)
   libraryTypes     String[]  @default([])
+  level            String    @default("")
   categoryId       String?
   category         Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   createdAt        DateTime  @default(now())
