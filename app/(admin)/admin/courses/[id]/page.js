@@ -135,6 +135,8 @@ export default function CourseDetailPage() {
   const [saving,     setSaving]     = useState(false)
   const [error,      setError]      = useState('')
   const [flash,      setFlash]      = useState(false)
+  const [uploading,  setUploading]  = useState(false)
+  const [uploadErr,  setUploadErr]  = useState('')
 
   useEffect(() => {
     fetch('/api/admin/categories').then(r => r.json()).then(d => setCategories(d.categories || [])).catch(() => {})
@@ -180,6 +182,26 @@ export default function CourseDetailPage() {
     setForm(saved)
     setError('')
     setEditing(false)
+  }
+
+  async function handleImageUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setUploadErr('')
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/admin/courses/upload-image', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) { setUploadErr(data.error || 'Upload failed'); return }
+      set('image', data.url)
+    } catch {
+      setUploadErr('Upload failed — check your connection')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
   }
 
   async function save() {
@@ -504,24 +526,56 @@ export default function CourseDetailPage() {
               </Field>
               <Field {...fp} label={isAr ? 'صورة الدورة' : 'Course Image'} optional>
                 <input
-                  value={form.image}
-                  onChange={e => set('image', e.target.value)}
-                  placeholder="https://example.com/course-image.jpg"
-                  dir="ltr"
-                  style={inp}
-                  onFocus={e => e.target.style.borderColor = GOLD}
-                  onBlur={e => e.target.style.borderColor = border}
+                  id="course-img-input"
+                  type="file"
+                  accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                  onChange={handleImageUpload}
+                  disabled={uploading}
+                  style={{ display: 'none' }}
                 />
-                {form.image && (
-                  <div style={{ marginTop: 10, borderRadius: 10, overflow: 'hidden', border: `1px solid ${border}`, maxHeight: 200, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {form.image ? (
+                  <div style={{ borderRadius: 10, overflow: 'hidden', border: `1px solid ${border}`, background: bg, position: 'relative' }}>
                     <img
                       src={form.image}
                       alt=""
-                      style={{ maxWidth: '100%', maxHeight: 200, objectFit: 'cover', display: 'block' }}
+                      style={{ width: '100%', maxHeight: 200, objectFit: 'cover', display: 'block' }}
                       onError={e => { e.currentTarget.style.display = 'none' }}
                     />
+                    <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 6 }}>
+                      <label htmlFor="course-img-input" style={{ cursor: 'pointer', background: 'rgba(0,0,0,.6)', color: '#fff', fontSize: '.7rem', fontWeight: 700, padding: '4px 10px', borderRadius: 6, letterSpacing: '.06em' }}>
+                        {isAr ? 'تغيير' : 'Change'}
+                      </label>
+                      <button type="button" onClick={() => { set('image', ''); setUploadErr('') }} style={{ background: 'rgba(239,68,68,.8)', color: '#fff', fontSize: '.7rem', fontWeight: 700, padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer', letterSpacing: '.06em' }}>
+                        {isAr ? 'حذف' : 'Remove'}
+                      </button>
+                    </div>
                   </div>
+                ) : (
+                  <label htmlFor="course-img-input" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, border: `2px dashed ${uploading ? GOLD : border}`, borderRadius: 10, padding: '28px 20px', cursor: uploading ? 'wait' : 'pointer', background: uploading ? `${GOLD}08` : 'transparent', transition: 'border-color .2s, background .2s' }}>
+                    {uploading ? (
+                      <>
+                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={GOLD} strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }}>
+                          <circle cx="12" cy="12" r="10" strokeOpacity=".25"/>
+                          <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round"/>
+                        </svg>
+                        <span style={{ fontSize: '.75rem', fontWeight: 700, color: GOLD, letterSpacing: '.06em' }}>{isAr ? 'جاري الرفع...' : 'Uploading...'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={muted} strokeWidth="1.8">
+                          <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+                          <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+                        </svg>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: '.75rem', fontWeight: 700, color: muted, letterSpacing: '.06em' }}>{isAr ? 'انقر لرفع صورة' : 'Click to upload image'}</div>
+                          <div style={{ fontSize: '.65rem', color: muted, opacity: .6, marginTop: 3 }}>PNG, JPEG, SVG · max 5 MB</div>
+                        </div>
+                      </>
+                    )}
+                  </label>
                 )}
+                {uploadErr && <div style={{ marginTop: 6, fontSize: '.72rem', color: RED, fontWeight: 600 }}>{uploadErr}</div>}
+                <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
               </Field>
             </SectionCard>
 
