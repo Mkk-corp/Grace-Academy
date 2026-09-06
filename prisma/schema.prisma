@@ -228,6 +228,7 @@ model Course {
   needsLibrary     Boolean   @default(false)
   libraryTypes     String[]  @default([])
   level            String    @default("")
+  image            String?
   categoryId       String?
   category         Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   createdAt        DateTime  @default(now())

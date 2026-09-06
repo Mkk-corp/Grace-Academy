@@ -14,6 +14,7 @@ import UpcomingSession from '@/components/shared/UpcomingSession'
 import PortalTopbar from '@/components/portal/PortalTopbar'
 import StudentOnboarding from '@/components/student/StudentOnboarding'
 import Breadcrumb from '@/components/ui/Breadcrumb'
+import CourseCatalog from '@/components/shared/CourseCatalog'
 
 /* ── service icon map ─────────────────────────────────────────────── */
 function SvcIcon({ slug, size = 18 }) {
@@ -56,9 +57,10 @@ function Icon({ name, size = 18, color = 'currentColor' }) {
 }
 
 const NAV_ITEMS = [
-  { id: 'dashboard',   labelEn: 'Dashboard',      labelAr: 'الرئيسية',       icon: 'grid'  },
-  { id: 'placement',   labelEn: 'Placement Test', labelAr: 'اختبار التحديد', icon: 'award' },
-  { id: 'my-sessions', labelEn: 'My Sessions',    labelAr: 'جلساتي',         icon: 'video' },
+  { id: 'dashboard',   labelEn: 'Dashboard',       labelAr: 'الرئيسية',         icon: 'grid'  },
+  { id: 'placement',   labelEn: 'Placement Test',  labelAr: 'اختبار التحديد',   icon: 'award' },
+  { id: 'my-sessions', labelEn: 'My Sessions',     labelAr: 'جلساتي',           icon: 'video' },
+  { id: 'courses',     labelEn: 'Course Catalog',  labelAr: 'كتالوج الدورات',  icon: 'book'  },
 ]
 
 
@@ -562,6 +564,10 @@ export default function PortalPage() {
             )
           ) : activeNav === 'my-sessions' ? (
             <MySessions isAr={isAr} isDark={isDark} />
+          ) : activeNav === 'courses' ? (
+            <div style={{ padding: '24px' }}>
+              <CourseCatalog basePath="/portal/courses" isAr={isAr} isDark={isDark} />
+            </div>
           ) : (<>
 
             {/* Upcoming session */}

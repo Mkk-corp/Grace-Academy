@@ -763,8 +763,18 @@ export default function CoursesPage() {
                   : filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map(c => (
                     <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => router.push(`/admin/courses/${c.id}`)}>
                       <td>
-                        <div style={{ fontWeight: 600, fontSize: '.88rem', color: 'var(--text)' }}>{c.nameEn}</div>
-                        {c.nameAr && <div style={{ fontSize: '.75rem', color: 'var(--text-60)', direction: 'rtl', textAlign: 'right', marginTop: 2 }}>{c.nameAr}</div>}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          {c.image
+                            ? <img src={c.image} alt="" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover', flexShrink: 0, border: '1px solid var(--border)' }} onError={e => { e.currentTarget.style.display = 'none' }} />
+                            : <div style={{ width: 40, height: 40, borderRadius: 8, flexShrink: 0, background: 'rgba(201,147,44,.1)', border: '1px solid rgba(201,147,44,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.8" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                              </div>
+                          }
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: '.88rem', color: 'var(--text)' }}>{c.nameEn}</div>
+                            {c.nameAr && <div style={{ fontSize: '.75rem', color: 'var(--text-60)', direction: 'rtl', textAlign: 'right', marginTop: 2 }}>{c.nameAr}</div>}
+                          </div>
+                        </div>
                       </td>
                       <td style={{ textAlign: 'center' }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 100, fontSize: '.72rem', fontWeight: 700, background: 'rgba(59,130,246,.1)', border: '1px solid rgba(59,130,246,.25)', color: BLUE }}>

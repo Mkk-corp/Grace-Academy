@@ -8,6 +8,7 @@ import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
 import PortalTopbar from '@/components/portal/PortalTopbar'
 import Breadcrumb from '@/components/ui/Breadcrumb'
+import CourseCatalog from '@/components/shared/CourseCatalog'
 
 /* ─── Sidebar icons ───────────────────────────────────────────────── */
 function Icon({ name, size = 17, color = 'currentColor' }) {
@@ -25,6 +26,7 @@ function Icon({ name, size = 17, color = 'currentColor' }) {
     case 'settings':   return <svg viewBox="0 0 24 24" {...s}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     case 'user':       return <svg viewBox="0 0 24 24" {...s}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     case 'logout':     return <svg viewBox="0 0 24 24" {...s}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    case 'book':       return <svg viewBox="0 0 24 24" {...s}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
     default:           return null
   }
 }
@@ -110,6 +112,7 @@ export default function TeacherPage() {
   const [loading,     setLoading]     = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [search,      setSearch]      = useState('')
+  const [activeTab,   setActiveTab]   = useState('dashboard')
 
   useEffect(() => {
     if (window.innerWidth < 768) setSidebarOpen(false)
@@ -264,9 +267,21 @@ export default function TeacherPage() {
           </div>
 
           <nav className="tc-sb-nav">
-            <button className="tc-ni active" title={sidebarOpen ? undefined : (isAr ? 'الرئيسية' : 'Dashboard')}>
-              <Icon name="dashboard" size={17} color="var(--tc-gold)" />
+            <button
+              className={`tc-ni${activeTab === 'dashboard' ? ' active' : ''}`}
+              onClick={() => setActiveTab('dashboard')}
+              title={sidebarOpen ? undefined : (isAr ? 'الرئيسية' : 'Dashboard')}
+            >
+              <Icon name="dashboard" size={17} color={activeTab === 'dashboard' ? 'var(--tc-gold)' : 'currentColor'} />
               <span className="tc-ni-lbl">{isAr ? 'الرئيسية' : 'Dashboard'}</span>
+            </button>
+            <button
+              className={`tc-ni${activeTab === 'courses' ? ' active' : ''}`}
+              onClick={() => setActiveTab('courses')}
+              title={sidebarOpen ? undefined : (isAr ? 'كتالوج الدورات' : 'Course Catalog')}
+            >
+              <Icon name="book" size={17} color={activeTab === 'courses' ? 'var(--tc-gold)' : 'currentColor'} />
+              <span className="tc-ni-lbl">{isAr ? 'كتالوج الدورات' : 'Course Catalog'}</span>
             </button>
           </nav>
 
@@ -301,13 +316,16 @@ export default function TeacherPage() {
             isAr={isAr}
             isDark={isDark}
             crumbs={[
-              { label: isAr ? 'بوابة المعلم' : 'Teacher Portal' },
-              { label: isAr ? 'الرئيسية' : 'Dashboard' },
+              { label: isAr ? 'بوابة المعلم' : 'Teacher Portal', onClick: activeTab !== 'dashboard' ? () => setActiveTab('dashboard') : undefined },
+              { label: activeTab === 'courses' ? (isAr ? 'كتالوج الدورات' : 'Course Catalog') : (isAr ? 'الرئيسية' : 'Dashboard') },
             ]}
           />
 
           <main className="tc-content">
-            <DashboardTab user={user} isAr={isAr} />
+            {activeTab === 'courses'
+              ? <div style={{ padding: '24px' }}><CourseCatalog basePath="/teacher/courses" isAr={isAr} isDark={isDark} /></div>
+              : <DashboardTab user={user} isAr={isAr} />
+            }
           </main>
         </div>
       </div>

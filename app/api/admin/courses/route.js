@@ -27,7 +27,7 @@ function validate(body) {
 }
 
 function buildData(body) {
-  const { nameEn, nameAr, descEn, descAr, marketingEn, marketingAr, durationMonths, durationSessions, needsSpeaking, speakingSessions, needsLibrary, libraryTypes, categoryId, level } = body
+  const { nameEn, nameAr, descEn, descAr, marketingEn, marketingAr, durationMonths, durationSessions, needsSpeaking, speakingSessions, needsLibrary, libraryTypes, categoryId, level, image } = body
   return {
     nameEn:          nameEn.trim(),
     nameAr:          nameAr?.trim()      || '',
@@ -43,6 +43,7 @@ function buildData(body) {
     libraryTypes:    needsLibrary ? (libraryTypes || []) : [],
     categoryId:      categoryId || null,
     level:           level || '',
+    image:           image?.trim() || null,
   }
 }
 

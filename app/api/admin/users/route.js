@@ -3,7 +3,7 @@ import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { hashPassword } from '@/lib/password'
-import { sendAssessorWelcomeEmail } from '@/lib/mailer'
+import { sendAssessorWelcomeEmail, sendTeacherWelcomeEmail } from '@/lib/mailer'
 import { logAudit } from '@/lib/audit'
 
 async function requireAdmin() {
@@ -56,17 +56,22 @@ export async function POST(request) {
     select: SAFE_SELECT,
   })
 
-  // Send welcome email if the assigned role is assessor / academic consultant
+  // Send role-appropriate welcome email.
   // Awaited intentionally — serverless functions cut off fire-and-forget promises after response.
   if (roleId) {
     const role = await prisma.role.findUnique({ where: { id: roleId } }).catch(() => null)
-    if (role?.name?.toLowerCase().includes('assessor') || role?.name?.toLowerCase().includes('academic consultant')) {
+    const roleName = role?.name?.toLowerCase() || ''
+    const isAssessorRole = roleName.includes('assessor') || roleName.includes('academic consultant')
+    const isTeacherRole  = (role?.permissions || []).includes('access_teacher_portal') && !isAssessorRole
+
+    if (isAssessorRole) {
       await sendAssessorWelcomeEmail({
-        to:       email,
-        name:     name || username,
-        username,
-        password,
-      }).catch(err => console.error('[mailer] welcome email failed:', err?.message))
+        to: email, name: name || username, username, password,
+      }).catch(err => console.error('[mailer] assessor welcome email failed:', err?.message))
+    } else if (isTeacherRole) {
+      await sendTeacherWelcomeEmail({
+        to: email, name: name || username, username, password,
+      }).catch(err => console.error('[mailer] teacher welcome email failed:', err?.message))
     }
   }
 

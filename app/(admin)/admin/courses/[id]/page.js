@@ -37,6 +37,7 @@ const BLANK = {
   durationMonths: '', durationSessions: '',
   needsSpeaking: false, speakingSessions: '',
   needsLibrary: false, libraryTypes: [],
+  image: '',
   teacherCount: 0, studentCount: 0, teachers: [],
 }
 
@@ -154,6 +155,7 @@ export default function CourseDetailPage() {
             durationMonths: c.durationMonths ?? '', durationSessions: c.durationSessions ?? '',
             needsSpeaking: !!c.needsSpeaking, speakingSessions: c.speakingSessions ?? '',
             needsLibrary: !!c.needsLibrary, libraryTypes: c.libraryTypes || [],
+            image: c.image || '',
             teacherCount: c.teacherCount ?? 0, studentCount: c.studentCount ?? 0,
             teachers: c.teachers || [],
           }
@@ -295,6 +297,13 @@ export default function CourseDetailPage() {
 
           {/* Left */}
           <div>
+
+            {/* Course image */}
+            {form.image && (
+              <div style={{ borderRadius: 14, overflow: 'hidden', border: `1px solid ${border}`, marginBottom: 20, maxHeight: 260, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src={form.image} alt={form.nameEn} style={{ width: '100%', maxHeight: 260, objectFit: 'cover', display: 'block' }} onError={e => { e.currentTarget.parentElement.style.display = 'none' }} />
+              </div>
+            )}
 
             {/* Quick stats */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
@@ -490,6 +499,27 @@ export default function CourseDetailPage() {
                 {form.level && (
                   <div style={{ marginTop: 8, fontSize: '.75rem', color: levelInfo?.color, fontWeight: 600 }}>
                     {isAr ? `المستوى المختار: ${form.level}` : `Selected: ${form.level}`}
+                  </div>
+                )}
+              </Field>
+              <Field {...fp} label={isAr ? 'صورة الدورة' : 'Course Image'} optional>
+                <input
+                  value={form.image}
+                  onChange={e => set('image', e.target.value)}
+                  placeholder="https://example.com/course-image.jpg"
+                  dir="ltr"
+                  style={inp}
+                  onFocus={e => e.target.style.borderColor = GOLD}
+                  onBlur={e => e.target.style.borderColor = border}
+                />
+                {form.image && (
+                  <div style={{ marginTop: 10, borderRadius: 10, overflow: 'hidden', border: `1px solid ${border}`, maxHeight: 200, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img
+                      src={form.image}
+                      alt=""
+                      style={{ maxWidth: '100%', maxHeight: 200, objectFit: 'cover', display: 'block' }}
+                      onError={e => { e.currentTarget.style.display = 'none' }}
+                    />
                   </div>
                 )}
               </Field>

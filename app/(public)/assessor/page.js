@@ -17,6 +17,7 @@ import OnboardingOverlay from '@/components/assessor/OnboardingOverlay'
 import PortalTopbar from '@/components/portal/PortalTopbar'
 import NotificationBell from '@/components/ui/NotificationBell'
 import Breadcrumb from '@/components/ui/Breadcrumb'
+import CourseCatalog from '@/components/shared/CourseCatalog'
 
 /* ─── icons ──────────────────────────────────────────────────────────── */
 function Icon({ name, size = 18, color = 'currentColor' }) {
@@ -47,13 +48,14 @@ function Icon({ name, size = 18, color = 'currentColor' }) {
 
 /* ─── nav items ──────────────────────────────────────────────────────── */
 const NAV = [
-  { id: 'dashboard',   icon: 'dashboard', en: 'Dashboard',                    ar: 'الرئيسية' },
-  { id: 'assessments', icon: 'clipboard', en: 'My Sessions',                  ar: 'جلساتي' },
-  { id: 'schedule',    icon: 'schedule',  en: 'My Schedule',                   ar: 'جدولي' },
-  { id: 'requests',    icon: 'clipboard', en: 'My Requests',                   ar: 'طلباتي' },
-  { id: 'students',    icon: 'students',  en: 'Assigned Students',             ar: 'الطلاب المعيّنون' },
-  { id: 'reports',     icon: 'report',    en: 'Pending Reports',               ar: 'التقارير المعلّقة' },
-  { id: 'payroll',    icon: 'payroll',   en: 'Payroll',                        ar: 'الرواتب' },
+  { id: 'dashboard',   icon: 'dashboard',  en: 'Dashboard',          ar: 'الرئيسية' },
+  { id: 'assessments', icon: 'clipboard',  en: 'My Sessions',        ar: 'جلساتي' },
+  { id: 'schedule',    icon: 'schedule',   en: 'My Schedule',        ar: 'جدولي' },
+  { id: 'requests',    icon: 'clipboard',  en: 'My Requests',        ar: 'طلباتي' },
+  { id: 'students',    icon: 'students',   en: 'Assigned Students',  ar: 'الطلاب المعيّنون' },
+  { id: 'reports',     icon: 'report',     en: 'Pending Reports',    ar: 'التقارير المعلّقة' },
+  { id: 'payroll',     icon: 'payroll',    en: 'Payroll',            ar: 'الرواتب' },
+  { id: 'courses',     icon: 'resources',  en: 'Course Catalog',     ar: 'كتالوج الدورات' },
 ]
 
 /* ─── placeholder content per tab ───────────────────────────────────── */
@@ -1060,6 +1062,8 @@ export default function AssessorPage() {
               ? <PendingReports isAr={isAr} isDark={isDark} />
               : activeTab === 'payroll'
               ? <AssessorPayroll isAr={isAr} isDark={isDark} />
+              : activeTab === 'courses'
+              ? <div style={{ padding: '24px' }}><CourseCatalog basePath="/assessor/courses" isAr={isAr} isDark={isDark} /></div>
               : <ComingSoon tab={activeTab} isAr={isAr} isDark={isDark} />
             }
           </main>
