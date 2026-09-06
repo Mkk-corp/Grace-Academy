@@ -198,7 +198,7 @@ export default function CourseCatalog({ basePath = '/portal/courses', isAr = fal
   const [fLib, setFLib]           = useState(false)
 
   useEffect(() => {
-    fetch('/api/admin/courses')
+    fetch('/api/courses')
       .then(r => r.json())
       .then(d => { setCourses(d.courses || []); setLoading(false) })
       .catch(() => setLoading(false))

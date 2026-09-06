@@ -165,7 +165,7 @@ export default function CourseDetailView({ backHref = '/' }) {
 
   useEffect(() => {
     if (!courseId) return
-    fetch(`/api/admin/courses/${courseId}`)
+    fetch(`/api/courses/${courseId}`)
       .then(r => r.json())
       .then(d => { setCourse(d.course || null); setLoading(false) })
       .catch(() => setLoading(false))
