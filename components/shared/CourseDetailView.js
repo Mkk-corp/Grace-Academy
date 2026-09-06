@@ -150,7 +150,7 @@ function CefrBar({ level }) {
 }
 
 /* ─── Main component ──────────────────────────────────────────────── */
-export default function CourseDetailView({ backHref = '/' }) {
+export default function CourseDetailView({ backHref = '/', noNav = false, stickyTop = 72, onLoad }) {
   const router    = useRouter()
   const params    = useParams()
   const courseId  = params?.id
@@ -167,7 +167,12 @@ export default function CourseDetailView({ backHref = '/' }) {
     if (!courseId) return
     fetch(`/api/courses/${courseId}`)
       .then(r => r.json())
-      .then(d => { setCourse(d.course || null); setLoading(false) })
+      .then(d => {
+        const c = d.course || null
+        setCourse(c)
+        setLoading(false)
+        onLoad?.(c)
+      })
       .catch(() => setLoading(false))
   }, [courseId])
 
@@ -193,25 +198,27 @@ export default function CourseDetailView({ backHref = '/' }) {
       <div className="cdv-root" style={{ minHeight: '100vh', background: page, color: text, fontFamily: ff, direction: isAr ? 'rtl' : 'ltr' }}
         data-theme={isDark ? 'dark' : 'light'}>
 
-        {/* ── Top nav ────────────────────────────────────────────────── */}
-        <div style={{ background: surf, borderBottom: `1px solid ${border}`, padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 14, position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(8px)' }}>
-          <button
-            onClick={() => router.back()}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9, background: 'transparent', border: `1px solid ${border}`, color: muted, fontSize: '.82rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.color = GOLD }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = border; e.currentTarget.style.color = muted }}
-          >
-            <IcArrowL size={14} />
-            {isAr ? 'العودة للكتالوج' : 'Back to Catalog'}
-          </button>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: '.75rem', color: muted }}>{isAr ? 'كتالوج الدورات' : 'Course Catalog'}</span>
-            <span style={{ color: muted, fontSize: '.7rem' }}>›</span>
-            <span style={{ fontSize: '.75rem', fontWeight: 600, color: text }}>
-              {loading ? '…' : (course?.nameEn || (isAr ? 'تفاصيل الدورة' : 'Course Detail'))}
-            </span>
+        {/* ── Top nav (standalone mode only) ─────────────────────────── */}
+        {!noNav && (
+          <div style={{ background: surf, borderBottom: `1px solid ${border}`, padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 14, position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(8px)' }}>
+            <button
+              onClick={() => router.back()}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9, background: 'transparent', border: `1px solid ${border}`, color: muted, fontSize: '.82rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.color = GOLD }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = border; e.currentTarget.style.color = muted }}
+            >
+              <IcArrowL size={14} />
+              {isAr ? 'العودة للكتالوج' : 'Back to Catalog'}
+            </button>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: '.75rem', color: muted }}>{isAr ? 'كتالوج الدورات' : 'Course Catalog'}</span>
+              <span style={{ color: muted, fontSize: '.7rem' }}>›</span>
+              <span style={{ fontSize: '.75rem', fontWeight: 600, color: text }}>
+                {loading ? '…' : (course?.nameEn || (isAr ? 'تفاصيل الدورة' : 'Course Detail'))}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ── Loading state ──────────────────────────────────────────── */}
         {loading && (
@@ -363,7 +370,7 @@ export default function CourseDetailView({ backHref = '/' }) {
                 </div>
 
                 {/* ── Right sidebar ─────────────────────────────────── */}
-                <div style={{ position: 'sticky', top: 72 }}>
+                <div style={{ position: 'sticky', top: stickyTop }}>
 
                   {/* Quest card */}
                   <div style={{
