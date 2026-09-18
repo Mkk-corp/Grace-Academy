@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import { useLang } from '@/context/LangContext'
 import PageHero from '@/components/sections/PageHero'
@@ -53,6 +53,7 @@ export default function PricingClient() {
   const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState('')
   const [selectedCountry, setSelectedCountry] = useState('')
+  const sectionRef = useRef(null)
 
   useEffect(() => {
     setLoading(true)
@@ -67,6 +68,25 @@ export default function PricingClient() {
       .finally(() => setLoading(false))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  /* Re-observe [data-reveal] elements after async data renders */
+  useEffect(() => {
+    if (loading) return
+    const raf = requestAnimationFrame(() => {
+      const root = sectionRef.current
+      if (!root) return
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return
+          entry.target.classList.add('revealed')
+          observer.unobserve(entry.target)
+        })
+      }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' })
+      root.querySelectorAll('[data-reveal]:not(.revealed)').forEach(el => observer.observe(el))
+      return () => observer.disconnect()
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [loading, plans])
 
   const availableCountries = useMemo(() => {
     const codes = [...new Set(plans.map(p => p.country).filter(Boolean))]
@@ -89,7 +109,7 @@ export default function PricingClient() {
     <>
       <PageHero titleKey="pricingHeroTitle" subKey="pricingHeroSub" breadcrumbKey="pricingBreadCurrent" />
 
-      <section className="pricing-section">
+      <section className="pricing-section" ref={sectionRef}>
         <div className="container">
 
           <div data-reveal>
