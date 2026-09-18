@@ -4,6 +4,7 @@ import crypto from 'crypto'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { logAudit } from '@/lib/audit'
+import { SYSTEM_ROLE_IDS } from '@/lib/permissions'
 
 async function requireAdmin() {
   const jar = await cookies()
@@ -11,9 +12,22 @@ async function requireAdmin() {
   return token ? verifyToken(token) : null
 }
 
+// Bump sessionVersion for all non-admin users who have this role
+async function forceLogoutRoleUsers(roleId) {
+  if (roleId === 'r_admin') return // never force-logout admins
+  await prisma.user.updateMany({
+    where: { roleId, role: { id: { not: 'r_admin' } } },
+    data: { sessionVersion: { increment: 1 } },
+  })
+}
+
 export async function GET() {
   if (!await requireAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  return NextResponse.json(await prisma.role.findMany())
+  const roles = await prisma.role.findMany({
+    include: { _count: { select: { users: true } } },
+    orderBy: [{ isSystem: 'desc' }, { name: 'asc' }],
+  })
+  return NextResponse.json(roles)
 }
 
 export async function POST(request) {
@@ -31,6 +45,7 @@ export async function POST(request) {
       name,
       description: description || '',
       permissions: permissions || [],
+      isSystem: false,
     },
   })
   logAudit({ actorId: admin.userId, actorName: admin.name, actorRole: 'admin', action: 'role.created', entity: 'Role', entityId: role.id, meta: { name, permissions: permissions || [] } })
@@ -44,6 +59,7 @@ export async function PUT(request) {
 
   const existing = await prisma.role.findUnique({ where: { id } })
   if (!existing) return NextResponse.json({ error: 'Role not found' }, { status: 404 })
+  if (existing.isSystem) return NextResponse.json({ error: 'System roles cannot be modified' }, { status: 403 })
 
   const data = {}
   if (name        !== undefined) data.name        = name
@@ -51,6 +67,10 @@ export async function PUT(request) {
   if (permissions !== undefined) data.permissions = permissions
 
   const role = await prisma.role.update({ where: { id }, data })
+
+  // Force logout all non-admin users who have this role
+  await forceLogoutRoleUsers(id)
+
   logAudit({ actorId: admin.userId, actorName: admin.name, actorRole: 'admin', action: 'role.updated', entity: 'Role', entityId: id, meta: { roleName: existing.name, fields: Object.keys(data) } })
   return NextResponse.json(role)
 }
@@ -60,11 +80,12 @@ export async function DELETE(request) {
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id } = await request.json()
 
-  const inUse = await prisma.user.findFirst({ where: { roleId: id } })
-  if (inUse) return NextResponse.json({ error: 'Cannot delete a role that is assigned to users' }, { status: 409 })
-
   const existing = await prisma.role.findUnique({ where: { id } })
   if (!existing) return NextResponse.json({ error: 'Role not found' }, { status: 404 })
+  if (existing.isSystem) return NextResponse.json({ error: 'System roles cannot be deleted' }, { status: 403 })
+
+  const inUse = await prisma.user.findFirst({ where: { roleId: id } })
+  if (inUse) return NextResponse.json({ error: 'Cannot delete a role that is assigned to users' }, { status: 409 })
 
   await prisma.role.delete({ where: { id } })
   logAudit({ actorId: admin.userId, actorName: admin.name, actorRole: 'admin', action: 'role.deleted', entity: 'Role', entityId: id, meta: { name: existing.name } })

@@ -11,6 +11,7 @@ model Role {
   name        String   @unique
   description String   @default("")
   permissions String[]
+  isSystem    Boolean  @default(false)
   users       User[]
 }
 
@@ -46,6 +47,7 @@ model User {
   teachingExperience Boolean?
   teachingWhere      String?
   englishLevel       String?
+  sessionVersion     Int                  @default(1)
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   bookingsAsStudent  Booking[]            @relation("StudentBookings")

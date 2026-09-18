@@ -98,6 +98,12 @@ export async function PUT(request) {
     data.forcePasswordReset = true
   }
 
+  // Force logout when role changes — except for admin users
+  const roleChanged = roleId !== undefined && roleId !== existing.roleId
+  if (roleChanged && existing.roleId !== 'r_admin' && roleId !== 'r_admin') {
+    data.sessionVersion = (existing.sessionVersion || 1) + 1
+  }
+
   const user = await prisma.user.update({ where: { id }, data, select: SAFE_SELECT })
   logAudit({ actorId: admin?.userId, actorName: admin?.name, actorRole: 'admin', action: 'user.updated', entity: 'User', entityId: id, meta: { fields: Object.keys(data), targetName: existing.name } })
   return NextResponse.json(user)
