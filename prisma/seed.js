@@ -11,14 +11,35 @@ const ROLES = [
     description: 'Full access to all features and administration',
     isSystem: true,
     permissions: [
-      'manage_users', 'manage_roles', 'manage_content', 'manage_blog',
-      'manage_services', 'manage_portfolio', 'manage_faq', 'manage_pricing',
-      'manage_stats', 'view_messages', 'audit.view', 'payroll.manage',
+      // Portal access
       'access_student_portal', 'access_assessor_portal', 'access_teacher_portal',
-      'placement.conduct', 'placement.write_report', 'placement.view_all_reports',
-      'placement.manage_schedule', 'placement.manage_requests', 'placement.manage_sessions',
-      'courses.view', 'courses.manage', 'categories.manage',
-      'payroll.view_own',
+      // Placement
+      'placement.view', 'placement.attend', 'placement.request', 'placement.conduct',
+      'placement.add_report', 'placement.edit_report', 'placement.delete_report',
+      'placement.view_own_reports', 'placement.view_all_reports',
+      'placement.accept_request', 'placement.reject_request',
+      'placement.manage_schedule', 'placement.cancel_session',
+      // Courses
+      'courses.view', 'courses.add', 'courses.edit', 'courses.delete',
+      'categories.view', 'categories.add', 'categories.edit', 'categories.delete',
+      // Users & Roles
+      'users.view', 'users.add', 'users.edit', 'users.delete',
+      'roles.view', 'roles.add', 'roles.edit', 'roles.delete',
+      // Blog
+      'blog.view', 'blog.add', 'blog.edit', 'blog.delete',
+      // Website Content
+      'content.view', 'content.edit',
+      'services.view', 'services.add', 'services.edit', 'services.delete',
+      'portfolio.view', 'portfolio.add', 'portfolio.edit', 'portfolio.delete',
+      'faq.view', 'faq.add', 'faq.edit', 'faq.delete',
+      'pricing.view', 'pricing.edit',
+      'stats.view', 'stats.edit',
+      // Communications
+      'messages.view', 'messages.delete',
+      // Payroll
+      'payroll.view_own', 'payroll.view_all', 'payroll.add', 'payroll.edit', 'payroll.delete',
+      // Administration
+      'audit.view',
     ],
   },
   {
@@ -28,9 +49,10 @@ const ROLES = [
     isSystem: true,
     permissions: [
       'access_student_portal',
-      'placement.attend',
-      'placement.view_own_reports',
       'courses.view',
+      'placement.attend',
+      'placement.request',
+      'placement.view_own_reports',
     ],
   },
   {
@@ -40,11 +62,16 @@ const ROLES = [
     isSystem: true,
     permissions: [
       'access_assessor_portal',
+      'placement.view',
       'placement.conduct',
-      'placement.write_report',
+      'placement.add_report',
+      'placement.edit_report',
       'placement.view_own_reports',
+      'placement.view_all_reports',
+      'placement.accept_request',
+      'placement.reject_request',
       'placement.manage_schedule',
-      'placement.manage_requests',
+      'placement.cancel_session',
       'courses.view',
       'payroll.view_own',
     ],
@@ -57,6 +84,7 @@ const ROLES = [
     permissions: [
       'access_teacher_portal',
       'courses.view',
+      'payroll.view_own',
     ],
   },
 ]

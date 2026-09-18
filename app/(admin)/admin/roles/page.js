@@ -35,20 +35,22 @@ function groupIcon(iconId, color, size = 15) {
     case 'file':      return <Ic size={size} color={color}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></Ic>
     case 'mail':      return <Ic size={size} color={color}><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></Ic>
     case 'dollar':    return <Ic size={size} color={color}><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></Ic>
+    case 'globe':     return <Ic size={size} color={color}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></Ic>
     case 'shield':    return <IcShield {...p} />
     default:          return <IcShield {...p} />
   }
 }
 
 const GROUP_COLORS = {
-  portal_access:  '#3b82f6',
-  placement:      '#8b5cf6',
-  courses:        '#c9932c',
-  users:          '#10b981',
-  content:        '#06b6d4',
-  communications: '#f59e0b',
-  payroll:        '#ec4899',
-  administration: '#ef4444',
+  portal_access:   '#3b82f6',
+  placement:       '#8b5cf6',
+  courses:         '#c9932c',
+  users:           '#10b981',
+  blog:            '#f97316',
+  website_content: '#06b6d4',
+  communications:  '#f59e0b',
+  payroll:         '#ec4899',
+  administration:  '#ef4444',
 }
 
 /* ─── Strings ─────────────────────────────────────────────────────── */
