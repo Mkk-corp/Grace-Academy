@@ -27,7 +27,8 @@ export async function GET() {
   }
 
   const permissions = user.role?.permissions || []
-  const hasAdminAccess = permissions.some(p => ADMIN_PANEL_PERMS.has(p))
+  const isAdminRole    = user.roleId === 'r_admin'
+  const hasAdminAccess = isAdminRole || permissions.some(p => ADMIN_PANEL_PERMS.has(p))
   const isAssessor = permissions.includes('access_assessor_portal') && !hasAdminAccess
   const isTeacher  = permissions.includes('access_teacher_portal')  && !hasAdminAccess
 

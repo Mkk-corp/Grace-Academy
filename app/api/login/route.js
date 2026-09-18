@@ -46,7 +46,8 @@ export async function POST(request) {
     }
 
     const permissions = user.role?.permissions || []
-    const hasAdminAccess = permissions.some(p => ADMIN_PANEL_PERMS.has(p))
+    const isAdmin        = user.roleId === 'r_admin'
+    const hasAdminAccess = isAdmin || permissions.some(p => ADMIN_PANEL_PERMS.has(p))
     const isAssessor     = permissions.includes('access_assessor_portal') && !hasAdminAccess
     const isTeacher      = permissions.includes('access_teacher_portal')  && !hasAdminAccess
     const redirect = hasAdminAccess ? '/admin' : isAssessor ? '/assessor' : isTeacher ? '/teacher' : '/portal'
