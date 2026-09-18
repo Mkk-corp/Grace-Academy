@@ -137,14 +137,9 @@ function CourseCard({ course, isAr, isDark, onClick }) {
 
       {/* Body */}
       <div style={{ padding: '14px 16px 16px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ fontWeight: 800, fontSize: '.93rem', color: text, lineHeight: 1.3, marginBottom: course.nameAr ? 2 : 8 }}>
-          {course.nameEn}
+        <div style={{ fontWeight: 800, fontSize: '.93rem', color: text, lineHeight: 1.3, marginBottom: 8, direction: isAr ? 'rtl' : 'ltr' }}>
+          {isAr ? (course.nameAr || course.nameEn) : (course.nameEn || course.nameAr)}
         </div>
-        {course.nameAr && (
-          <div style={{ fontSize: '.72rem', color: muted, direction: 'rtl', textAlign: 'right', fontWeight: 500, marginBottom: 8 }}>
-            {course.nameAr}
-          </div>
-        )}
         <div style={{ height: 1, background: border, marginBottom: 9 }} />
 
         {/* Chips */}
@@ -216,7 +211,9 @@ export default function CourseCatalog({ basePath = '/portal/courses', isAr = fal
     if (fLib   && !c.needsLibrary) return false
     if (fQ.trim()) {
       const q = fQ.toLowerCase()
-      if (!c.nameEn?.toLowerCase().includes(q) && !(c.nameAr || '').includes(q) && !c.descEn?.toLowerCase().includes(q)) return false
+      const nameMatch  = c.nameEn?.toLowerCase().includes(q) || (c.nameAr || '').includes(fQ)
+      const descMatch  = c.descEn?.toLowerCase().includes(q) || (c.descAr || '').includes(fQ)
+      if (!nameMatch && !descMatch) return false
     }
     return true
   }), [courses, fLevel, fCat, fQ, fSpeak, fLib])

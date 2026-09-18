@@ -88,27 +88,14 @@ function Section({ title, icon, color = GOLD, surf, border, isDark, children }) 
   )
 }
 
-/* ─── Bilingual text block ────────────────────────────────────────── */
-function BiText({ en, ar, isDark, border }) {
-  const text = isDark ? '#f1f5f9' : '#111827'
+/* ─── Single-language text block ─────────────────────────────────── */
+function BiText({ en, ar, isAr, isDark }) {
+  const text  = isDark ? '#f1f5f9' : '#111827'
   const muted = isDark ? 'rgba(255,255,255,.42)' : '#6b7280'
-  return (
-    <>
-      {en && (
-        <div style={{ marginBottom: ar ? 16 : 0 }}>
-          <span style={{ display: 'inline-block', fontSize: '.55rem', fontWeight: 800, padding: '1px 7px', borderRadius: 4, background: 'rgba(59,130,246,.12)', color: BLUE, letterSpacing: '.07em', textTransform: 'uppercase', marginBottom: 8 }}>EN</span>
-          <p style={{ margin: 0, fontSize: '.9rem', color: text, lineHeight: 1.75 }}>{en}</p>
-        </div>
-      )}
-      {ar && (
-        <div style={{ paddingTop: en ? 16 : 0, borderTop: en ? `1px dashed ${border}` : 'none' }}>
-          <span style={{ display: 'inline-block', fontSize: '.55rem', fontWeight: 800, padding: '1px 7px', borderRadius: 4, background: 'rgba(201,147,44,.12)', color: GOLD, letterSpacing: '.07em', textTransform: 'uppercase', marginBottom: 8 }}>AR</span>
-          <p style={{ margin: 0, fontSize: '.9rem', color: text, lineHeight: 1.75, direction: 'rtl', textAlign: 'right' }}>{ar}</p>
-        </div>
-      )}
-      {!en && !ar && <span style={{ color: muted, fontSize: '.85rem' }}>—</span>}
-    </>
-  )
+  const content = isAr ? (ar || en) : (en || ar)
+  const dir     = isAr && (ar || !en) ? 'rtl' : 'ltr'
+  if (!content) return <span style={{ color: muted, fontSize: '.85rem' }}>—</span>
+  return <p style={{ margin: 0, fontSize: '.9rem', color: text, lineHeight: 1.75, direction: dir, textAlign: dir === 'rtl' ? 'right' : 'left' }}>{content}</p>
 }
 
 /* ─── Stat row for sidebar ────────────────────────────────────────── */
@@ -214,7 +201,7 @@ export default function CourseDetailView({ backHref = '/', noNav = false, sticky
               <span style={{ fontSize: '.75rem', color: muted }}>{isAr ? 'كتالوج الدورات' : 'Course Catalog'}</span>
               <span style={{ color: muted, fontSize: '.7rem' }}>›</span>
               <span style={{ fontSize: '.75rem', fontWeight: 600, color: text }}>
-                {loading ? '…' : (course?.nameEn || (isAr ? 'تفاصيل الدورة' : 'Course Detail'))}
+                {loading ? '…' : (isAr ? (course?.nameAr || course?.nameEn) : (course?.nameEn || course?.nameAr)) || (isAr ? 'تفاصيل الدورة' : 'Course Detail')}
               </span>
             </div>
           </div>
@@ -293,14 +280,9 @@ export default function CourseDetailView({ backHref = '/', noNav = false, sticky
                     </span>
                   )}
                 </div>
-                <h1 style={{ fontSize: 'clamp(1.35rem,3.5vw,2.1rem)', fontWeight: 900, color: '#fff', lineHeight: 1.2, textShadow: '0 2px 10px rgba(0,0,0,.4)', marginBottom: course.nameAr ? 5 : 0 }}>
-                  {course.nameEn}
+                <h1 style={{ fontSize: 'clamp(1.35rem,3.5vw,2.1rem)', fontWeight: 900, color: '#fff', lineHeight: 1.2, textShadow: '0 2px 10px rgba(0,0,0,.4)', direction: isAr ? 'rtl' : 'ltr' }}>
+                  {isAr ? (course.nameAr || course.nameEn) : (course.nameEn || course.nameAr)}
                 </h1>
-                {course.nameAr && (
-                  <div style={{ fontSize: 'clamp(.9rem,2vw,1.15rem)', color: 'rgba(255,255,255,.65)', direction: 'rtl', textAlign: 'right', fontWeight: 500 }}>
-                    {course.nameAr}
-                  </div>
-                )}
               </div>
             </div>
 
@@ -312,13 +294,13 @@ export default function CourseDetailView({ backHref = '/', noNav = false, sticky
                 <div>
                   {/* Description */}
                   <Section title={isAr ? 'عن هذه الدورة' : 'About This Quest'} icon={<IcBook size={14} color={BLUE} />} color={BLUE} surf={surf} border={border} isDark={isDark}>
-                    <BiText en={course.descEn} ar={course.descAr} isDark={isDark} border={border} />
+                    <BiText en={course.descEn} ar={course.descAr} isAr={isAr} isDark={isDark} />
                   </Section>
 
                   {/* Marketing */}
                   {(course.marketingEn || course.marketingAr) && (
                     <Section title={isAr ? 'لماذا هذه الدورة؟' : 'Why Join This Quest?'} icon={<IcBolt size={14} color={GOLD} />} color={GOLD} surf={surf} border={border} isDark={isDark}>
-                      <BiText en={course.marketingEn} ar={course.marketingAr} isDark={isDark} border={border} />
+                      <BiText en={course.marketingEn} ar={course.marketingAr} isAr={isAr} isDark={isDark} />
                     </Section>
                   )}
 
