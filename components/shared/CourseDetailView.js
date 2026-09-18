@@ -234,14 +234,14 @@ export default function CourseDetailView({ backHref = '/', noNav = false, sticky
               position: 'relative', overflow: 'hidden',
               height: 'clamp(200px,35vw,320px)',
               background: course.image && !imgFail
-                ? '#000'
+                ? (isDark ? '#0d1b24' : '#ffffff')
                 : lv
                   ? `linear-gradient(135deg, ${lv.color}40 0%, ${lv.color}15 50%, ${isDark ? '#0a1b22' : '#e5e7eb'} 100%)`
                   : `linear-gradient(135deg, ${GOLD}35 0%, ${GOLD}10 100%)`,
             }}>
               {course.image && !imgFail && (
                 <img src={course.image} alt="" onError={() => setImgFail(true)}
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', padding: '20px' }} />
               )}
               {/* Overlay gradient */}
               <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to top, ${isDark ? '#0a1b22' : '#fff'}f0 0%, transparent 60%)` }} />

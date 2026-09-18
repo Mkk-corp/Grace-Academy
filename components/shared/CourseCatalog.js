@@ -96,14 +96,14 @@ function CourseCard({ course, isAr, isDark, onClick }) {
       <div style={{
         height: 152, position: 'relative', overflow: 'hidden', flexShrink: 0,
         background: hasImg
-          ? bg
+          ? (isDark ? '#0d1b24' : '#ffffff')
           : lv
             ? `linear-gradient(140deg, ${lv.color}32 0%, ${lv.color}0e 60%, ${isDark ? '#0a1b22' : '#f8fafc'} 100%)`
             : `linear-gradient(140deg, ${GOLD}28 0%, ${GOLD}09 100%)`,
       }}>
         {hasImg ? (
           <img src={course.image} alt="" onError={() => setImgFail(true)}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform .4s', transform: hov ? 'scale(1.07)' : 'scale(1)' }} />
+            style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '10px', display: 'block', transition: 'transform .4s', transform: hov ? 'scale(1.07)' : 'scale(1)' }} />
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <span style={{ fontSize: '3.8rem', fontWeight: 900, color: accent, opacity: hov ? .65 : .3, transition: 'opacity .22s', letterSpacing: '-2px', lineHeight: 1 }}>
