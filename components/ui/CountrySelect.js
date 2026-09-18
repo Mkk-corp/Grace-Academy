@@ -1,14 +1,18 @@
 'use client'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
+import 'flag-icons/css/flag-icons.min.css'
 
-function flagEmoji(code) {
-  if (!code || code === 'OTHER') return '🌍'
-  try {
-    return [...code.toUpperCase()]
-      .map(c => String.fromCodePoint(0x1F1E0 + c.charCodeAt(0) - 65))
-      .join('')
-  } catch { return '🌐' }
+function FlagIcon({ code }) {
+  if (!code || code === 'OTHER') {
+    return <span style={{ fontSize: '1rem', lineHeight: 1, flexShrink: 0, width: 24, textAlign: 'center', display: 'inline-block' }}>🌍</span>
+  }
+  return (
+    <span
+      className={`fi fi-${code.toLowerCase()}`}
+      style={{ width: 20, height: 15, borderRadius: 2, flexShrink: 0, display: 'inline-block' }}
+    />
+  )
 }
 
 /* variant: 'admin' (inline color tokens, isDark) | 'public' (CSS variables) */
@@ -122,11 +126,7 @@ export default function CountrySelect({
           boxShadow: open ? focusShadow : 'none',
         }}
       >
-        {selected && (
-          <span style={{ fontSize: '1.1rem', lineHeight: 1, flexShrink: 0 }}>
-            {flagEmoji(selected.code)}
-          </span>
-        )}
+        {selected && <FlagIcon code={selected.code} />}
         <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {selected
             ? (isAr ? selected.ar : selected.en)
@@ -217,9 +217,7 @@ export default function CountrySelect({
                   onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = hoverBg }}
                   onMouseLeave={e => { e.currentTarget.style.background = isSel ? 'rgba(201,147,44,.12)' : 'transparent' }}
                 >
-                  <span style={{ fontSize: '1.15rem', lineHeight: 1, flexShrink: 0, width: 24, textAlign: 'center' }}>
-                    {flagEmoji(c.code)}
-                  </span>
+                  <FlagIcon code={c.code} />
                   <span style={{ flex: 1 }}>{isAr ? c.ar : c.en}</span>
                   {isSel && (
                     <svg viewBox="0 0 24 24" fill="none" stroke="#c9932c" strokeWidth="2.5" width="13" height="13" style={{ flexShrink: 0 }}>

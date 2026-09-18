@@ -239,6 +239,32 @@ model Course {
   @@index([categoryId])
 }
 
+model Plan {
+  id         String   @id @default(cuid())
+  nameEn     String
+  nameAr     String   @default("")
+  price      String
+  currency   String   @default("USD")
+  durationEn String   @default("")
+  durationAr String   @default("")
+  country    String
+  visible    Boolean  @default(true)
+  popular    Boolean  @default(false)
+  badgeEn    String   @default("")
+  badgeAr    String   @default("")
+  descEn     String   @default("")
+  descAr     String   @default("")
+  ctaTextEn  String   @default("Get Started")
+  ctaTextAr  String   @default("ابدأ الآن")
+  ctaUrl     String   @default("/contact")
+  benefits   Json     @default("[]")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([country])
+  @@index([visible])
+}
+
 model AuditLog {
   id        String   @id @default(cuid())
   actorId   String?
