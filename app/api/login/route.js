@@ -53,7 +53,15 @@ export async function POST(request) {
     const redirect = hasAdminAccess ? '/admin' : isAssessor ? '/assessor' : isTeacher ? '/teacher' : '/portal'
     const actorRole = hasAdminAccess ? 'admin' : isAssessor ? 'assessor' : isTeacher ? 'teacher' : 'student'
 
-    const token = signToken({ userId: user.id, roleId: user.roleId, name: user.name, sv: user.sessionVersion ?? 1 })
+    const token = signToken({
+      userId: user.id,
+      roleId: user.roleId,
+      name:   user.name,
+      sv:     user.sessionVersion ?? 1,
+      adm:    hasAdminAccess ? 1 : 0,
+      asr:    isAssessor     ? 1 : 0,
+      tch:    isTeacher      ? 1 : 0,
+    })
     const response = NextResponse.json({ ok: true, redirect })
     response.cookies.set('ga-admin', token, {
       httpOnly: true,

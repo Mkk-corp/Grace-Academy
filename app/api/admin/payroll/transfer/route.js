@@ -1,20 +1,8 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { sendPayslipEmail } from '@/lib/mailer'
-
-async function requireAdmin() {
-  const jar   = await cookies()
-  const token = jar.get('ga-admin')?.value
-  if (!token) return null
-  const payload = verifyToken(token)
-  if (!payload?.userId) return null
-  const user = await prisma.user.findUnique({ where: { id: payload.userId }, include: { role: true } })
-  const perms = user?.role?.permissions || []
-  const hasAdmin = perms.some(p => !['access_student_portal','access_assessor_portal','access_teacher_portal'].includes(p))
-  return hasAdmin ? user : null
-}
+import { requireAdmin } from '@/lib/guard'
+import { encryptId } from '@/lib/urlCrypto'
 
 function currentMonthStr() {
   const now = new Date()
@@ -83,7 +71,7 @@ export async function POST(req) {
       paymentMethod,
       evidenceData:  evidenceData  || null,
       evidenceName:  evidenceName  || null,
-      transferredById:   admin.id,
+      transferredById:   admin.userId,
       transferredByName: admin.name,
     },
   })
@@ -104,5 +92,5 @@ export async function POST(req) {
     transferredAt: transfer.transferredAt,
   }).catch(err => console.error('[payroll email]', err))
 
-  return NextResponse.json({ ok: true, transfer })
+  return NextResponse.json({ ok: true, transfer: { ...transfer, encId: encryptId(transfer.id) } })
 }

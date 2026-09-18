@@ -471,7 +471,7 @@ export default function AssessorPayroll({ isAr, isDark }) {
                         <div style={{ fontSize: '1.4rem', fontWeight: 900, color: gold, marginBottom: 14, lineHeight: 1 }}>{fmt(ttl, s)}</div>
                         <button
                           className="pr-dl-btn"
-                          onClick={() => window.open(`/payslip/${t.id}?print=1`, '_blank')}
+                          onClick={() => window.open(`/payslip/${t.encId || t.id}?print=1`, '_blank')}
                           style={{
                             display: 'inline-flex', alignItems: 'center', gap: 6,
                             padding: '8px 14px', borderRadius: 9,

@@ -1,16 +1,9 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import crypto from 'crypto'
-import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { logAudit } from '@/lib/audit'
 import { SYSTEM_ROLE_IDS } from '@/lib/permissions'
-
-async function requireAdmin() {
-  const jar = await cookies()
-  const token = jar.get('ga-admin')?.value
-  return token ? verifyToken(token) : null
-}
+import { requireAdmin } from '@/lib/guard'
 
 // Bump sessionVersion for all non-admin users who have this role
 async function forceLogoutRoleUsers(roleId) {

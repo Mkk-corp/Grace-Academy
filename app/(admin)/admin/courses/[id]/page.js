@@ -212,8 +212,8 @@ export default function CourseDetailPage() {
     const data = await res.json()
     setSaving(false)
     if (!res.ok) { setError(data.error || (isAr ? 'فشل الحفظ' : 'Save failed')); return }
-    if (isNew && data.course?.id) {
-      router.replace(`/admin/courses/${data.course.id}`)
+    if (isNew && (data.course?.encId || data.course?.id)) {
+      router.replace(`/admin/courses/${data.course.encId || data.course.id}`)
     } else {
       const snapshot = { ...form }
       setSaved(snapshot)

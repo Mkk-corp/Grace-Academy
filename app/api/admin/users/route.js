@@ -1,16 +1,9 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { hashPassword } from '@/lib/password'
 import { sendAssessorWelcomeEmail, sendTeacherWelcomeEmail } from '@/lib/mailer'
 import { logAudit } from '@/lib/audit'
-
-async function requireAdmin() {
-  const jar = await cookies()
-  const token = jar.get('ga-admin')?.value
-  return token ? verifyToken(token) : null
-}
+import { requireAdmin } from '@/lib/guard'
 
 const SAFE_SELECT = {
   id: true, name: true, username: true, email: true, phone: true,

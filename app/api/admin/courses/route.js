@@ -1,19 +1,7 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-
-async function requireAdmin() {
-  const jar = await cookies()
-  const token = jar.get('ga-admin')?.value
-  if (!token) return null
-  const payload = verifyToken(token)
-  if (!payload?.userId) return null
-  const user = await prisma.user.findUnique({ where: { id: payload.userId }, include: { role: true } })
-  const perms = user?.role?.permissions || []
-  const isAdmin = perms.some(p => !['access_student_portal', 'access_assessor_portal', 'access_teacher_portal'].includes(p))
-  return isAdmin ? payload : null
-}
+import { requireAdmin } from '@/lib/guard'
+import { encryptId } from '@/lib/urlCrypto'
 
 function validate(body) {
   const { nameEn, descEn, marketingEn, durationSessions, needsSpeaking, speakingSessions, needsLibrary, libraryTypes } = body
@@ -52,7 +40,7 @@ export async function GET() {
     orderBy: { createdAt: 'desc' },
     include: { category: { select: { id: true, nameEn: true, nameAr: true } } },
   })
-  return NextResponse.json({ courses })
+  return NextResponse.json({ courses: courses.map(c => ({ ...c, encId: encryptId(c.id) })) })
 }
 
 export async function POST(req) {
@@ -67,5 +55,5 @@ export async function POST(req) {
     data: buildData(body),
     include: { category: { select: { id: true, nameEn: true, nameAr: true } } },
   })
-  return NextResponse.json({ course }, { status: 201 })
+  return NextResponse.json({ course: { ...course, encId: encryptId(course.id) } }, { status: 201 })
 }

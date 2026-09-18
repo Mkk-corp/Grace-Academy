@@ -1,14 +1,9 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { verifyPassword } from '@/lib/password'
+import { requireAdmin } from '@/lib/guard'
 
-async function getAdminUser() {
-  const jar = await cookies()
-  const token = jar.get('ga-admin')?.value
-  return token ? verifyToken(token) : null
-}
+async function getAdminUser() { return requireAdmin() }
 
 export async function POST(req) {
   const admin = await getAdminUser()

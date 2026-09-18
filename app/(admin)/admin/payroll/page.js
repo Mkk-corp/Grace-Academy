@@ -453,7 +453,7 @@ export default function PayrollPage() {
                           </td>
                           <td style={{ padding:'15px 18px', textAlign:'center' }}>
                             {a.alreadyTransferred ? (
-                              <button onClick={() => downloadPayslip(a.transferId)} title="Download payslip"
+                              <button onClick={() => downloadPayslip(a.encTransferId || a.transferId)} title="Download payslip"
                                 style={{ padding:'6px 14px', borderRadius:8, border:`1px solid ${border}`, background:'none', color:muted, fontSize:'.78rem', fontWeight:600, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5, fontFamily:'inherit' }}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                                 PDF
@@ -516,7 +516,7 @@ export default function PayrollPage() {
                         <td style={{ padding:'13px 16px', textAlign:'center', fontSize:'.78rem', color:muted }}>{t.transferredByName}</td>
                         <td style={{ padding:'13px 16px', textAlign:'center', fontSize:'.78rem', color:muted }}>{fmtDate(t.transferredAt)}</td>
                         <td style={{ padding:'13px 16px', textAlign:'center' }}>
-                          <button onClick={() => downloadPayslip(t.id)} title="Download payslip"
+                          <button onClick={() => downloadPayslip(t.encId || t.id)} title="Download payslip"
                             style={{ width:30, height:30, borderRadius:7, border:`1px solid ${border}`, background:'none', color:muted, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center' }}>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                           </button>

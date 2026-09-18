@@ -1,25 +1,9 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { requireAdmin } from '@/lib/guard'
+import { encryptId } from '@/lib/urlCrypto'
 
-const ADMIN_ONLY_PERMS = ['access_student_portal', 'access_assessor_portal', 'access_teacher_portal']
-
-async function getAdminUser() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get('ga-admin')?.value
-  if (!token) return null
-  const payload = verifyToken(token)
-  if (!payload?.userId) return null
-  const user = await prisma.user.findUnique({
-    where: { id: payload.userId },
-    include: { role: true },
-  })
-  if (!user) return null
-  const permissions = user.role?.permissions || []
-  if (!permissions.some(p => !ADMIN_ONLY_PERMS.includes(p))) return null
-  return user
-}
+async function getAdminUser() { return requireAdmin() }
 
 export async function GET() {
   const admin = await getAdminUser()
@@ -47,5 +31,5 @@ export async function GET() {
     orderBy: [{ date: 'desc' }, { slotMin: 'asc' }],
   })
 
-  return NextResponse.json({ bookings })
+  return NextResponse.json({ bookings: bookings.map(b => ({ ...b, encId: encryptId(b.id) })) })
 }

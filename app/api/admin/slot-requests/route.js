@@ -1,31 +1,10 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { sendSlotRequestNotification } from '@/lib/mailer'
 import { logAudit } from '@/lib/audit'
+import { requireAdmin } from '@/lib/guard'
 
-const ADMIN_ONLY_PERMS = ['access_student_portal', 'access_assessor_portal', 'access_teacher_portal']
-
-async function getAdminUser() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get('ga-admin')?.value
-  if (!token) return null
-  const payload = verifyToken(token)
-  if (!payload?.userId) return null
-
-  const user = await prisma.user.findUnique({
-    where: { id: payload.userId },
-    include: { role: true },
-  })
-  if (!user) return null
-
-  const permissions = user.role?.permissions || []
-  const hasAdminAccess = permissions.some(p => !ADMIN_ONLY_PERMS.includes(p))
-  if (!hasAdminAccess) return null
-
-  return { ...user, permissions, hasAdminAccess }
-}
+async function getAdminUser() { return requireAdmin() }
 
 function mapRequest(r) {
   return {
@@ -81,7 +60,7 @@ export async function PUT(req) {
       status: action === 'approve' ? 'approved' : 'rejected',
       adminNote: adminNote || null,
       resolvedAt: new Date(),
-      resolvedById: admin.id,
+      resolvedById: admin.userId,
       resolvedByName: admin.name,
     },
     include: { assessor: { select: { name: true, email: true } } },
@@ -149,7 +128,7 @@ export async function PUT(req) {
     console.error('[slot-request resolve email]', e.message)
   }
 
-  logAudit({ actorId: admin.id, actorName: admin.name, actorRole: 'admin', action: `slot_request.${action}d`, entity: 'SlotRequest', entityId: id, meta: { assessorName: request.assessor?.name, assessorId: request.assessorId, adminNote: adminNote || null } })
+  logAudit({ actorId: admin.userId, actorName: admin.name, actorRole: 'admin', action: `slot_request.${action}d`, entity: 'SlotRequest', entityId: id, meta: { assessorName: request.assessor?.name, assessorId: request.assessorId, adminNote: adminNote || null } })
   return NextResponse.json({ success: true, request: mapRequest(updated) })
 }
 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { encryptId } from '@/lib/urlCrypto'
 
 export async function GET() {
   const jar   = await cookies()
@@ -33,5 +34,5 @@ export async function GET() {
     // PayrollTransfer table may not exist yet — run the pending migration in Supabase
   }
 
-  return NextResponse.json({ transfers })
+  return NextResponse.json({ transfers: transfers.map(t => ({ ...t, encId: encryptId(t.id) })) })
 }

@@ -761,7 +761,7 @@ export default function CoursesPage() {
                 {loading
                   ? <AdminTableSkeleton cols={8} rows={8} />
                   : filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map(c => (
-                    <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => router.push(`/admin/courses/${c.id}`)}>
+                    <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => router.push(`/admin/courses/${c.encId || c.id}`)}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           {c.image

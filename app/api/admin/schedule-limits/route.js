@@ -1,23 +1,11 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { logAudit } from '@/lib/audit'
+import { requireAdmin } from '@/lib/guard'
 
-const ADMIN_ONLY_PERMS = ['access_student_portal', 'access_assessor_portal', 'access_teacher_portal']
 const DEFAULTS = { minDays: 2, maxDays: 5, minSlots: 4, maxSlots: 32 }
 
-async function getAdmin() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get('ga-admin')?.value
-  if (!token) return null
-  const payload = verifyToken(token)
-  if (!payload?.userId) return null
-  const user = await prisma.user.findUnique({ where: { id: payload.userId }, include: { role: true } })
-  if (!user) return null
-  const permissions = user.role?.permissions || []
-  return permissions.some(p => !ADMIN_ONLY_PERMS.includes(p)) ? user : null
-}
+async function getAdmin() { return requireAdmin() }
 
 function countScheduleStats(dayMap) {
   if (!dayMap || typeof dayMap !== 'object') return { totalSlots: 0, activeDays: 0 }

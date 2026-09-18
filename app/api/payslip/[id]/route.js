@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { decryptId } from '@/lib/urlCrypto'
 
 export async function GET(req, { params }) {
   const jar   = await cookies()
@@ -15,7 +16,8 @@ export async function GET(req, { params }) {
   const hasAdmin   = perms.some(p => !['access_student_portal','access_assessor_portal','access_teacher_portal'].includes(p))
   const isAssessor = perms.includes('access_assessor_portal') && !hasAdmin
 
-  const { id } = await params
+  const { id: rawId } = await params
+  const id = decryptId(rawId) || rawId
   let transfer = null
   try {
     transfer = await prisma.payrollTransfer.findUnique({ where: { id } })

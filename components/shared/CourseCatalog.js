@@ -389,7 +389,7 @@ export default function CourseCatalog({ basePath = '/portal/courses', isAr = fal
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(265px,1fr))', gap: 18 }}>
           {filtered.map((c, i) => (
             <div key={c.id} style={{ animation: 'ccUp .35s ease both', animationDelay: `${Math.min(i * .05, .42)}s` }}>
-              <CourseCard course={c} isAr={isAr} isDark={isDark} onClick={() => router.push(`${basePath}/${c.id}`)} />
+              <CourseCard course={c} isAr={isAr} isDark={isDark} onClick={() => router.push(`${basePath}/${c.encId || c.id}`)} />
             </div>
           ))}
         </div>

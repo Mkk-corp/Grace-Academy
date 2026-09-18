@@ -336,7 +336,7 @@ export default function PlacementTestsPage() {
                   <tr
                     key={b.id}
                     className="pt-row"
-                    onClick={() => router.push(`/admin/placement-tests/${b.id}`)}
+                    onClick={() => router.push(`/admin/placement-tests/${b.encId || b.id}`)}
                   >
                     {/* Student */}
                     <td>

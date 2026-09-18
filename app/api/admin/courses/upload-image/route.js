@@ -1,20 +1,11 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { verifyToken } from '@/lib/auth'
+import { requireAdmin } from '@/lib/guard'
 
 const SUPABASE_URL = process.env.SUPABASE_URL
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY
 const BUCKET = 'course-images'
 const ALLOWED = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp']
 const MAX_BYTES = 5 * 1024 * 1024 // 5 MB
-
-async function requireAdmin() {
-  const jar = await cookies()
-  const token = jar.get('ga-admin')?.value
-  if (!token) return null
-  const payload = verifyToken(token)
-  return payload?.userId ? payload : null
-}
 
 async function ensureBucket() {
   await fetch(`${SUPABASE_URL}/storage/v1/bucket`, {

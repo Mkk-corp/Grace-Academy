@@ -1,31 +1,16 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { requireAdmin } from '@/lib/guard'
+import { decryptId, encryptId } from '@/lib/urlCrypto'
 
-const ADMIN_ONLY_PERMS = ['access_student_portal', 'access_assessor_portal', 'access_teacher_portal']
-
-async function getAdminUser() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get('ga-admin')?.value
-  if (!token) return null
-  const payload = verifyToken(token)
-  if (!payload?.userId) return null
-  const user = await prisma.user.findUnique({
-    where: { id: payload.userId },
-    include: { role: true },
-  })
-  if (!user) return null
-  const permissions = user.role?.permissions || []
-  if (!permissions.some(p => !ADMIN_ONLY_PERMS.includes(p))) return null
-  return user
-}
+async function getAdminUser() { return requireAdmin() }
 
 export async function GET(request, { params }) {
   const admin = await getAdminUser()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { id } = await params
+  const { id: rawId } = await params
+  const id = decryptId(rawId) || rawId
 
   const booking = await prisma.booking.findUnique({
     where: { id },
@@ -50,5 +35,5 @@ export async function GET(request, { params }) {
   })
 
   if (!booking) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  return NextResponse.json({ booking })
+  return NextResponse.json({ booking: { ...booking, encId: encryptId(booking.id) } })
 }

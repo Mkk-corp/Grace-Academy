@@ -1,13 +1,6 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-
-async function requireAdmin() {
-  const jar = await cookies()
-  const token = jar.get('ga-admin')?.value
-  return token ? verifyToken(token) : null
-}
+import { requireAdmin } from '@/lib/guard'
 
 export async function GET(request, { params }) {
   if (!await requireAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

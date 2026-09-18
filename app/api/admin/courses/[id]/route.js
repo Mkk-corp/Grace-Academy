@@ -1,19 +1,7 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-
-async function requireAdmin() {
-  const jar = await cookies()
-  const token = jar.get('ga-admin')?.value
-  if (!token) return null
-  const payload = verifyToken(token)
-  if (!payload?.userId) return null
-  const user = await prisma.user.findUnique({ where: { id: payload.userId }, include: { role: true } })
-  const perms = user?.role?.permissions || []
-  const isAdmin = perms.some(p => !['access_student_portal', 'access_assessor_portal', 'access_teacher_portal'].includes(p))
-  return isAdmin ? payload : null
-}
+import { requireAdmin } from '@/lib/guard'
+import { decryptId, encryptId } from '@/lib/urlCrypto'
 
 function validate(body) {
   const { nameEn, descEn, marketingEn, durationSessions, needsSpeaking, speakingSessions, needsLibrary, libraryTypes } = body
@@ -50,17 +38,19 @@ function buildData(body) {
 const include = { category: { select: { id: true, nameEn: true, nameAr: true } } }
 
 export async function GET(req, { params }) {
-  const { id } = await params
+  const { id: rawId } = await params
+  const id = decryptId(rawId) || rawId
   const course = await prisma.course.findUnique({ where: { id }, include })
   if (!course) return NextResponse.json({ error: 'Course not found' }, { status: 404 })
-  return NextResponse.json({ course })
+  return NextResponse.json({ course: { ...course, encId: encryptId(course.id) } })
 }
 
 export async function PATCH(req, { params }) {
   const admin = await requireAdmin()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { id } = await params
+  const { id: rawId } = await params
+  const id = decryptId(rawId) || rawId
   const body = await req.json()
   const err = validate(body)
   if (err) return NextResponse.json({ error: err }, { status: 400 })
@@ -69,14 +59,15 @@ export async function PATCH(req, { params }) {
   if (!existing) return NextResponse.json({ error: 'Course not found' }, { status: 404 })
 
   const course = await prisma.course.update({ where: { id }, data: buildData(body), include })
-  return NextResponse.json({ course })
+  return NextResponse.json({ course: { ...course, encId: encryptId(course.id) } })
 }
 
 export async function DELETE(req, { params }) {
   const admin = await requireAdmin()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { id } = await params
+  const { id: rawId } = await params
+  const id = decryptId(rawId) || rawId
   const existing = await prisma.course.findUnique({ where: { id } })
   if (!existing) return NextResponse.json({ error: 'Course not found' }, { status: 404 })
 

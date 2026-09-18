@@ -1,19 +1,6 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-
-async function requireAdmin() {
-  const jar = await cookies()
-  const token = jar.get('ga-admin')?.value
-  if (!token) return null
-  const payload = verifyToken(token)
-  if (!payload?.userId) return null
-  const user = await prisma.user.findUnique({ where: { id: payload.userId }, include: { role: true } })
-  const perms = user?.role?.permissions || []
-  const isAdmin = perms.some(p => !['access_student_portal', 'access_assessor_portal', 'access_teacher_portal'].includes(p))
-  return isAdmin ? payload : null
-}
+import { requireAdmin } from '@/lib/guard'
 
 function shape(cat) {
   return {
