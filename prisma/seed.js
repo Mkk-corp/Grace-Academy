@@ -1,5 +1,13 @@
+require('dotenv').config()
 const { PrismaClient } = require('@prisma/client')
 const { PrismaPg } = require('@prisma/adapter-pg')
+const crypto = require('crypto')
+
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex')
+  const hash = crypto.scryptSync(password, salt, 64).toString('hex')
+  return `${salt}:${hash}`
+}
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
 const prisma = new PrismaClient({ adapter })
@@ -106,7 +114,29 @@ async function main() {
   }
   console.log(`  ✓ ${ROLES.length} system roles`)
 
-  console.log('Seed complete. Users and content are managed via the admin panel.')
+  // Seed admin user
+  const adminPassword = process.env.ADMIN_PASSWORD || 'grace-admin-2025'
+  await prisma.user.upsert({
+    where: { email: 'graceisforyou9@gmail.com' },
+    update: {
+      roleId: 'r_admin',
+      forcePasswordReset: false,
+    },
+    create: {
+      name: 'Grace Admin',
+      username: 'graceadmin',
+      email: 'graceisforyou9@gmail.com',
+      phone: '',
+      password: hashPassword(adminPassword),
+      roleId: 'r_admin',
+      source: 'admin',
+      forcePasswordReset: false,
+      sessionVersion: 1,
+    },
+  })
+  console.log('  ✓ Admin user graceisforyou9@gmail.com (role: Administrator)')
+
+  console.log('Seed complete.')
 }
 
 main()
