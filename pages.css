@@ -1104,32 +1104,10 @@
   color: var(--text-60);
   margin: 0 0 14px;
 }
-.pricing-country-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-}
-.pricing-country-tab {
-  padding: 8px 20px;
-  border-radius: 100px;
-  border: 1.5px solid var(--border);
-  background: transparent;
-  color: var(--text-60);
-  font-size: .85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color .18s, background .18s, color .18s;
-  font-family: inherit;
-}
-.pricing-country-tab:hover {
-  border-color: var(--gold);
-  color: var(--gold);
-}
-.pricing-country-tab.active {
-  border-color: var(--gold);
-  background: var(--gold);
-  color: #fff;
+.pricing-country-dropdown {
+  display: inline-block;
+  width: 100%;
+  max-width: 340px;
 }
 .pricing-empty {
   text-align: center;

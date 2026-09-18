@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useLang } from '@/context/LangContext'
 import PageHero from '@/components/sections/PageHero'
+import CountrySelect from '@/components/ui/CountrySelect'
 
 /* ─── Country list (same as admin) ─────────────────────────────── */
 const COUNTRIES = [
@@ -64,12 +65,6 @@ export default function PricingClient({ plans }) {
   /* Sort: popular plans first */
   const sorted = useMemo(() => [...filtered].sort((a, b) => (b.popular ? 1 : 0) - (a.popular ? 1 : 0)), [filtered])
 
-  const countryLabel = (code) => {
-    const c = COUNTRIES.find(x => x.code === code)
-    if (!c) return code
-    return isAr ? c.ar : c.en
-  }
-
   return (
     <>
       <PageHero titleKey="pricingHeroTitle" subKey="pricingHeroSub" breadcrumbKey="pricingBreadCurrent" />
@@ -89,16 +84,14 @@ export default function PricingClient({ plans }) {
               <p className="pricing-country-label">
                 {isAr ? 'اختر دولتك لعرض الخطط المناسبة لك:' : 'Select your country to see plans available for you:'}
               </p>
-              <div className="pricing-country-tabs">
-                {availableCountries.map(c => (
-                  <button
-                    key={c.code}
-                    className={`pricing-country-tab${(activeCountry === c.code) ? ' active' : ''}`}
-                    onClick={() => setSelectedCountry(c.code)}
-                  >
-                    {isAr ? c.ar : c.en}
-                  </button>
-                ))}
+              <div className="pricing-country-dropdown">
+                <CountrySelect
+                  value={activeCountry}
+                  onChange={setSelectedCountry}
+                  countries={availableCountries}
+                  isAr={isAr}
+                  variant="public"
+                />
               </div>
             </div>
           )}

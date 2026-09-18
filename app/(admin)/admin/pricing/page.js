@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useLang } from '@/context/LangContext'
 import { useTheme } from '@/context/ThemeContext'
+import CountrySelect from '@/components/ui/CountrySelect'
 
 const GOLD   = '#c9932c'
 const BLUE   = '#3b82f6'
@@ -199,12 +200,14 @@ function PlanDrawer({ plan, onClose, onSave, saving, isDark, isAr }) {
             </div>
 
             <Field {...fp} label={isAr ? 'الدولة' : 'Country'} required>
-              <select value={form.country} onChange={e => set('country', e.target.value)} style={{ ...inp, appearance: 'none' }} onFocus={e => e.target.style.borderColor = GOLD} onBlur={e => e.target.style.borderColor = border}>
-                <option value="">{isAr ? '— اختر دولة —' : '— Select country —'}</option>
-                {COUNTRIES.map(c => (
-                  <option key={c.code} value={c.code}>{isAr ? c.ar : c.en}</option>
-                ))}
-              </select>
+              <CountrySelect
+                value={form.country}
+                onChange={v => set('country', v)}
+                countries={COUNTRIES}
+                isAr={isAr}
+                isDark={isDark}
+                variant="admin"
+              />
             </Field>
 
             <div style={{ display: 'flex', gap: 12 }}>
