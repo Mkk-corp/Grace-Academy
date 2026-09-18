@@ -1095,6 +1095,49 @@
 
 .pricing-cta { width: 100%; }
 
+.pricing-country-selector {
+  text-align: center;
+  margin: 0 0 40px;
+}
+.pricing-country-label {
+  font-size: .9rem;
+  color: var(--text-60);
+  margin: 0 0 14px;
+}
+.pricing-country-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.pricing-country-tab {
+  padding: 8px 20px;
+  border-radius: 100px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text-60);
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .18s, background .18s, color .18s;
+  font-family: inherit;
+}
+.pricing-country-tab:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.pricing-country-tab.active {
+  border-color: var(--gold);
+  background: var(--gold);
+  color: #fff;
+}
+.pricing-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-40);
+  font-size: .95rem;
+}
+
 /* ── Blog Page ─────────────────────────────────────────────── */
 .blog-section {
   padding: 100px 0;
