@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import AdminTableSkeleton from '@/components/admin/AdminTableSkeleton'
 import Modal from '@/components/ui/Modal'
 import EmptyState from '@/components/ui/EmptyState'
@@ -73,6 +74,7 @@ export default function AdminUsersPage() {
   const { lang } = useLang()
   const s = S[lang] || S.en
   const isAr = lang === 'ar'
+  const router = useRouter()
 
   const [users, setUsers]           = useState([])
   const [roles, setRoles]           = useState([])
@@ -265,7 +267,7 @@ export default function AdminUsersPage() {
                 </thead>
                 <tbody>
                   {loading ? <AdminTableSkeleton cols={5} rows={6} /> : filteredStudents.slice((pageStudents-1)*25, pageStudents*25).map(user => (
-                    <tr key={user.id}>
+                    <tr key={user.id} style={{ cursor: 'pointer' }} onClick={() => router.push(`/admin/users/${user.id}`)}>
                       <td>
                         <div style={{ fontWeight: 600 }}>{user.name || '—'}</div>
                         {user.username && <div style={{ fontSize: '.78rem', color: 'var(--text-60)' }}>@{user.username}</div>}
@@ -282,7 +284,7 @@ export default function AdminUsersPage() {
                           {user.source === 'website' ? s.srcWebsite : s.srcAdmin}
                         </span>
                       </td>
-                      <td style={{ display: 'flex', gap: 8 }}>
+                      <td onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: 8 }}>
                         <button className="admin-btn" onClick={() => setEditing({ ...user, password: '' })}>{s.edit}</button>
                         <button className="admin-btn admin-btn--danger" onClick={() => handleDeleteClick(user)}>{s.delete}</button>
                       </td>
@@ -328,7 +330,7 @@ export default function AdminUsersPage() {
                 </thead>
                 <tbody>
                   {loading ? <AdminTableSkeleton cols={6} rows={6} /> : filteredStaff.slice((pageStaff-1)*25, pageStaff*25).map(user => (
-                    <tr key={user.id}>
+                    <tr key={user.id} style={{ cursor: 'pointer' }} onClick={() => router.push(`/admin/users/${user.id}`)}>
                       <td>
                         <div style={{ fontWeight: 600 }}>{user.name || '—'}</div>
                         {user.username && <div style={{ fontSize: '.78rem', color: 'var(--text-60)' }}>@{user.username}</div>}
@@ -343,7 +345,7 @@ export default function AdminUsersPage() {
                       <td style={{ fontSize: '.82rem', color: 'var(--text-60)', whiteSpace: 'nowrap' }}>
                         {formatDate(user.createdAt)}
                       </td>
-                      <td style={{ display: 'flex', gap: 8 }}>
+                      <td onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: 8 }}>
                         <button className="admin-btn" onClick={() => setEditing({ ...user, password: '' })}>{s.edit}</button>
                         <button className="admin-btn admin-btn--danger" onClick={() => handleDeleteClick(user)}>{s.delete}</button>
                       </td>
