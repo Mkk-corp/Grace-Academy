@@ -35,6 +35,7 @@ const S = {
     deleteChecking: 'Checking related data…',
     deleteWillRemove: 'Deleting this user will permanently remove:',
     deleteSessions: 'placement session(s)',
+    deletePayroll: 'payroll transfer record(s)',
     deleteSchedule: 'Assessor schedule & availability slots',
     deleteRequests: 'Pending schedule change requests',
     deleteOther: 'Login sessions & notifications',
@@ -62,6 +63,7 @@ const S = {
     deleteChecking: 'جارٍ التحقق من البيانات المرتبطة…',
     deleteWillRemove: 'حذف هذا المستخدم سيزيل نهائياً:',
     deleteSessions: 'جلسة/جلسات تحديد المستوى',
+    deletePayroll: 'سجل/سجلات الرواتب والمستحقات',
     deleteSchedule: 'جدول المقيّم والمواعيد المتاحة',
     deleteRequests: 'طلبات تغيير الجدول المعلّقة',
     deleteOther: 'جلسات تسجيل الدخول والإشعارات',
@@ -386,6 +388,9 @@ export default function AdminUsersPage() {
             <ul style={{ margin: '0 0 10px', padding: isAr ? '0 18px 0 0' : '0 0 0 18px', fontSize: '.85rem', color: 'var(--text-70)', lineHeight: 2 }}>
               {relatedData?.bookingCount > 0 && (
                 <li style={{ color: '#dc2626', fontWeight: 600 }}>{relatedData.bookingCount} {s.deleteSessions}</li>
+              )}
+              {relatedData?.payrollCount > 0 && (
+                <li style={{ color: '#dc2626', fontWeight: 600 }}>{relatedData.payrollCount} {s.deletePayroll}</li>
               )}
               {relatedData?.hasSchedule && <li>{s.deleteSchedule}</li>}
               {relatedData?.hasSlotRequests && <li>{s.deleteRequests}</li>}

@@ -32,16 +32,18 @@ export async function GET(request, { params }) {
   }
 
   /* Deletion-impact (existing behaviour) */
-  const [bookingCount, schedule, pendingRequests] = await Promise.all([
+  const [bookingCount, schedule, pendingRequests, payrollCount] = await Promise.all([
     prisma.booking.count({ where: { OR: [{ studentId: id }, { assessorId: id }] } }),
     prisma.scheduleTemplate.findUnique({ where: { userId: id }, select: { id: true } }),
     prisma.slotRequest.count({ where: { assessorId: id, status: 'pending' } }),
+    prisma.payrollTransfer.count({ where: { assessorId: id } }),
   ])
 
   return NextResponse.json({
     bookingCount,
     hasSchedule:     !!schedule,
     hasSlotRequests: pendingRequests > 0,
+    payrollCount,
   })
 }
 

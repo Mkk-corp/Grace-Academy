@@ -113,6 +113,9 @@ export async function DELETE(request) {
   // OtpSession is keyed by email with no FK — must be deleted manually
   await prisma.otpSession.deleteMany({ where: { email: user.email } })
 
+  // PayrollTransfer has no FK relation to User — must be deleted manually
+  await prisma.payrollTransfer.deleteMany({ where: { assessorId: id } })
+
   // Bookings have cascades but explicit delete ensures no FK violation on old rows
   await prisma.booking.deleteMany({ where: { OR: [{ studentId: id }, { assessorId: id }] } })
 
