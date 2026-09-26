@@ -50,7 +50,7 @@ const ICONS = {
 /* ─── Nav definitions ─────────────────────────────────────────────── */
 const CONTENT_NAV = (isAr) => [
   { href: '/admin/content/home',    label: isAr ? 'الرئيسية'         : 'Home',         icon: 'home'      },
-  { href: '/admin/content/about',   label: isAr ? 'من نحن'           : 'About',        icon: 'about'     },
+  { href: '/admin/about',            label: isAr ? 'من نحن'           : 'About',        icon: 'about'     },
   { href: '/admin/stats',           label: isAr ? 'الإحصائيات'       : 'Stats',        icon: 'stats'     },
   { href: '/admin/services',        label: isAr ? 'الخدمات'          : 'Services',     icon: 'services'  },
   { href: '/admin/blog',            label: isAr ? 'المدونة'          : 'Blog',         icon: 'blog'      },
