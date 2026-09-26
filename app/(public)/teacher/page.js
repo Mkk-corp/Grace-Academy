@@ -10,6 +10,106 @@ import PortalTopbar from '@/components/portal/PortalTopbar'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CourseCatalog from '@/components/shared/CourseCatalog'
 import TeacherOnboardingOverlay from '@/components/teacher/TeacherOnboardingOverlay'
+import TeacherWeeklySchedule from '@/components/teacher/TeacherWeeklySchedule'
+
+/* ─── Assigned Courses tab ──────────────────────────────────────── */
+function AssignedCoursesTab({ isAr }) {
+  const [courses, setCourses] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/teacher/assigned-courses')
+      .then(r => r.json())
+      .then(d => { setCourses(d.courses || []); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [])
+
+  const LEVEL_COLORS = { A1:'#10b981',A2:'#06b6d4',B1:'#3b82f6',B2:'#6366f1',C1:'#8b5cf6',C2:'#c9932c' }
+
+  if (loading) return (
+    <div style={{ padding: '60px 24px', textAlign: 'center', color: 'var(--tc-muted)' }}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'tcSpin .7s linear infinite', display:'inline-block' }}>
+        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+      </svg>
+    </div>
+  )
+
+  return (
+    <div style={{ padding: '28px 24px', maxWidth: 980, margin: '0 auto' }}>
+      <style>{`@keyframes tcSpin{to{transform:rotate(360deg)}}`}</style>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+        <div style={{ width: 38, height: 38, borderRadius: 10, background: 'var(--tc-gold-bg)', border: '1px solid var(--tc-gold-bd)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name="assign" size={18} color="var(--tc-gold)" />
+        </div>
+        <div>
+          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: 'var(--tc-text)' }}>
+            {isAr ? 'الدورات المعيّنة' : 'Assigned Courses'}
+          </h2>
+          <p style={{ margin: 0, fontSize: '.78rem', color: 'var(--tc-muted)' }}>
+            {isAr ? `${courses.length} دورة معيّنة لك` : `${courses.length} course${courses.length !== 1 ? 's' : ''} assigned to you`}
+          </p>
+        </div>
+      </div>
+
+      {courses.length === 0 ? (
+        <div style={{ background: 'var(--tc-surface)', border: '1px solid var(--tc-border)', borderRadius: 16, padding: '56px 32px', textAlign: 'center' }}>
+          <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--tc-gold-bg)', border: '1px solid var(--tc-gold-bd)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <Icon name="assign" size={24} color="var(--tc-gold)" />
+          </div>
+          <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--tc-text)', marginBottom: 8 }}>
+            {isAr ? 'لا توجد دورات معيّنة بعد' : 'No courses assigned yet'}
+          </div>
+          <div style={{ fontSize: '.84rem', color: 'var(--tc-muted)', maxWidth: 360, margin: '0 auto' }}>
+            {isAr ? 'سيقوم الإدارة بتعيين الدورات لك قريباً.' : 'The admin will assign courses to you soon. You\'ll receive an email notification.'}
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 16 }}>
+          {courses.map(course => {
+            const name = isAr ? (course.nameAr || course.nameEn) : course.nameEn
+            const catName = isAr ? (course.category?.nameAr || course.category?.nameEn) : course.category?.nameEn
+            const levelColor = LEVEL_COLORS[course.level] || '#c9932c'
+            return (
+              <div key={course.id} style={{ background: 'var(--tc-surface)', border: '1px solid var(--tc-border)', borderRadius: 14, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                {course.image ? (
+                  <div style={{ height: 130, overflow: 'hidden', background: 'var(--tc-hover)' }}>
+                    <img src={course.image} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={e => { e.currentTarget.parentElement.style.display = 'none' }} />
+                  </div>
+                ) : (
+                  <div style={{ height: 130, background: 'linear-gradient(135deg,rgba(201,147,44,.08),rgba(201,147,44,.03))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="book" size={40} color="var(--tc-gold)" />
+                  </div>
+                )}
+                <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                    <div style={{ fontSize: '.92rem', fontWeight: 700, color: 'var(--tc-text)', lineHeight: 1.35, flex: 1 }}>{name}</div>
+                    {course.level && (
+                      <span style={{ fontSize: '.62rem', fontWeight: 800, padding: '2px 8px', borderRadius: 100, background: `${levelColor}18`, border: `1.5px solid ${levelColor}40`, color: levelColor, flexShrink: 0, letterSpacing: '.06em' }}>
+                        {course.level}
+                      </span>
+                    )}
+                  </div>
+                  {catName && (
+                    <span style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--tc-gold)', background: 'var(--tc-gold-bg)', padding: '2px 10px', borderRadius: 100, alignSelf: 'flex-start' }}>{catName}</span>
+                  )}
+                  <div style={{ display: 'flex', gap: 10, fontSize: '.74rem', color: 'var(--tc-muted)', marginTop: 4 }}>
+                    {course.durationSessions && <span>{course.durationSessions} {isAr ? 'جلسة' : 'sessions'}</span>}
+                    {course.durationMonths && <><span>·</span><span>{course.durationMonths} {isAr ? 'شهر' : 'months'}</span></>}
+                  </div>
+                  <div style={{ marginTop: 'auto', paddingTop: 10, borderTop: '1px solid var(--tc-border)', display: 'flex', alignItems: 'center', gap: 5, fontSize: '.7rem', color: 'var(--tc-xmuted)' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="11" height="11"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    {isAr ? 'تاريخ التعيين:' : 'Assigned:'} {new Date(course.assignedAt).toLocaleDateString(isAr ? 'ar' : 'en', { year:'numeric', month:'short', day:'numeric' })}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function isProfileComplete(p) {
   if (!p) return false
@@ -142,10 +242,23 @@ export default function TeacherPage() {
       if (!data.user.isTeacher && !data.user.hasAdminAccess)    { router.replace('/portal'); return }
       setUser(data.user)
 
-      // check profile completeness for onboarding
-      const profileRes  = await fetch('/api/profile')
+      const [profileRes, schedRes] = await Promise.all([
+        fetch('/api/profile'),
+        fetch('/api/teacher/schedule'),
+      ])
       const profileData = profileRes.ok ? await profileRes.json() : null
-      setNeedsOnboarding(!isProfileComplete(profileData))
+      const schedData   = schedRes.ok  ? await schedRes.json()  : null
+      const profileComplete = isProfileComplete(profileData)
+      const hasSchedule     = !!(schedData?.schedule)
+
+      if (!profileComplete) {
+        setNeedsOnboarding(true)
+      } else if (!hasSchedule) {
+        try { localStorage.setItem('ga_teacher_onboard_slide', '2') } catch {}
+        setNeedsOnboarding(true)
+      } else {
+        setNeedsOnboarding(false)
+      }
 
       setLoading(false)
     }
@@ -178,7 +291,11 @@ export default function TeacherPage() {
   return (
     <>
       {needsOnboarding && (
-        <TeacherOnboardingOverlay isAr={isAr} isDark={isDark} />
+        <TeacherOnboardingOverlay
+          isAr={isAr}
+          isDark={isDark}
+          onGoToSchedule={() => { setNeedsOnboarding(false); setActiveTab('schedule') }}
+        />
       )}
       <style>{`
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -308,6 +425,22 @@ export default function TeacherPage() {
               <Icon name="book" size={17} color={activeTab === 'courses' ? 'var(--tc-gold)' : 'currentColor'} />
               <span className="tc-ni-lbl">{isAr ? 'كتالوج الدورات' : 'Course Catalog'}</span>
             </button>
+            <button
+              className={`tc-ni${activeTab === 'assigned' ? ' active' : ''}`}
+              onClick={() => setActiveTab('assigned')}
+              title={sidebarOpen ? undefined : (isAr ? 'دوراتي' : 'My Courses')}
+            >
+              <Icon name="assign" size={17} color={activeTab === 'assigned' ? 'var(--tc-gold)' : 'currentColor'} />
+              <span className="tc-ni-lbl">{isAr ? 'الدورات المعيّنة' : 'Assigned Courses'}</span>
+            </button>
+            <button
+              className={`tc-ni${activeTab === 'schedule' ? ' active' : ''}`}
+              onClick={() => setActiveTab('schedule')}
+              title={sidebarOpen ? undefined : (isAr ? 'جدولي' : 'My Schedule')}
+            >
+              <Icon name="schedule" size={17} color={activeTab === 'schedule' ? 'var(--tc-gold)' : 'currentColor'} />
+              <span className="tc-ni-lbl">{isAr ? 'جدولي الأسبوعي' : 'My Schedule'}</span>
+            </button>
           </nav>
 
           <div className="tc-sb-bot">
@@ -342,13 +475,22 @@ export default function TeacherPage() {
             isDark={isDark}
             crumbs={[
               { label: isAr ? 'بوابة المعلم' : 'Teacher Portal', onClick: activeTab !== 'dashboard' ? () => setActiveTab('dashboard') : undefined },
-              { label: activeTab === 'courses' ? (isAr ? 'كتالوج الدورات' : 'Course Catalog') : (isAr ? 'الرئيسية' : 'Dashboard') },
+              {
+                label: activeTab === 'courses'  ? (isAr ? 'كتالوج الدورات' : 'Course Catalog')
+                      : activeTab === 'assigned' ? (isAr ? 'الدورات المعيّنة' : 'Assigned Courses')
+                      : activeTab === 'schedule' ? (isAr ? 'جدولي الأسبوعي' : 'My Schedule')
+                      : (isAr ? 'الرئيسية' : 'Dashboard')
+              },
             ]}
           />
 
           <main className="tc-content">
             {activeTab === 'courses'
               ? <div style={{ padding: '24px' }}><CourseCatalog basePath="/teacher/courses" isAr={isAr} isDark={isDark} /></div>
+              : activeTab === 'assigned'
+              ? <AssignedCoursesTab isAr={isAr} />
+              : activeTab === 'schedule'
+              ? <TeacherWeeklySchedule isAr={isAr} isDark={isDark} onScheduleSaved={() => setNeedsOnboarding(false)} />
               : <DashboardTab user={user} isAr={isAr} />
             }
           </main>

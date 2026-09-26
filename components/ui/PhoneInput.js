@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { COUNTRIES, DEFAULT_COUNTRY } from '@/lib/countries'
 import flags from 'country-flag-icons/react/3x2'
 
@@ -54,21 +55,26 @@ export default function PhoneInput({
   disabled = false,
   placeholder,
 }) {
-  const [open,   setOpen]   = useState(false)
-  const [search, setSearch] = useState('')
-  const wrapRef   = useRef(null)
-  const searchRef = useRef(null)
+  const [open,    setOpen]    = useState(false)
+  const [search,  setSearch]  = useState('')
+  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 310 })
+  const wrapRef    = useRef(null)
+  const triggerRef = useRef(null)
+  const searchRef  = useRef(null)
 
   const sel = country || DEFAULT_COUNTRY
 
-  // Close dropdown on outside click
+  // Close dropdown on outside click — must also exclude the portal dropdown itself
   useEffect(() => {
     function onDown(e) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false)
+      if (!open) return
+      const inWrap   = wrapRef.current?.contains(e.target)
+      const inPortal = e.target.closest('[data-phone-drop]')
+      if (!inWrap && !inPortal) setOpen(false)
     }
     document.addEventListener('mousedown', onDown)
     return () => document.removeEventListener('mousedown', onDown)
-  }, [])
+  }, [open])
 
   // Auto-focus search box when dropdown opens
   useEffect(() => {
@@ -117,9 +123,17 @@ export default function PhoneInput({
 
         {/* Country trigger */}
         <button
+          ref={triggerRef}
           type="button"
           disabled={disabled}
-          onClick={() => { setOpen(v => !v); setSearch('') }}
+          onClick={() => {
+            if (!open && triggerRef.current) {
+              const r = triggerRef.current.getBoundingClientRect()
+              setDropPos({ top: r.bottom + 6, left: r.left, width: Math.max(310, r.width) })
+            }
+            setOpen(v => !v)
+            setSearch('')
+          }}
           aria-haspopup="listbox"
           aria-expanded={open}
           style={{
@@ -195,15 +209,16 @@ export default function PhoneInput({
         </div>
       )}
 
-      {/* ── Dropdown ── */}
-      {open && (
+      {/* ── Dropdown — rendered via portal so modal overflow can't clip it ── */}
+      {open && typeof document !== 'undefined' && createPortal(
         <div
           role="listbox"
+          data-phone-drop
           style={{
-            position: 'absolute',
-            top: 'calc(100% + 6px)',
-            left: 0,
-            zIndex: 300,
+            position: 'fixed',
+            top: dropPos.top,
+            left: dropPos.left,
+            zIndex: 9999,
             width: 310,
             background: dropBg,
             border: `1.5px solid ${dropBdr}`,
@@ -307,7 +322,8 @@ export default function PhoneInput({
               )
             })}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

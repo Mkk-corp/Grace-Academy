@@ -14,7 +14,7 @@ export async function GET(request, { params }) {
       include: {
         role: { select: { id: true, name: true, permissions: true } },
         assessorPreference: true,
-        scheduleTemplate: { select: { id: true, updatedAt: true } },
+        scheduleTemplate: { select: { id: true, schedule: true, createdAt: true, updatedAt: true } },
         _count: {
           select: {
             bookingsAsStudent:  true,

@@ -117,6 +117,138 @@ function InfoRow({ label, value, muted, text }) {
 
 /* ─── Main page ─────────────────────────────────────────────────── */
 
+function AssignTeachersPanel({ courseId, isAr, isDark, surf, border, text, muted, bg }) {
+  const [teachers,   setTeachers]   = useState([])
+  const [loading,    setLoading]    = useState(true)
+  const [search,     setSearch]     = useState('')
+  const [working,    setWorking]    = useState(null) // userId being toggled
+
+  function load() {
+    setLoading(true)
+    fetch(`/api/admin/assign-teacher?courseId=${courseId}`)
+      .then(r => r.json())
+      .then(d => { setTeachers(d.teachers || []); setLoading(false) })
+      .catch(() => setLoading(false))
+  }
+
+  useEffect(() => { load() }, [courseId])
+
+  async function toggle(teacher) {
+    setWorking(teacher.id)
+    const method = teacher.isAssigned ? 'DELETE' : 'POST'
+    await fetch('/api/admin/assign-teacher', {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ courseId, userId: teacher.id }),
+    })
+    await load()
+    setWorking(null)
+  }
+
+  const filtered = search.trim()
+    ? teachers.filter(t => t.name.toLowerCase().includes(search.toLowerCase()) || t.email.toLowerCase().includes(search.toLowerCase()))
+    : teachers
+
+  const assigned   = filtered.filter(t => t.isAssigned)
+  const unassigned = filtered.filter(t => !t.isAssigned)
+
+  const inp = { width: '100%', padding: '9px 12px 9px 36px', borderRadius: 9, border: `1px solid ${border}`, background: bg, color: text, fontSize: '.85rem', fontFamily: 'inherit', outline: 'none' }
+
+  if (loading) return (
+    <div style={{ padding: '40px', textAlign: 'center', color: muted, fontSize: '.85rem' }}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'csSpin .7s linear infinite', display: 'inline-block', marginRight: 8, verticalAlign: 'middle' }}>
+        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+      </svg>
+      {isAr ? 'جارٍ التحميل…' : 'Loading teachers…'}
+    </div>
+  )
+
+  if (teachers.length === 0) return (
+    <div style={{ padding: '40px', textAlign: 'center', color: muted }}>
+      <svg viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="1.5" width="36" height="36" style={{ display: 'block', margin: '0 auto 12px' }}>
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      <div style={{ fontSize: '.85rem' }}>{isAr ? 'لا يوجد معلمون في النظام بعد.' : 'No teachers in the system yet.'}</div>
+    </div>
+  )
+
+  function TeacherRow({ teacher }) {
+    const busy = working === teacher.id
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 16px', borderRadius: 10, border: `1px solid ${teacher.isAssigned ? BLUE + '30' : border}`, background: teacher.isAssigned ? `${BLUE}06` : surf, marginBottom: 8, transition: 'all .15s' }}>
+        <div style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, background: teacher.isAssigned ? `${BLUE}18` : `${muted}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {teacher.avatar
+            ? <img src={teacher.avatar} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
+            : <svg viewBox="0 0 24 24" fill="none" stroke={teacher.isAssigned ? BLUE : muted} strokeWidth="2" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          }
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: '.87rem', fontWeight: 700, color: text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teacher.name}</div>
+          <div style={{ fontSize: '.74rem', color: muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teacher.email}</div>
+        </div>
+        {teacher.isAssigned && teacher.assignedAt && (
+          <span style={{ fontSize: '.65rem', color: BLUE, fontWeight: 600, flexShrink: 0 }}>
+            {new Date(teacher.assignedAt).toLocaleDateString('en', { month: 'short', day: 'numeric' })}
+          </span>
+        )}
+        <button
+          onClick={() => toggle(teacher)}
+          disabled={busy}
+          style={{
+            flexShrink: 0, padding: '6px 14px', borderRadius: 8, fontSize: '.78rem', fontWeight: 700, fontFamily: 'inherit',
+            cursor: busy ? 'wait' : 'pointer', transition: 'all .15s',
+            border: `1.5px solid ${teacher.isAssigned ? RED + '50' : BLUE + '50'}`,
+            background: teacher.isAssigned ? `${RED}0a` : `${BLUE}0a`,
+            color: teacher.isAssigned ? RED : BLUE,
+            opacity: busy ? .55 : 1,
+          }}
+        >
+          {busy ? '…' : teacher.isAssigned ? (isAr ? 'إزالة' : 'Remove') : (isAr ? 'تعيين' : 'Assign')}
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      {/* Search */}
+      <div style={{ position: 'relative', marginBottom: 20 }}>
+        <svg viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2" width="14" height="14" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder={isAr ? 'بحث عن معلم…' : 'Search teachers…'} style={inp} onFocus={e => e.target.style.borderColor = BLUE} onBlur={e => e.target.style.borderColor = border} />
+      </div>
+
+      {/* Assigned */}
+      {assigned.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: BLUE, marginBottom: 10 }}>
+            {isAr ? `المعيّنون (${assigned.length})` : `Assigned (${assigned.length})`}
+          </div>
+          {assigned.map(t => <TeacherRow key={t.id} teacher={t} />)}
+        </div>
+      )}
+
+      {/* Unassigned */}
+      {unassigned.length > 0 && (
+        <div>
+          <div style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: muted, marginBottom: 10 }}>
+            {isAr ? `غير معيّنين (${unassigned.length})` : `Not assigned (${unassigned.length})`}
+          </div>
+          {unassigned.map(t => <TeacherRow key={t.id} teacher={t} />)}
+        </div>
+      )}
+
+      {filtered.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '24px', color: muted, fontSize: '.84rem' }}>
+          {isAr ? 'لا توجد نتائج' : 'No results'}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function CourseDetailPage() {
   const { lang }  = useLang()
   const { theme } = useTheme()
@@ -137,6 +269,7 @@ export default function CourseDetailPage() {
   const [flash,      setFlash]      = useState(false)
   const [uploading,  setUploading]  = useState(false)
   const [uploadErr,  setUploadErr]  = useState('')
+  const [tab,        setTab]        = useState('details')
 
   useEffect(() => {
     fetch('/api/admin/categories').then(r => r.json()).then(d => setCategories(d.categories || [])).catch(() => {})
@@ -306,6 +439,22 @@ export default function CourseDetailPage() {
         </div>
       </div>
 
+      {/* ── Tabs (view mode, existing course only) ── */}
+      {!isNew && !editing && (
+        <div style={{ display: 'flex', gap: 6, marginBottom: 24, borderBottom: `1px solid ${border}`, paddingBottom: 0 }}>
+          {[
+            { key: 'details', label: isAr ? 'تفاصيل الدورة' : 'Course Details', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> },
+            { key: 'assign',  label: isAr ? 'تعيين المعلمين' : 'Assign Teachers', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> },
+          ].map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: '10px 10px 0 0', border: `1px solid ${tab === t.key ? border : 'transparent'}`, borderBottom: tab === t.key ? `1px solid ${surf}` : 'transparent', marginBottom: tab === t.key ? -1 : 0, background: tab === t.key ? surf : 'transparent', color: tab === t.key ? GOLD : muted, fontWeight: tab === t.key ? 700 : 500, fontSize: '.84rem', cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s' }}
+            >
+              {t.icon}{t.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {error && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 18px', borderRadius: 11, background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.25)', color: RED, fontSize: '.87rem', marginBottom: 20 }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -313,8 +462,18 @@ export default function CourseDetailPage() {
         </div>
       )}
 
+      {/* ── ASSIGN TEACHERS TAB ── */}
+      {!editing && !isNew && tab === 'assign' && (
+        <SectionCard surf={surf} border={border} isDark={isDark} color={BLUE}
+          title={isAr ? 'تعيين المعلمين' : 'Assign Teachers'}
+          icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="16" height="16"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
+        >
+          <AssignTeachersPanel courseId={id} isAr={isAr} isDark={isDark} surf={surf} border={border} text={text} muted={muted} bg={bg} />
+        </SectionCard>
+      )}
+
       {/* ── VIEW MODE ── */}
-      {!editing && !isNew && (
+      {!editing && !isNew && tab === 'details' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'start' }}>
 
           {/* Left */}

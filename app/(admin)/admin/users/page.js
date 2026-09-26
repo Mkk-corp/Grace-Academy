@@ -462,7 +462,6 @@ function UserModal({ user, roles, onSave, onClose, s }) {
   const isDark = theme === 'dark'
   const [form, setForm] = useState(user)
   const [saving, setSaving] = useState(false)
-  const [creds, setCreds] = useState(null)
   const isNew = user.id.startsWith('new')
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -476,46 +475,7 @@ function UserModal({ user, roles, onSave, onClose, s }) {
     const phone = phoneNumber.trim() ? `${phoneCountry.dial} ${phoneNumber.trim()}` : ''
     const ok = await onSave({ ...form, phone })
     if (!ok) { setSaving(false); return }
-    if (isNew) setCreds({ email: form.email, username: form.username, password: form.password })
-  }
-
-  /* Credentials screen shown after successful creation */
-  if (creds) {
-    return (
-      <div className="admin-modal">
-        <div className="admin-modal__box">
-          <div className="admin-modal__header">
-            <h2 className="admin-modal__title">{isAr ? 'تم إنشاء الحساب!' : 'Account Created!'}</h2>
-            <button className="admin-modal__close" onClick={onClose} aria-label="Close">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>
-
-          <div style={{ textAlign: 'center', marginBottom: 20 }}>
-            <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(16,185,129,.1)', border: '2px solid rgba(16,185,129,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" width="24" height="24"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <p style={{ fontSize: '.85rem', color: 'var(--text-60)', lineHeight: 1.6 }}>
-              {isAr
-                ? `تم إنشاء الحساب وإرسال بريد الترحيب إلى ${creds.email}`
-                : `Account created — welcome email sent to ${creds.email}`}
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
-            <CopyField label={isAr ? 'البريد الإلكتروني' : 'Email'}             value={creds.email}    isDark={isDark} />
-            <CopyField label={isAr ? 'اسم المستخدم'      : 'Username'}          value={creds.username} isDark={isDark} />
-            <CopyField label={isAr ? 'كلمة المرور المؤقتة' : 'Temporary Password'} value={creds.password} isDark={isDark} />
-          </div>
-
-          <div className="admin-actions">
-            <button className="admin-btn admin-btn--primary" onClick={onClose}>
-              {isAr ? 'تم' : 'Done'}
-            </button>
-          </div>
-        </div>
-      </div>
-    )
+    onClose()
   }
 
   /* Form */

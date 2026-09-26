@@ -56,6 +56,7 @@ model User {
   slotRequests       SlotRequest[]        @relation("AssessorSlotRequests")
   notifications      Notification[]       @relation("UserNotifications")
   assessorPreference AssessorPreference?
+  teacherCourses     TeacherCourse[]
 }
 
 model Booking {
@@ -214,29 +215,43 @@ model Category {
 }
 
 model Course {
-  id               String    @id @default(cuid())
-  nameEn           String
-  nameAr           String    @default("")
-  descEn           String
-  descAr           String    @default("")
-  marketingEn      String
-  marketingAr      String    @default("")
-  durationMonths   Int?
-  durationSessions Int
-  teacherCount     Int       @default(0)
-  studentCount     Int       @default(0)
-  needsSpeaking    Boolean   @default(false)
-  speakingSessions Int?
-  needsLibrary     Boolean   @default(false)
-  libraryTypes     String[]  @default([])
-  level            String    @default("")
-  image            String?
-  categoryId       String?
-  category         Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id                 String          @id @default(cuid())
+  nameEn             String
+  nameAr             String          @default("")
+  descEn             String
+  descAr             String          @default("")
+  marketingEn        String
+  marketingAr        String          @default("")
+  durationMonths     Int?
+  durationSessions   Int
+  teacherCount       Int             @default(0)
+  studentCount       Int             @default(0)
+  needsSpeaking      Boolean         @default(false)
+  speakingSessions   Int?
+  needsLibrary       Boolean         @default(false)
+  libraryTypes       String[]        @default([])
+  level              String          @default("")
+  image              String?
+  categoryId         String?
+  category           Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  teacherAssignments TeacherCourse[]
 
   @@index([categoryId])
+}
+
+model TeacherCourse {
+  id         String   @id @default(cuid())
+  userId     String
+  courseId   String
+  assignedAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
 }
 
 model Plan {

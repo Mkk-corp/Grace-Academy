@@ -11,7 +11,7 @@ const SLIDES = {
       img:   '/images/welcome-onboarding.svg',
       badge: 'WELCOME TO GRACE ACADEMY',
       title: "You're part of something great.",
-      body:  "We're excited to have you on board as a teacher. Before you can start, there's one quick thing to set up. It only takes a few minutes.",
+      body:  "We're excited to have you on board as a teacher. Before you can start, there are two quick steps to set up. It only takes a few minutes.",
       cta:   "Let's Get Started →",
     },
     {
@@ -21,13 +21,20 @@ const SLIDES = {
       body:  'Add your name, date of birth, education background, English level, teaching experience, and other details. A complete profile helps us set up your portal correctly.',
       cta:   'Go to My Profile →',
     },
+    {
+      img:   '/images/courses.svg',
+      step:  'STEP 2',
+      title: 'Set your weekly schedule.',
+      body:  'Choose the days and time slots you are available each week. You need at least 16 slots to save. Your schedule helps us plan sessions effectively.',
+      cta:   'Set My Schedule →',
+    },
   ],
   ar: [
     {
       img:   '/images/welcome-onboarding.svg',
       badge: 'مرحباً بك في غريس أكاديمي',
       title: 'أنت جزء من شيء رائع.',
-      body:  'يسعدنا انضمامك إلينا كمعلّم. قبل أن تبدأ، هناك خطوة واحدة سريعة للإعداد. لن تستغرق سوى دقائق.',
+      body:  'يسعدنا انضمامك إلينا كمعلّم. قبل أن تبدأ، هناك خطوتان سريعتان للإعداد. لن تستغرقا سوى دقائق.',
       cta:   'لنبدأ ←',
     },
     {
@@ -37,16 +44,23 @@ const SLIDES = {
       body:  'أضف اسمك، تاريخ ميلادك، خلفيتك التعليمية، مستواك في الإنجليزية، خبرتك في التدريس وغيرها من التفاصيل. الملف الشخصي المكتمل يساعدنا على إعداد بوابتك بشكل صحيح.',
       cta:   'اذهب إلى ملفي الشخصي ←',
     },
+    {
+      img:   '/images/courses.svg',
+      step:  'الخطوة ٢',
+      title: 'حدّد جدولك الأسبوعي.',
+      body:  'اختر الأيام والخانات الزمنية المتاحة لك خلال الأسبوع. تحتاج إلى ١٦ خانة على الأقل للحفظ. جدولك يساعدنا في تنظيم الجلسات بشكل فعّال.',
+      cta:   'تعيين جدولي ←',
+    },
   ],
 }
 
-export default function TeacherOnboardingOverlay({ isAr, isDark }) {
+export default function TeacherOnboardingOverlay({ isAr, isDark, onGoToSchedule }) {
   const [slide, setSlide] = useState(() => {
     try {
       const saved = typeof window !== 'undefined' ? localStorage.getItem(LS_KEY) : null
       if (saved === null) return 0
       const n = parseInt(saved, 10)
-      return isNaN(n) || n < 0 || n > 1 ? 0 : n
+      return isNaN(n) || n < 0 || n > 2 ? 0 : n
     } catch { return 0 }
   })
   const router = useRouter()
@@ -74,9 +88,12 @@ export default function TeacherOnboardingOverlay({ isAr, isDark }) {
   function handleCta() {
     if (slide === 0) {
       goToSlide(1)
-    } else {
-      // slide 1 — go complete profile
+    } else if (slide === 1) {
       router.push('/profile')
+    } else {
+      // slide 2 — go set schedule
+      try { localStorage.removeItem(LS_KEY) } catch {}
+      onGoToSchedule?.()
     }
   }
 
