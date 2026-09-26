@@ -101,8 +101,8 @@ export default function HomeClient({ stats }) {
           <div className="hero__rule" />
           <p className="hero__subtitle">{t('heroSubtitle')}</p>
           <div className="hero__cta-group">
-            <Link href="/services" className="btn btn--primary">{t('heroCta1')}</Link>
-            <Link href="/about" className="btn btn--ghost">{t('heroCta2')}</Link>
+            <Link href="/courses" className="btn btn--primary">{t('heroCta1')}</Link>
+            <Link href="/register" className="btn btn--ghost">{t('heroCta2')}</Link>
           </div>
         </div>
         <div className="hero__scroll"><div className="hero__scroll-dot" /></div>
@@ -239,10 +239,7 @@ export default function HomeClient({ stats }) {
             </div>
             <h2 className="cta__title">{t('ctaTitle')}</h2>
             <p className="cta__sub">{t('ctaSubtitle')}</p>
-            <div className="cta__form">
-              <input type="email" className="cta__input" placeholder={t('ctaPlaceholder')} />
-              <Link href="/contact" className="btn btn--primary">{t('ctaBtn')}</Link>
-            </div>
+            <Link href="/contact" className="btn btn--primary">{t('ctaBtn')}</Link>
             <p className="cta__motto">{t('ctaTagline')}</p>
           </div>
         </div>

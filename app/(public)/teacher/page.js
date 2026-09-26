@@ -9,6 +9,21 @@ import { useTheme } from '@/context/ThemeContext'
 import PortalTopbar from '@/components/portal/PortalTopbar'
 import Breadcrumb from '@/components/ui/Breadcrumb'
 import CourseCatalog from '@/components/shared/CourseCatalog'
+import TeacherOnboardingOverlay from '@/components/teacher/TeacherOnboardingOverlay'
+
+function isProfileComplete(p) {
+  if (!p) return false
+  return !!(
+    p.name?.trim() &&
+    p.phone?.trim() &&
+    p.country?.trim() &&
+    p.dob &&
+    p.gender?.trim() &&
+    p.educationLevel?.trim() &&
+    p.englishLevel?.trim() &&
+    p.teachingExperience !== null && p.teachingExperience !== undefined && p.teachingExperience !== ''
+  )
+}
 
 /* ─── Sidebar icons ───────────────────────────────────────────────── */
 function Icon({ name, size = 17, color = 'currentColor' }) {
@@ -108,11 +123,12 @@ export default function TeacherPage() {
   const isAr  = lang === 'ar'
   const isDark = theme === 'dark'
 
-  const [user,        setUser]        = useState(null)
-  const [loading,     setLoading]     = useState(true)
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [search,      setSearch]      = useState('')
-  const [activeTab,   setActiveTab]   = useState('dashboard')
+  const [user,            setUser]            = useState(null)
+  const [loading,         setLoading]         = useState(true)
+  const [needsOnboarding, setNeedsOnboarding] = useState(false)
+  const [sidebarOpen,     setSidebarOpen]     = useState(true)
+  const [search,          setSearch]          = useState('')
+  const [activeTab,       setActiveTab]       = useState('dashboard')
 
   useEffect(() => {
     if (window.innerWidth < 768) setSidebarOpen(false)
@@ -122,9 +138,15 @@ export default function TeacherPage() {
     async function init() {
       const res  = await fetch('/api/auth/me')
       const data = await res.json()
-      if (!data.user)                                               { router.replace('/login');    return }
-      if (!data.user.isTeacher && !data.user.hasAdminAccess)    { router.replace('/portal');   return }
+      if (!data.user)                                            { router.replace('/login');  return }
+      if (!data.user.isTeacher && !data.user.hasAdminAccess)    { router.replace('/portal'); return }
       setUser(data.user)
+
+      // check profile completeness for onboarding
+      const profileRes  = await fetch('/api/profile')
+      const profileData = profileRes.ok ? await profileRes.json() : null
+      setNeedsOnboarding(!isProfileComplete(profileData))
+
       setLoading(false)
     }
     init()
@@ -155,6 +177,9 @@ export default function TeacherPage() {
 
   return (
     <>
+      {needsOnboarding && (
+        <TeacherOnboardingOverlay isAr={isAr} isDark={isDark} />
+      )}
       <style>{`
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         @keyframes tcFadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}

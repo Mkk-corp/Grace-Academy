@@ -22,10 +22,11 @@ export default function Footer() {
             <div className="footer__col">
               <h4>{t('footerCourses')}</h4>
               <ul>
-                <li><Link href="/services">{t('footerConvo')}</Link></li>
-                <li><Link href="/services">{t('footerBusiness')}</Link></li>
-                <li><Link href="/services">{t('footerTech')}</Link></li>
-                <li><Link href="/services">{t('footerAcademic')}</Link></li>
+                <li><Link href="/courses">{t('coursesPageAll')}</Link></li>
+                <li><Link href="/courses">{t('footerConvo')}</Link></li>
+                <li><Link href="/courses">{t('footerBusiness')}</Link></li>
+                <li><Link href="/courses">{t('footerTech')}</Link></li>
+                <li><Link href="/courses">{t('footerAcademic')}</Link></li>
               </ul>
             </div>
             <div className="footer__col">
@@ -33,7 +34,6 @@ export default function Footer() {
               <ul>
                 <li><Link href="/about">{t('footerAbout')}</Link></li>
                 <li><Link href="/services">{t('navServices')}</Link></li>
-                <li><Link href="/portfolio">{t('footerWhoFor')}</Link></li>
                 <li><Link href="/contact">{t('footerContact')}</Link></li>
               </ul>
             </div>

@@ -57,19 +57,60 @@ function FlagImg({ code, width = 22 }) {
   )
 }
 
-/* ── country select (with flag + Arabic name) ────────────────────── */
+/* ── country select (portal-based to escape overflow:hidden) ─────── */
 function CountrySelect({ value, onChange, isAr, isDark }) {
-  const [open, setOpen]     = useState(false)
-  const [search, setSearch] = useState('')
-  const wrapRef   = useRef(null)
-  const searchRef = useRef(null)
+  const [open, setOpen]         = useState(false)
+  const [search, setSearch]     = useState('')
+  const [dropStyle, setDropStyle] = useState({})
+  const [mounted, setMounted]   = useState(false)
+  const triggerRef = useRef(null)
+  const dropRef    = useRef(null)
+  const searchRef  = useRef(null)
 
+  useEffect(() => { setMounted(true) }, [])
+
+  /* Outside click */
   useEffect(() => {
-    function h(e) { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false) }
+    if (!open) return
+    function h(e) {
+      if (!triggerRef.current?.contains(e.target) && !dropRef.current?.contains(e.target))
+        setOpen(false)
+    }
     document.addEventListener('mousedown', h)
     return () => document.removeEventListener('mousedown', h)
-  }, [])
-  useEffect(() => { if (open) setTimeout(() => searchRef.current?.focus(), 40) }, [open])
+  }, [open])
+
+  /* Focus search on open */
+  useEffect(() => {
+    if (open) setTimeout(() => searchRef.current?.focus(), 40)
+    else setSearch('')
+  }, [open])
+
+  /* Position via getBoundingClientRect */
+  function positionDrop() {
+    if (!triggerRef.current) return
+    const rect = triggerRef.current.getBoundingClientRect()
+    const vpH  = window.innerHeight
+    const dropH = Math.min(DIAL_COUNTRIES.length * 44 + 56, 300)
+    const below = (vpH - rect.bottom) >= dropH || (vpH - rect.bottom) >= rect.top
+    setDropStyle({
+      position: 'fixed', zIndex: 9999,
+      left: rect.left, width: rect.width,
+      ...(below ? { top: rect.bottom + 4 } : { bottom: vpH - rect.top + 4 }),
+    })
+  }
+
+  useEffect(() => {
+    if (!open) return
+    positionDrop()
+    window.addEventListener('scroll', positionDrop, true)
+    window.addEventListener('resize', positionDrop)
+    return () => {
+      window.removeEventListener('scroll', positionDrop, true)
+      window.removeEventListener('resize', positionDrop)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
 
   const selected = DIAL_COUNTRIES.find(c => c.name === value)
   const filtered = search.trim()
@@ -91,10 +132,11 @@ function CountrySelect({ value, onChange, isAr, isDark }) {
   const divider  = isDark ? 'rgba(255,255,255,.04)' : '#f8fafc'
 
   return (
-    <div ref={wrapRef} style={{ position:'relative',width:'100%' }}>
+    <div style={{ position: 'relative', width: '100%' }}>
       <button
+        ref={triggerRef}
         type="button"
-        onClick={() => { setOpen(v => !v); setSearch('') }}
+        onClick={() => setOpen(v => !v)}
         style={{
           display:'flex',alignItems:'center',gap:9,
           width:'100%',padding:'10px 13px',
@@ -102,7 +144,8 @@ function CountrySelect({ value, onChange, isAr, isDark }) {
           border:`1px solid ${open ? focusBd : inputBd}`,
           borderRadius:10,color:txt,
           cursor:'pointer',fontFamily:'inherit',fontSize:'.88rem',
-          textAlign:isAr?'right':'left',transition:'border-color .15s',
+          textAlign:isAr?'right':'left',transition:'border-color .15s',outline:'none',
+          boxShadow: open ? '0 0 0 3px rgba(201,147,44,.08)' : 'none',
         }}
       >
         {selected
@@ -115,14 +158,16 @@ function CountrySelect({ value, onChange, isAr, isDark }) {
         </svg>
       </button>
 
-      {open && (
-        <div style={{
-          position:'absolute',top:'calc(100% + 4px)',left:0,right:0,zIndex:200,
+      {open && mounted && createPortal(
+        <div ref={dropRef} style={{
+          ...dropStyle,
           background:dropBg,border:`1.5px solid ${dropBd}`,
           borderRadius:12,overflow:'hidden',
-          boxShadow:'0 16px 48px rgba(0,0,0,.28)',
+          boxShadow:'0 20px 60px rgba(0,0,0,.32)',
+          animation:'csFade .12s ease both',
+          display:'flex',flexDirection:'column',
         }}>
-          <div style={{padding:'8px 8px 6px',borderBottom:`1px solid ${isDark?'rgba(255,255,255,.07)':'#f0f4f8'}`}}>
+          <div style={{padding:'8px 8px 6px',borderBottom:`1px solid ${isDark?'rgba(255,255,255,.07)':'#f0f4f8'}`,flexShrink:0}}>
             <div style={{position:'relative'}}>
               <svg viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2" width="13" height="13"
                 style={{position:'absolute',left:9,top:'50%',transform:'translateY(-50%)',pointerEvents:'none'}}>
@@ -136,11 +181,12 @@ function CountrySelect({ value, onChange, isAr, isDark }) {
                   background:isDark?'rgba(255,255,255,.06)':'#f9fafb',
                   border:`1px solid ${isDark?'rgba(255,255,255,.1)':'#e2e8f0'}`,
                   borderRadius:7,color:txt,fontSize:'.82rem',fontFamily:'inherit',outline:'none',
+                  boxSizing:'border-box',
                 }}
               />
             </div>
           </div>
-          <div style={{maxHeight:220,overflowY:'auto'}}>
+          <div style={{maxHeight:240,overflowY:'auto'}}>
             {filtered.length === 0
               ? <div style={{padding:'14px',textAlign:'center',color:muted,fontSize:'.82rem'}}>{isAr?'لا توجد نتائج':'No results'}</div>
               : filtered.map(c => {
@@ -153,7 +199,8 @@ function CountrySelect({ value, onChange, isAr, isDark }) {
                         width:'100%',padding:'9px 13px',
                         background:isSel ? activeBg : 'transparent',
                         border:'none',borderBottom:`1px solid ${divider}`,
-                        cursor:'pointer',color:txt,fontFamily:'inherit',fontSize:'.84rem',
+                        cursor:'pointer',color: isSel ? '#c9932c' : txt,
+                        fontFamily:'inherit',fontSize:'.84rem',fontWeight: isSel ? 700 : 400,
                         direction:'ltr',textAlign:'left',transition:'background .1s',
                       }}
                       onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = hoverBg }}
@@ -163,12 +210,18 @@ function CountrySelect({ value, onChange, isAr, isDark }) {
                       <span style={{flex:1,textAlign:isAr?'right':'left',direction:isAr?'rtl':'ltr'}}>
                         {isAr && c.nameAr ? c.nameAr : c.name}
                       </span>
+                      {isSel && (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#c9932c" strokeWidth="2.5" width="13" height="13" style={{flexShrink:0}}>
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      )}
                     </button>
                   )
                 })
             }
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
@@ -476,7 +529,7 @@ export default function ProfilePage() {
         teachingWhere: data.teachingWhere || '',
         englishLevel: data.englishLevel || '',
       })
-      const isC = data.roleName?.toLowerCase().includes('consultant') || data.roleName?.toLowerCase().includes('assessor')
+      const isC = data.roleName?.toLowerCase().includes('consultant') || data.roleName?.toLowerCase().includes('assessor') || data.roleName?.toLowerCase().includes('teacher')
       if (isC) {
         Promise.all([
           fetch('/api/topics').then(r => r.json()),
@@ -515,7 +568,7 @@ export default function ProfilePage() {
     const data = await res.json()
     setSaving(false)
     if (!res.ok) { setError(data.error); return }
-    if (user?.roleName?.toLowerCase().includes('consultant') || user?.roleName?.toLowerCase().includes('assessor')) {
+    if (user?.roleName?.toLowerCase().includes('consultant') || user?.roleName?.toLowerCase().includes('assessor') || user?.roleName?.toLowerCase().includes('teacher')) {
       await fetch('/api/assessor/preferences', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -564,6 +617,7 @@ export default function ProfilePage() {
       <style>{`
         @keyframes ldFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-22px) scale(1.03)}}
         @keyframes ldFadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+        @keyframes csFade{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
       `}</style>
       <img src="/images/loading.svg" alt=""
         style={{width:'min(500px,82vw)',height:'min(500px,82vw)',objectFit:'contain',animation:'ldFloat 2.8s ease-in-out infinite'}} />
@@ -575,7 +629,7 @@ export default function ProfilePage() {
     </div>
   )
 
-  const isConsultant = user?.roleName?.toLowerCase().includes('consultant') || user?.roleName?.toLowerCase().includes('assessor')
+  const isConsultant = user?.roleName?.toLowerCase().includes('consultant') || user?.roleName?.toLowerCase().includes('assessor') || user?.roleName?.toLowerCase().includes('teacher')
 
   /* toggle component */
   function Toggle({ field, labelYesEn, labelYesAr, labelNoEn='No', labelNoAr='لا' }) {

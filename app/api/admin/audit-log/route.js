@@ -1,9 +1,18 @@
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { requireAdmin } from '@/lib/guard'
+import { verifyToken } from '@/lib/auth'
+
+async function authorized() {
+  if (await requireAdmin()) return true
+  const jar   = await cookies()
+  const token = jar.get('ga-audit')?.value
+  return !!(token && verifyToken(token)?.audit)
+}
 
 export async function GET(req) {
-  if (!await requireAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await authorized()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { searchParams } = new URL(req.url)
   const page      = Math.max(1, parseInt(searchParams.get('page')  || '1', 10))

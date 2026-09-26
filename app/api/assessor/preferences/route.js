@@ -16,7 +16,7 @@ async function getAuthUser() {
   if (!user) return null
   const permissions = user.role?.permissions || []
   const hasAdminAccess = permissions.some(p => !ADMIN_ONLY_PERMS.includes(p))
-  const isAssessor = permissions.includes('access_assessor_portal') && !hasAdminAccess
+  const isAssessor = (permissions.includes('access_assessor_portal') || permissions.includes('access_teacher_portal')) && !hasAdminAccess
   return { ...user, permissions, hasAdminAccess, isAssessor }
 }
 

@@ -53,7 +53,6 @@ const CONTENT_NAV = (isAr) => [
   { href: '/admin/content/about',   label: isAr ? 'من نحن'           : 'About',        icon: 'about'     },
   { href: '/admin/stats',           label: isAr ? 'الإحصائيات'       : 'Stats',        icon: 'stats'     },
   { href: '/admin/services',        label: isAr ? 'الخدمات'          : 'Services',     icon: 'services'  },
-  { href: '/admin/portfolio',       label: isAr ? 'أعمالنا'          : 'Portfolio',    icon: 'portfolio' },
   { href: '/admin/blog',            label: isAr ? 'المدونة'          : 'Blog',         icon: 'blog'      },
   { href: '/admin/faq',             label: isAr ? 'الأسئلة الشائعة'  : 'FAQ',          icon: 'faq'       },
   { href: '/admin/pricing',         label: isAr ? 'الأسعار'          : 'Pricing',      icon: 'pricing'   },
@@ -110,6 +109,7 @@ export default function AdminLayout({ children }) {
   /* Auth guard */
   useEffect(() => {
     if (pathname === '/admin/login') return
+    if (pathname === '/admin/audit-log') return   // password-gated on its own
     fetch('/api/auth/me').then(r => r.json()).then(({ user }) => {
       if (!user)               { router.replace('/admin/login'); return }
       if (!user.hasAdminAccess){ router.replace('/unauthorized');return }
@@ -123,6 +123,18 @@ export default function AdminLayout({ children }) {
   }
 
   if (pathname === '/admin/login') return <>{children}</>
+
+  if (pathname === '/admin/audit-log') {
+    const auditVars = isDark
+      ? '--bg:#0d1b24;--surface:#10222b;--surface-2:#0a1820;--text:#f1f5f9;--text-80:rgba(241,245,249,.82);--text-60:rgba(241,245,249,.6);--text-40:rgba(241,245,249,.38);--border:rgba(255,255,255,.07);--border-gold:rgba(201,147,44,.28);--accent-dim:rgba(201,147,44,.1);'
+      : '--bg:#f5f7fa;--surface:#fff;--surface-2:#edf0f5;--text:#1c2433;--text-80:rgba(28,36,51,.82);--text-60:rgba(28,36,51,.6);--text-40:rgba(28,36,51,.38);--border:rgba(28,36,51,.09);--border-gold:rgba(174,109,12,.22);--accent-dim:rgba(201,147,44,.08);'
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--bg)', fontFamily: 'inherit' }}>
+        <style>{`:root{${auditVars}--gold:#c9932c;}`}</style>
+        {children}
+      </div>
+    )
+  }
 
   const SW = sidebarOpen ? 264 : 68
 
