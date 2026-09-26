@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useLang } from '@/context/LangContext'
 import PageHero from '@/components/sections/PageHero'
 
@@ -26,6 +27,8 @@ const GRADIENTS = [
 export default function CoursesClient() {
   const { t, lang } = useLang()
   const isAr = lang === 'ar'
+  const searchParams  = useSearchParams()
+  const initialCatKey = searchParams.get('cat') || ''
 
   const [courses,   setCourses]   = useState([])
   const [loading,   setLoading]   = useState(true)
@@ -70,13 +73,22 @@ export default function CoursesClient() {
     courses.forEach(c => {
       if (c.category && !seen.has(c.category.id)) {
         seen.set(c.category.id, {
-          id:   c.category.id,
-          name: isAr ? (c.category.nameAr || c.category.nameEn) : c.category.nameEn,
+          id:     c.category.id,
+          name:   isAr ? (c.category.nameAr || c.category.nameEn) : c.category.nameEn,
+          nameEn: c.category.nameEn || '',
         })
       }
     })
     return [...seen.values()]
   }, [courses, isAr])
+
+  /* auto-select category from ?cat= URL param */
+  useEffect(() => {
+    if (!initialCatKey || categories.length === 0 || activecat !== 'all') return
+    const key = initialCatKey.toLowerCase()
+    const match = categories.find(c => c.nameEn.toLowerCase().includes(key))
+    if (match) setActivecat(match.id)
+  }, [categories, initialCatKey]) // eslint-disable-line
 
   /* filter */
   const filtered = useMemo(() => {
