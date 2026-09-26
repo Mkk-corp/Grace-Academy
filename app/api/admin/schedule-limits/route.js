@@ -73,7 +73,7 @@ export async function PUT(req) {
     const staffUsers = staffRoleIds.length
       ? await prisma.user.findMany({
           where: { roleId: { in: staffRoleIds } },
-          select: { id: true, scheduleTemplate: { select: { schedule: true } } },
+          select: { id: true, scheduleTemplates: { where: { type: 'assessor' }, select: { schedule: true } } },
         })
       : []
 
@@ -90,7 +90,7 @@ export async function PUT(req) {
     })
 
     for (const u of staffUsers) {
-      const dayMap = u.scheduleTemplate?.schedule ?? null
+      const dayMap = u.scheduleTemplates?.[0]?.schedule ?? null
 
       if (!dayMap) {
         // No schedule yet — just inform

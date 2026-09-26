@@ -30,7 +30,7 @@ export async function GET() {
   if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const [template, configRow] = await Promise.all([
-    prisma.scheduleTemplate.findUnique({ where: { userId: payload.sub } }),
+    prisma.scheduleTemplate.findUnique({ where: { userId_type: { userId: payload.sub, type: 'teacher' } } }),
     prisma.scheduleConfig.findUnique({ where: { id: 'default' } }),
   ])
 
@@ -45,7 +45,7 @@ export async function POST(req) {
   const payload = await requireTeacher()
   if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const existing = await prisma.scheduleTemplate.findUnique({ where: { userId: payload.sub } })
+  const existing = await prisma.scheduleTemplate.findUnique({ where: { userId_type: { userId: payload.sub, type: 'teacher' } } })
   if (existing) {
     return NextResponse.json({ error: 'Schedule already exists. Contact admin to modify it.' }, { status: 409 })
   }
@@ -57,7 +57,7 @@ export async function POST(req) {
   if (err) return NextResponse.json({ error: err }, { status: 400 })
 
   const template = await prisma.scheduleTemplate.create({
-    data: { userId: payload.sub, schedule },
+    data: { userId: payload.sub, type: 'teacher', schedule },
   })
 
   const totalSlots = Object.values(schedule).reduce((s, v) => s + (Array.isArray(v) ? v.length : 0), 0)

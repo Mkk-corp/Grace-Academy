@@ -56,7 +56,7 @@ export async function GET() {
   }
 
   const [template, configRow] = await Promise.all([
-    prisma.scheduleTemplate.findUnique({ where: { userId: user.id } }),
+    prisma.scheduleTemplate.findUnique({ where: { userId_type: { userId: user.id, type: 'assessor' } } }),
     prisma.scheduleConfig.findUnique({ where: { id: 'default' } }),
   ])
 
@@ -74,7 +74,7 @@ export async function POST(req) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const existing = await prisma.scheduleTemplate.findUnique({ where: { userId: user.id } })
+  const existing = await prisma.scheduleTemplate.findUnique({ where: { userId_type: { userId: user.id, type: 'assessor' } } })
   if (existing) {
     return NextResponse.json({ error: 'Schedule already exists. Use the change request flow to modify it.' }, { status: 409 })
   }
@@ -86,7 +86,7 @@ export async function POST(req) {
   if (err) return NextResponse.json({ error: err }, { status: 400 })
 
   const template = await prisma.scheduleTemplate.create({
-    data: { userId: user.id, schedule },
+    data: { userId: user.id, type: 'assessor', schedule },
   })
 
   const totalSlots = Object.values(schedule).reduce((s, v) => s + (Array.isArray(v) ? v.length : 0), 0)

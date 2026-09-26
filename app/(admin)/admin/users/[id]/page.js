@@ -131,7 +131,9 @@ function ScheduleSection({ template, isAr, isDark }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ color: GOLD, display: 'flex', alignItems: 'center' }}>{IconCalendar}</span>
           <span style={{ fontWeight: 700, fontSize: '.84rem', color: GOLD }}>
-            {isAr ? 'الجدول الأسبوعي' : 'Weekly Availability Schedule'}
+            {template.type === 'teacher'
+              ? (isAr ? 'جدول المعلم الأسبوعي' : 'Teacher Weekly Schedule')
+              : (isAr ? 'جدول المستشار الأسبوعي' : 'Consultant Weekly Schedule')}
           </span>
         </div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
@@ -352,7 +354,7 @@ export default function UserDetailPage() {
           <InfoRow label={isAr ? 'إجمالي الجلسات'     : 'Total Sessions'}       value={(cnt.bookingsAsStudent ?? 0) + (cnt.bookingsAsAssessor ?? 0)} />
           <InfoRow label={isAr ? 'الإشعارات'           : 'Notifications'}        value={cnt.notifications ?? 0} />
           <InfoRow label={isAr ? 'طلبات المواعيد'     : 'Slot Requests'}         value={cnt.slotRequests ?? 0} />
-          <InfoRow label={isAr ? 'جدول التوفر'          : 'Availability Schedule'} value={user.scheduleTemplate ? (isAr ? 'موجود' : 'Configured') : (isAr ? 'غير موجود' : 'Not set')} />
+          <InfoRow label={isAr ? 'جدول التوفر'          : 'Availability Schedule'} value={user.scheduleTemplates?.length ? `${user.scheduleTemplates.length} ${isAr ? 'جدول' : 'schedule(s)'}` : (isAr ? 'غير موجود' : 'Not set')} />
           {user.assessorPreference && (
             <>
               <InfoRow label={isAr ? 'اللهجة المفضّلة' : 'Accent Preference'}   value={user.assessorPreference.accent} />
@@ -374,10 +376,10 @@ export default function UserDetailPage() {
 
       </div>
 
-      {/* Schedule — full width below the grid */}
-      {user.scheduleTemplate && (
-        <ScheduleSection template={user.scheduleTemplate} isAr={isAr} isDark={isDark} />
-      )}
+      {/* Schedules — full width below the grid, one card per type */}
+      {user.scheduleTemplates?.map(t => (
+        <ScheduleSection key={t.id} template={t} isAr={isAr} isDark={isDark} />
+      ))}
     </>
   )
 }

@@ -103,7 +103,7 @@ export async function POST(req) {
     )
   }
 
-  const currentTemplate = await prisma.scheduleTemplate.findUnique({ where: { userId: user.id } })
+  const currentTemplate = await prisma.scheduleTemplate.findUnique({ where: { userId_type: { userId: user.id, type: 'assessor' } } })
 
   const request = await prisma.slotRequest.create({
     data: {

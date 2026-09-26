@@ -14,7 +14,7 @@ export async function GET(request, { params }) {
       include: {
         role: { select: { id: true, name: true, permissions: true } },
         assessorPreference: true,
-        scheduleTemplate: { select: { id: true, schedule: true, createdAt: true, updatedAt: true } },
+        scheduleTemplates: { select: { id: true, type: true, schedule: true, createdAt: true, updatedAt: true }, orderBy: { type: 'asc' } },
         _count: {
           select: {
             bookingsAsStudent:  true,
@@ -34,7 +34,7 @@ export async function GET(request, { params }) {
   /* Deletion-impact (existing behaviour) */
   const [bookingCount, schedule, pendingRequests, payrollCount] = await Promise.all([
     prisma.booking.count({ where: { OR: [{ studentId: id }, { assessorId: id }] } }),
-    prisma.scheduleTemplate.findUnique({ where: { userId: id }, select: { id: true } }),
+    prisma.scheduleTemplate.findFirst({ where: { userId: id }, select: { id: true } }),
     prisma.slotRequest.count({ where: { assessorId: id, status: 'pending' } }),
     prisma.payrollTransfer.count({ where: { assessorId: id } }),
   ])

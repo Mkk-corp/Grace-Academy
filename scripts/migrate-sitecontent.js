@@ -33,10 +33,11 @@ async function migrateSchedules() {
     if (!userExists) { skipped++; continue }
 
     await prisma.scheduleTemplate.upsert({
-      where: { userId },
+      where: { userId_type: { userId, type: 'assessor' } },
       update: { schedule: data.schedule },
       create: {
         userId,
+        type: 'assessor',
         schedule: data.schedule,
         ...(data.lockedAt ? { createdAt: new Date(data.lockedAt) } : {}),
       },

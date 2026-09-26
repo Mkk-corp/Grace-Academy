@@ -58,7 +58,7 @@ export async function POST(req) {
     const dayKey = dateToDayKey(date)
 
     const [templates, pendingRequests] = await Promise.all([
-      prisma.scheduleTemplate.findMany({ select: { userId: true, schedule: true } }),
+      prisma.scheduleTemplate.findMany({ where: { type: 'assessor' }, select: { userId: true, schedule: true } }),
       prisma.slotRequest.findMany({ where: { status: 'pending' }, select: { assessorId: true } }),
     ])
 

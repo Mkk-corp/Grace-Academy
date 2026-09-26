@@ -68,9 +68,9 @@ export async function PUT(req) {
 
   if (action === 'approve') {
     await prisma.scheduleTemplate.upsert({
-      where: { userId: request.assessorId },
+      where: { userId_type: { userId: request.assessorId, type: 'assessor' } },
       update: { schedule: request.proposedSchedule },
-      create: { userId: request.assessorId, schedule: request.proposedSchedule },
+      create: { userId: request.assessorId, type: 'assessor', schedule: request.proposedSchedule },
     })
 
     // Check if the approved schedule now complies with current limits

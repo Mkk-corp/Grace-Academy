@@ -37,7 +37,7 @@ export async function GET() {
   const weekDates = dates.map(d => d.date)
 
   const [templates, pendingRequests, confirmedBookings] = await Promise.all([
-    prisma.scheduleTemplate.findMany({ select: { userId: true, schedule: true } }),
+    prisma.scheduleTemplate.findMany({ where: { type: 'assessor' }, select: { userId: true, schedule: true } }),
     prisma.slotRequest.findMany({ where: { status: 'pending' }, select: { assessorId: true } }),
     prisma.booking.findMany({
       where: { status: 'confirmed', date: { in: weekDates } },
