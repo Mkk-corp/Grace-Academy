@@ -391,7 +391,7 @@ function ForgotPasswordPage() {
             ))}
           </div>
 
-          <div className="fp-left__footer">{isAr ? '© 2025 أكاديمية غريس · العلم نور الحياة' : '© 2025 GRACE ACADEMY · LONG LIVE LEARN'}</div>
+          <div className="fp-left__footer">{isAr ? '© 2026 أكاديمية غريس · العلم نور الحياة' : '© 2026 GRACE ACADEMY · LONG LIVE LEARN'}</div>
         </div>
 
         {/* ── RIGHT ── */}

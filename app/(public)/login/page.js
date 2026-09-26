@@ -326,7 +326,7 @@ function LoginPage() {
             </p>
           </div>
 
-          <p className="lg-footer">{isAr ? '© 2025 أكاديمية غريس · جميع الحقوق محفوظة' : '© 2025 GRACE ACADEMY · ALL RIGHTS RESERVED'}</p>
+          <p className="lg-footer">{isAr ? '© 2026 أكاديمية غريس · جميع الحقوق محفوظة' : '© 2026 GRACE ACADEMY · ALL RIGHTS RESERVED'}</p>
         </div>
       </div>
     </>

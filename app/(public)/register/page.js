@@ -273,7 +273,7 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div className="rg-left__footer">{isAr ? '© 2025 أكاديمية غريس · العلم نور الحياة' : '© 2025 GRACE ACADEMY · LONG LIVE LEARN'}</div>
+          <div className="rg-left__footer">{isAr ? '© 2026 أكاديمية غريس · العلم نور الحياة' : '© 2026 GRACE ACADEMY · LONG LIVE LEARN'}</div>
         </div>
 
         {/* RIGHT */}
@@ -430,7 +430,7 @@ export default function RegisterPage() {
             )}
 
             <p style={{ textAlign: 'center', marginTop: 28, fontSize: '.68rem', letterSpacing: isAr ? 0 : '.07em', color: footerClr }}>
-              {isAr ? '© 2025 أكاديمية غريس · جميع الحقوق محفوظة' : '© 2025 GRACE ACADEMY · LONG LIVE LEARN'}
+              {isAr ? '© 2026 أكاديمية غريس · جميع الحقوق محفوظة' : '© 2026 GRACE ACADEMY · LONG LIVE LEARN'}
             </p>
           </div>
         </div>

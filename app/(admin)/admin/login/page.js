@@ -544,7 +544,7 @@ export default function AdminLoginPage() {
           </div>
 
           <p className="login-right__footer">
-            © 2025 GRACE ACADEMY · ADMIN PORTAL
+            © 2026 GRACE ACADEMY · ADMIN PORTAL
           </p>
         </div>
 

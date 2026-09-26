@@ -181,7 +181,7 @@ export default function Footer() {
           </div>
           <div className="footer__dev">
             <span>{t('footerDev')}</span>
-            <img src="/images/dev-logo.png" alt="Developer" className="footer__dev-logo" />
+            <img src="/images/dev-logo.png" alt="Developer" className="footer__dev-logo" style={{ height: '32px', width: 'auto' }} />
           </div>
         </div>
       </div>
