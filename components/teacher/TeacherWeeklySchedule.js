@@ -327,9 +327,10 @@ export default function TeacherWeeklySchedule({ isAr, isDark, onScheduleSaved })
     try {
       const res  = await fetch('/api/teacher/schedule')
       const json = await res.json()
-      setScheduleData(json.schedule || null)
+      setScheduleData(json.schedule ?? null)
     } catch (e) {
       console.error(e)
+      setScheduleData(null)
     } finally {
       setLoading(false)
     }
@@ -466,7 +467,7 @@ export default function TeacherWeeklySchedule({ isAr, isDark, onScheduleSaved })
         )}
 
         {/* INITIAL SETUP */}
-        {scheduleData === null && (
+        {!scheduleData && (
           <>
             {/* Sticky stats bar */}
             <div style={{
