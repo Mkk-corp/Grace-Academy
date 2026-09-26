@@ -248,7 +248,7 @@ export default function CoursesClient() {
               <p className="courses-pub-cta__sub">
                 {isAr
                   ? 'تواصل معنا وسنبني برنامجاً مخصصاً يناسب أهدافك تماماً.'
-                  : 'Contact us and we'll build a custom programme perfectly matched to your goals.'}
+                  : "Contact us and we'll build a custom programme perfectly matched to your goals."}
               </p>
               <Link href="/contact" className="courses-pub-cta__btn">
                 {t('coursesPageContact')}
