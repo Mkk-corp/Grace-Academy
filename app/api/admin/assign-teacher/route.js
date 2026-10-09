@@ -14,9 +14,15 @@ export async function GET(req) {
   const courseId = searchParams.get('courseId')
   if (!courseId) return NextResponse.json({ error: 'courseId required' }, { status: 400 })
 
+  const teacherRoles = await prisma.role.findMany({
+    where: { permissions: { has: 'access_teacher_portal' } },
+    select: { id: true },
+  })
+  const teacherRoleIds = teacherRoles.map(r => r.id)
+
   const [teachers, assigned, course] = await Promise.all([
     prisma.user.findMany({
-      where: { role: { name: 'teacher' } },
+      where: { roleId: { in: teacherRoleIds } },
       select: { id: true, name: true, email: true, avatar: true, phone: true, englishLevel: true },
       orderBy: { name: 'asc' },
     }),
