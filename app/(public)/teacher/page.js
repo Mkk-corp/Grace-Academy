@@ -14,102 +14,348 @@ import TeacherWeeklySchedule from '@/components/teacher/TeacherWeeklySchedule'
 import TeacherSlotRequests from '@/components/teacher/TeacherSlotRequests'
 import NotificationBell from '@/components/ui/NotificationBell'
 
-/* ─── Assigned Courses tab ──────────────────────────────────────── */
-function AssignedCoursesTab({ isAr }) {
-  const [courses, setCourses] = useState([])
-  const [loading, setLoading] = useState(true)
+/* ─── Assigned Courses tab (gamified) ──────────────────────────── */
+const LEVEL_META = {
+  A1: { color: '#10b981', label: 'Beginner',       labelAr: 'مبتدئ',       emoji: '🌱' },
+  A2: { color: '#06b6d4', label: 'Elementary',     labelAr: 'ابتدائي',     emoji: '💧' },
+  B1: { color: '#3b82f6', label: 'Intermediate',   labelAr: 'متوسط',       emoji: '⚡' },
+  B2: { color: '#6366f1', label: 'Upper-Inter.',   labelAr: 'فوق المتوسط', emoji: '🔮' },
+  C1: { color: '#8b5cf6', label: 'Advanced',       labelAr: 'متقدم',       emoji: '🏆' },
+  C2: { color: '#c9932c', label: 'Mastery',        labelAr: 'إتقان',       emoji: '👑' },
+}
+
+function AssignedCoursesTab({ isAr, isDark }) {
+  const [courses,    setCourses]    = useState([])
+  const [loading,    setLoading]    = useState(true)
+  const [expanded,   setExpanded]   = useState(null)
+  const [newCourse,  setNewCourse]  = useState(null) // course to show in popup
+  const [popupDone,  setPopupDone]  = useState(false)
 
   useEffect(() => {
     fetch('/api/teacher/assigned-courses')
       .then(r => r.json())
-      .then(d => { setCourses(d.courses || []); setLoading(false) })
+      .then(d => {
+        const list = d.courses || []
+        setCourses(list)
+        setLoading(false)
+
+        /* One-time new-assignment popup logic */
+        if (list.length === 0) return
+        try {
+          const seenTs = localStorage.getItem('ga_teacher_last_assignment_seen') || '0'
+          const seenDate = new Date(seenTs === '0' ? 0 : seenTs)
+          /* Find courses assigned after the last-seen timestamp */
+          const fresh = list
+            .filter(c => new Date(c.assignedAt) > seenDate)
+            .sort((a, b) => new Date(b.assignedAt) - new Date(a.assignedAt))
+          if (fresh.length > 0 && !popupDone) {
+            setNewCourse(fresh[0])
+          }
+        } catch {}
+      })
       .catch(() => setLoading(false))
   }, [])
 
-  const LEVEL_COLORS = { A1:'#10b981',A2:'#06b6d4',B1:'#3b82f6',B2:'#6366f1',C1:'#8b5cf6',C2:'#c9932c' }
+  function dismissPopup() {
+    try {
+      /* Mark all currently-assigned courses as seen */
+      const latest = courses.reduce((max, c) => {
+        const t = new Date(c.assignedAt)
+        return t > max ? t : max
+      }, new Date(0))
+      localStorage.setItem('ga_teacher_last_assignment_seen', latest.toISOString())
+    } catch {}
+    setNewCourse(null)
+    setPopupDone(true)
+  }
+
+  const totalSessions = courses.reduce((s, c) => s + (c.durationSessions || 0), 0)
+  const totalMonths   = courses.reduce((s, c) => s + (c.durationMonths   || 0), 0)
+  const uniqueLevels  = [...new Set(courses.map(c => c.level).filter(Boolean))]
 
   if (loading) return (
-    <div style={{ padding: '60px 24px', textAlign: 'center', color: 'var(--tc-muted)' }}>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'tcSpin .7s linear infinite', display:'inline-block' }}>
+    <div style={{ padding: '80px 24px', textAlign: 'center', color: 'var(--tc-muted)' }}>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'tcSpin .7s linear infinite', display:'inline-block' }}>
         <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
       </svg>
     </div>
   )
 
   return (
-    <div style={{ padding: '28px 24px', maxWidth: 980, margin: '0 auto' }}>
-      <style>{`@keyframes tcSpin{to{transform:rotate(360deg)}}`}</style>
+    <>
+      <style>{`
+        @keyframes tcSpin{to{transform:rotate(360deg)}}
+        @keyframes acFadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+        @keyframes acCardIn{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:none}}
+        @keyframes acPop{0%{transform:scale(.5) rotate(-15deg)}70%{transform:scale(1.08) rotate(3deg)}100%{transform:scale(1) rotate(0deg)}}
+        @keyframes acFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+        @keyframes acStar{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.18) rotate(10deg)}}
+        @keyframes acConfetti0{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(-90px,180px) rotate(540deg);opacity:0}}
+        @keyframes acConfetti1{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(60px,200px) rotate(-480deg);opacity:0}}
+        @keyframes acConfetti2{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(110px,160px) rotate(600deg);opacity:0}}
+        @keyframes acConfetti3{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(-50px,220px) rotate(-360deg);opacity:0}}
+        @keyframes acConfetti4{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(80px,240px) rotate(420deg);opacity:0}}
+        @keyframes acConfetti5{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(-120px,190px) rotate(-540deg);opacity:0}}
+        @keyframes acBounceIn{0%{opacity:0;transform:scale(.4)}60%{transform:scale(1.1)}80%{transform:scale(.95)}100%{opacity:1;transform:scale(1)}}
+        @keyframes acShimmer{0%{background-position:-200% center}100%{background-position:200% center}}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-        <div style={{ width: 38, height: 38, borderRadius: 10, background: 'var(--tc-gold-bg)', border: '1px solid var(--tc-gold-bd)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Icon name="assign" size={18} color="var(--tc-gold)" />
-        </div>
-        <div>
-          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: 'var(--tc-text)' }}>
-            {isAr ? 'الدورات المعيّنة' : 'Assigned Courses'}
-          </h2>
-          <p style={{ margin: 0, fontSize: '.78rem', color: 'var(--tc-muted)' }}>
-            {isAr ? `${courses.length} دورة معيّنة لك` : `${courses.length} course${courses.length !== 1 ? 's' : ''} assigned to you`}
-          </p>
-        </div>
-      </div>
+        .ac-card{transition:transform .22s ease,box-shadow .22s ease;cursor:pointer}
+        .ac-card:hover{transform:translateY(-4px) scale(1.015);box-shadow:0 12px 40px rgba(0,0,0,.16) !important}
 
-      {courses.length === 0 ? (
-        <div style={{ background: 'var(--tc-surface)', border: '1px solid var(--tc-border)', borderRadius: 16, padding: '56px 32px', textAlign: 'center' }}>
-          <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--tc-gold-bg)', border: '1px solid var(--tc-gold-bd)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-            <Icon name="assign" size={24} color="var(--tc-gold)" />
+        .ac-stat-chip{transition:transform .18s,box-shadow .18s}
+        .ac-stat-chip:hover{transform:scale(1.04);box-shadow:0 6px 20px rgba(0,0,0,.14)}
+
+        .ac-lvl-badge{
+          background-size:200% auto;
+          animation:acShimmer 2.5s linear infinite;
+        }
+      `}</style>
+
+      {/* ── One-time new assignment popup ── */}
+      {newCourse && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.7)', backdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          onClick={e => e.target === e.currentTarget && dismissPopup()}
+        >
+          {/* Confetti pieces */}
+          {['#c9932c','#10b981','#6366f1','#ef4444','#06b6d4','#f59e0b'].map((col, i) => (
+            <div key={i} style={{ position: 'fixed', top: '35%', left: '50%', width: i % 2 === 0 ? 10 : 8, height: i % 2 === 0 ? 10 : 14, borderRadius: i % 3 === 0 ? 2 : '50%', background: col, animation: `acConfetti${i} ${1.6 + i * 0.18}s ease-out ${0.3 + i * 0.12}s both`, pointerEvents: 'none', zIndex: 1001 }} />
+          ))}
+
+          <div style={{ background: isDark ? '#10222b' : '#fff', borderRadius: 24, maxWidth: 460, width: '100%', padding: '36px 32px', textAlign: 'center', boxShadow: '0 32px 80px rgba(0,0,0,.45)', animation: 'acBounceIn .5s cubic-bezier(.34,1.56,.64,1)', position: 'relative', overflow: 'hidden' }}>
+            {/* Background glow */}
+            <div style={{ position: 'absolute', top: -60, left: '50%', transform: 'translateX(-50%)', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,147,44,.14) 0%, transparent 65%)', pointerEvents: 'none' }} />
+
+            {/* Illustration */}
+            <div style={{ animation: 'acFloat 3s ease-in-out infinite', marginBottom: 20 }}>
+              <img src="/images/assign-course.svg" alt="" width="150" style={{ display: 'inline-block', filter: isDark ? 'none' : 'drop-shadow(0 8px 24px rgba(201,147,44,.25))' }} />
+            </div>
+
+            {/* Stars */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 12 }}>
+              {[0, 0.15, 0.3].map((d, i) => (
+                <svg key={i} viewBox="0 0 24 24" width="20" height="20" fill="#f59e0b" style={{ animation: `acStar 1.8s ease-in-out ${d}s infinite` }}>
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+              ))}
+            </div>
+
+            <div style={{ fontSize: '.78rem', fontWeight: 800, letterSpacing: '.16em', textTransform: 'uppercase', color: '#c9932c', marginBottom: 10 }}>
+              {isAr ? '🎉 تعيين جديد' : '🎉 New Assignment'}
+            </div>
+            <h2 style={{ fontSize: 'clamp(1.1rem, 3vw, 1.5rem)', fontWeight: 900, color: isDark ? '#f1f5f9' : '#111827', lineHeight: 1.25, marginBottom: 8 }}>
+              {isAr ? 'مبروك! تم تعيينك لدورة جديدة' : "Congratulations! You've been assigned a new course"}
+            </h2>
+
+            {/* Course name pill */}
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 100, background: 'rgba(201,147,44,.1)', border: '1.5px solid rgba(201,147,44,.35)', marginBottom: 16, maxWidth: '100%' }}>
+              {newCourse.level && (() => {
+                const lm = LEVEL_META[newCourse.level]
+                return lm ? (
+                  <span style={{ fontSize: '.72rem', fontWeight: 800, padding: '2px 8px', borderRadius: 100, background: `${lm.color}20`, border: `1px solid ${lm.color}40`, color: lm.color, flexShrink: 0 }}>{newCourse.level}</span>
+                ) : null
+              })()}
+              <span style={{ fontWeight: 700, fontSize: '.9rem', color: '#c9932c', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {isAr ? (newCourse.nameAr || newCourse.nameEn) : newCourse.nameEn}
+              </span>
+            </div>
+
+            <p style={{ fontSize: '.84rem', color: isDark ? 'rgba(255,255,255,.5)' : '#6b7280', lineHeight: 1.65, marginBottom: 24, maxWidth: 340, margin: '0 auto 24px' }}>
+              {isAr
+                ? 'أنت الآن مسؤول عن تدريس هذه الدورة. استكشفها من تبويب الدورات المعيّنة.'
+                : "You're now responsible for teaching this course. Explore it in your Assigned Courses tab."}
+            </p>
+
+            <button
+              onClick={dismissPopup}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '14px 40px', borderRadius: 100, background: 'linear-gradient(135deg, #c9932c, #e8b455)', border: 'none', color: '#fff', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 8px 28px rgba(201,147,44,.45)', transition: 'all .2s' }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.boxShadow = '0 12px 36px rgba(201,147,44,.55)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(201,147,44,.45)' }}
+            >
+              {isAr ? "هيا نبدأ! 🚀" : "Let's Go! 🚀"}
+            </button>
           </div>
-          <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--tc-text)', marginBottom: 8 }}>
-            {isAr ? 'لا توجد دورات معيّنة بعد' : 'No courses assigned yet'}
-          </div>
-          <div style={{ fontSize: '.84rem', color: 'var(--tc-muted)', maxWidth: 360, margin: '0 auto' }}>
-            {isAr ? 'سيقوم الإدارة بتعيين الدورات لك قريباً.' : 'The admin will assign courses to you soon. You\'ll receive an email notification.'}
-          </div>
-        </div>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 16 }}>
-          {courses.map(course => {
-            const name = isAr ? (course.nameAr || course.nameEn) : course.nameEn
-            const catName = isAr ? (course.category?.nameAr || course.category?.nameEn) : course.category?.nameEn
-            const levelColor = LEVEL_COLORS[course.level] || '#c9932c'
-            return (
-              <div key={course.id} style={{ background: 'var(--tc-surface)', border: '1px solid var(--tc-border)', borderRadius: 14, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                {course.image ? (
-                  <div style={{ height: 130, overflow: 'hidden', background: 'var(--tc-hover)' }}>
-                    <img src={course.image} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={e => { e.currentTarget.parentElement.style.display = 'none' }} />
-                  </div>
-                ) : (
-                  <div style={{ height: 130, background: 'linear-gradient(135deg,rgba(201,147,44,.08),rgba(201,147,44,.03))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Icon name="book" size={40} color="var(--tc-gold)" />
-                  </div>
-                )}
-                <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-                    <div style={{ fontSize: '.92rem', fontWeight: 700, color: 'var(--tc-text)', lineHeight: 1.35, flex: 1 }}>{name}</div>
-                    {course.level && (
-                      <span style={{ fontSize: '.62rem', fontWeight: 800, padding: '2px 8px', borderRadius: 100, background: `${levelColor}18`, border: `1.5px solid ${levelColor}40`, color: levelColor, flexShrink: 0, letterSpacing: '.06em' }}>
-                        {course.level}
-                      </span>
-                    )}
-                  </div>
-                  {catName && (
-                    <span style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--tc-gold)', background: 'var(--tc-gold-bg)', padding: '2px 10px', borderRadius: 100, alignSelf: 'flex-start' }}>{catName}</span>
-                  )}
-                  <div style={{ display: 'flex', gap: 10, fontSize: '.74rem', color: 'var(--tc-muted)', marginTop: 4 }}>
-                    {course.durationSessions && <span>{course.durationSessions} {isAr ? 'جلسة' : 'sessions'}</span>}
-                    {course.durationMonths && <><span>·</span><span>{course.durationMonths} {isAr ? 'شهر' : 'months'}</span></>}
-                  </div>
-                  <div style={{ marginTop: 'auto', paddingTop: 10, borderTop: '1px solid var(--tc-border)', display: 'flex', alignItems: 'center', gap: 5, fontSize: '.7rem', color: 'var(--tc-xmuted)' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="11" height="11"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                    {isAr ? 'تاريخ التعيين:' : 'Assigned:'} {new Date(course.assignedAt).toLocaleDateString(isAr ? 'ar' : 'en', { year:'numeric', month:'short', day:'numeric' })}
-                  </div>
-                </div>
-              </div>
-            )
-          })}
         </div>
       )}
-    </div>
+
+      {/* ── Main tab content ── */}
+      <div style={{ padding: '28px 24px', maxWidth: 980, margin: '0 auto' }}>
+
+        {/* Hero header */}
+        <div style={{ background: 'linear-gradient(135deg, #0a1822 0%, #10222b 100%)', borderRadius: 18, padding: '28px 32px', marginBottom: 26, position: 'relative', overflow: 'hidden', animation: 'acFadeUp .3s ease' }}>
+          <div style={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,147,44,.2) 0%, transparent 65%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', bottom: -30, left: '20%', width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,.15) 0%, transparent 65%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <div style={{ fontSize: '.7rem', fontWeight: 800, letterSpacing: '.18em', color: 'rgba(201,147,44,.7)', marginBottom: 6 }}>
+                {isAr ? 'بوابة المعلم' : 'TEACHER PORTAL'}
+              </div>
+              <h2 style={{ fontSize: 'clamp(1.1rem, 2.5vw, 1.5rem)', fontWeight: 900, color: '#fff', lineHeight: 1.2, marginBottom: 6, margin: 0 }}>
+                {isAr ? 'الدورات المعيّنة' : 'Assigned Courses'}
+              </h2>
+              <p style={{ margin: '6px 0 0', fontSize: '.82rem', color: 'rgba(255,255,255,.4)' }}>
+                {courses.length === 0
+                  ? (isAr ? 'لم يتم تعيين أي دورات بعد' : 'No courses assigned yet')
+                  : isAr
+                    ? `${courses.length} دورة معيّنة لك`
+                    : `${courses.length} course${courses.length !== 1 ? 's' : ''} assigned to you`}
+              </p>
+            </div>
+            {courses.length > 0 && (
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                {[
+                  { val: courses.length, label: isAr ? 'دورة' : 'Courses', color: '#c9932c' },
+                  { val: totalSessions || '—', label: isAr ? 'جلسة' : 'Sessions', color: '#6366f1' },
+                  { val: totalMonths   || '—', label: isAr ? 'شهر' : 'Months',   color: '#10b981' },
+                ].map(s => (
+                  <div key={s.label} className="ac-stat-chip" style={{ background: `${s.color}14`, border: `1px solid ${s.color}30`, borderRadius: 12, padding: '10px 16px', textAlign: 'center', minWidth: 72, cursor: 'default' }}>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.val}</div>
+                    <div style={{ fontSize: '.65rem', color: 'rgba(255,255,255,.45)', marginTop: 3 }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Level coverage badges */}
+        {uniqueLevels.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 22, flexWrap: 'wrap', animation: 'acFadeUp .35s ease' }}>
+            <span style={{ fontSize: '.72rem', fontWeight: 700, color: 'var(--tc-muted)', letterSpacing: '.08em' }}>
+              {isAr ? 'المستويات:' : 'LEVELS:'}
+            </span>
+            {uniqueLevels.sort().map(lvl => {
+              const lm = LEVEL_META[lvl]
+              if (!lm) return null
+              return (
+                <span key={lvl} className="ac-lvl-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: '.72rem', fontWeight: 800, padding: '4px 12px', borderRadius: 100, background: `linear-gradient(90deg, ${lm.color}22, ${lm.color}10, ${lm.color}22)`, border: `1.5px solid ${lm.color}45`, color: lm.color, letterSpacing: '.05em', animation: 'acShimmer 2.5s linear infinite', backgroundSize: '200% auto' }}>
+                  {lm.emoji} {lvl} <span style={{ fontWeight: 600, opacity: .75 }}>· {isAr ? lm.labelAr : lm.label}</span>
+                </span>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {courses.length === 0 && (
+          <div style={{ background: 'var(--tc-surface)', border: '1.5px dashed var(--tc-border)', borderRadius: 20, padding: '64px 32px', textAlign: 'center', animation: 'acFadeUp .3s ease' }}>
+            <div style={{ animation: 'acFloat 3.5s ease-in-out infinite', marginBottom: 24 }}>
+              <img src="/images/assign-course.svg" alt="" width="140" style={{ opacity: .65 }} />
+            </div>
+            <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--tc-text)', marginBottom: 10 }}>
+              {isAr ? 'لا توجد دورات معيّنة بعد' : 'No courses assigned yet'}
+            </div>
+            <div style={{ fontSize: '.84rem', color: 'var(--tc-muted)', maxWidth: 380, margin: '0 auto', lineHeight: 1.65 }}>
+              {isAr ? 'سيقوم الإدارة بتعيين الدورات لك قريباً. ستصلك رسالة بريد إلكتروني وإشعار عند التعيين.' : "The admin will assign courses to you soon. You'll receive an email and in-app notification when that happens."}
+            </div>
+          </div>
+        )}
+
+        {/* Course cards grid */}
+        {courses.length > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(295px, 1fr))', gap: 18 }}>
+            {courses.map((course, idx) => {
+              const name     = isAr ? (course.nameAr || course.nameEn) : course.nameEn
+              const catName  = isAr ? (course.category?.nameAr || course.category?.nameEn) : course.category?.nameEn
+              const lm       = LEVEL_META[course.level] || null
+              const isOpen   = expanded === course.id
+
+              return (
+                <div
+                  key={course.id}
+                  className="ac-card"
+                  onClick={() => setExpanded(isOpen ? null : course.id)}
+                  style={{ background: 'var(--tc-surface)', border: `1px solid ${isOpen ? (lm?.color + '50' || 'var(--tc-border)') : 'var(--tc-border)'}`, borderRadius: 16, overflow: 'hidden', display: 'flex', flexDirection: 'column', animation: `acCardIn .35s ease ${idx * 0.06}s both`, boxShadow: isOpen ? `0 8px 30px ${lm?.color || '#c9932c'}22` : 'var(--tc-shadow)', position: 'relative' }}
+                >
+                  {/* Level-colored header strip */}
+                  <div style={{ height: 5, background: lm ? `linear-gradient(90deg, ${lm.color}, ${lm.color}88)` : 'var(--tc-gold)', flexShrink: 0 }} />
+
+                  {/* Course image or gradient placeholder */}
+                  {course.image ? (
+                    <div style={{ height: 128, overflow: 'hidden', background: 'var(--tc-hover)', flexShrink: 0 }}>
+                      <img src={course.image} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform .35s ease' }}
+                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
+                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                        onError={e => { e.currentTarget.parentElement.style.display = 'none' }} />
+                    </div>
+                  ) : (
+                    <div style={{ height: 100, background: lm ? `linear-gradient(135deg, ${lm.color}14, ${lm.color}06)` : 'linear-gradient(135deg,rgba(201,147,44,.1),rgba(201,147,44,.03))', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ fontSize: '2.5rem', animation: 'acStar 3s ease-in-out infinite' }}>{lm?.emoji || '📘'}</span>
+                    </div>
+                  )}
+
+                  <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {/* Title + level badge */}
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                      <div style={{ fontSize: '.92rem', fontWeight: 800, color: 'var(--tc-text)', lineHeight: 1.35, flex: 1 }}>{name}</div>
+                      {lm && (
+                        <span style={{ fontSize: '.62rem', fontWeight: 800, padding: '3px 9px', borderRadius: 100, background: `${lm.color}18`, border: `1.5px solid ${lm.color}45`, color: lm.color, flexShrink: 0, letterSpacing: '.06em', whiteSpace: 'nowrap' }}>
+                          {course.level}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Category chip */}
+                    {catName && (
+                      <span style={{ fontSize: '.71rem', fontWeight: 600, color: 'var(--tc-gold)', background: 'var(--tc-gold-bg)', border: '1px solid var(--tc-gold-bd)', padding: '3px 10px', borderRadius: 100, alignSelf: 'flex-start' }}>{catName}</span>
+                    )}
+
+                    {/* Duration chips */}
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      {course.durationSessions > 0 && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '.71rem', color: 'var(--tc-muted)', background: isDark ? 'rgba(255,255,255,.04)' : '#f3f4f6', padding: '3px 10px', borderRadius: 100, border: '1px solid var(--tc-border)' }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="10" height="10"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                          {course.durationSessions} {isAr ? 'جلسة' : 'sessions'}
+                        </span>
+                      )}
+                      {course.durationMonths > 0 && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '.71rem', color: 'var(--tc-muted)', background: isDark ? 'rgba(255,255,255,.04)' : '#f3f4f6', padding: '3px 10px', borderRadius: 100, border: '1px solid var(--tc-border)' }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="10" height="10"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                          {course.durationMonths} {isAr ? 'شهر' : 'months'}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Level label row */}
+                    {lm && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, background: `${lm.color}0c`, border: `1px solid ${lm.color}20` }}>
+                        <span style={{ fontSize: '.78rem', fontWeight: 700, color: lm.color }}>{lm.emoji} {isAr ? 'المستوى المطلوب:' : 'Required level:'}</span>
+                        <span style={{ fontSize: '.78rem', fontWeight: 800, color: lm.color }}>{course.level} — {isAr ? lm.labelAr : lm.label}</span>
+                      </div>
+                    )}
+
+                    {/* Expandable detail section */}
+                    {isOpen && (
+                      <div style={{ borderTop: '1px solid var(--tc-border)', paddingTop: 12, animation: 'acFadeUp .18s ease' }}>
+                        {(course.descEn || course.descAr) && (
+                          <p style={{ fontSize: '.82rem', color: 'var(--tc-muted)', lineHeight: 1.65, margin: '0 0 10px' }}>
+                            {isAr ? (course.descAr || course.descEn) : (course.descEn || course.descAr)}
+                          </p>
+                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '.72rem', color: 'var(--tc-xmuted)' }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="11" height="11"><polyline points="20 6 9 17 4 12"/></svg>
+                          {isAr ? 'تاريخ التعيين:' : 'Assigned on:'} {new Date(course.assignedAt).toLocaleDateString(isAr ? 'ar' : 'en', { year:'numeric', month:'long', day:'numeric' })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Footer: expand hint + date */}
+                    <div style={{ marginTop: 'auto', paddingTop: 8, borderTop: isOpen ? 'none' : '1px solid var(--tc-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ fontSize: '.7rem', color: 'var(--tc-xmuted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="10" height="10"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        {new Date(course.assignedAt).toLocaleDateString(isAr ? 'ar' : 'en', { month:'short', day:'numeric', year:'numeric' })}
+                      </div>
+                      <span style={{ fontSize: '.7rem', color: lm?.color || 'var(--tc-gold)', fontWeight: 700 }}>
+                        {isOpen ? (isAr ? 'إخفاء ▲' : 'Less ▲') : (isAr ? 'التفاصيل ▼' : 'Details ▼')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </>
   )
 }
 
@@ -500,7 +746,7 @@ export default function TeacherPage() {
             {activeTab === 'courses'
               ? <div style={{ padding: '24px' }}><CourseCatalog basePath="/teacher/courses" isAr={isAr} isDark={isDark} /></div>
               : activeTab === 'assigned'
-              ? <AssignedCoursesTab isAr={isAr} />
+              ? <AssignedCoursesTab isAr={isAr} isDark={isDark} />
               : activeTab === 'schedule'
               ? <TeacherWeeklySchedule isAr={isAr} isDark={isDark} onScheduleSaved={() => setNeedsOnboarding(false)} />
               : activeTab === 'requests'

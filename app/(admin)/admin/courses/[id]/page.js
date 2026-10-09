@@ -118,26 +118,34 @@ function InfoRow({ label, value, muted, text }) {
 /* ─── Main page ─────────────────────────────────────────────────── */
 
 function AssignTeachersPanel({ courseId, isAr, isDark, surf, border, text, muted, bg }) {
-  const [teachers,   setTeachers]   = useState([])
-  const [loading,    setLoading]    = useState(true)
-  const [search,     setSearch]     = useState('')
-  const [working,    setWorking]    = useState(null) // userId being toggled
+  const [teachers,    setTeachers]    = useState([])
+  const [courseLevel, setCourseLevel] = useState(null)
+  const [loading,     setLoading]     = useState(true)
+  const [working,     setWorking]     = useState(null)
+  const [showModal,   setShowModal]   = useState(false)
+  const [modalSearch, setModalSearch] = useState('')
+  const [selected,    setSelected]    = useState(null)
+  const [assigning,   setAssigning]   = useState(false)
+  const [assignDone,  setAssignDone]  = useState(false) // success flash in modal
 
   function load() {
     setLoading(true)
     fetch(`/api/admin/assign-teacher?courseId=${courseId}`)
       .then(r => r.json())
-      .then(d => { setTeachers(d.teachers || []); setLoading(false) })
+      .then(d => {
+        setTeachers(d.teachers || [])
+        setCourseLevel(d.courseLevel || null)
+        setLoading(false)
+      })
       .catch(() => setLoading(false))
   }
 
   useEffect(() => { load() }, [courseId])
 
-  async function toggle(teacher) {
+  async function removeTeacher(teacher) {
     setWorking(teacher.id)
-    const method = teacher.isAssigned ? 'DELETE' : 'POST'
     await fetch('/api/admin/assign-teacher', {
-      method,
+      method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ courseId, userId: teacher.id }),
     })
@@ -145,107 +153,275 @@ function AssignTeachersPanel({ courseId, isAr, isDark, surf, border, text, muted
     setWorking(null)
   }
 
-  const filtered = search.trim()
-    ? teachers.filter(t => t.name.toLowerCase().includes(search.toLowerCase()) || t.email.toLowerCase().includes(search.toLowerCase()))
-    : teachers
+  async function doAssign() {
+    if (!selected) return
+    setAssigning(true)
+    await fetch('/api/admin/assign-teacher', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ courseId, userId: selected.id }),
+    })
+    setAssignDone(true)
+    setTimeout(async () => {
+      await load()
+      setAssigning(false)
+      setAssignDone(false)
+      setShowModal(false)
+      setSelected(null)
+      setModalSearch('')
+    }, 1400)
+  }
 
-  const assigned   = filtered.filter(t => t.isAssigned)
-  const unassigned = filtered.filter(t => !t.isAssigned)
+  const assigned   = teachers.filter(t => t.isAssigned)
+  const levelInfo  = LEVELS.find(l => l.value === courseLevel)
 
-  const inp = { width: '100%', padding: '9px 12px 9px 36px', borderRadius: 9, border: `1px solid ${border}`, background: bg, color: text, fontSize: '.85rem', fontFamily: 'inherit', outline: 'none' }
+  /* Eligible unassigned for the modal */
+  const eligible = teachers.filter(t => !t.isAssigned && t.isEligible)
+  const modalFiltered = modalSearch.trim()
+    ? eligible.filter(t =>
+        t.name.toLowerCase().includes(modalSearch.toLowerCase()) ||
+        (t.email || '').toLowerCase().includes(modalSearch.toLowerCase())
+      )
+    : eligible
 
   if (loading) return (
     <div style={{ padding: '40px', textAlign: 'center', color: muted, fontSize: '.85rem' }}>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'csSpin .7s linear infinite', display: 'inline-block', marginRight: 8, verticalAlign: 'middle' }}>
         <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
       </svg>
-      {isAr ? 'جارٍ التحميل…' : 'Loading teachers…'}
+      {isAr ? 'جارٍ التحميل…' : 'Loading…'}
     </div>
   )
-
-  if (teachers.length === 0) return (
-    <div style={{ padding: '40px', textAlign: 'center', color: muted }}>
-      <svg viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="1.5" width="36" height="36" style={{ display: 'block', margin: '0 auto 12px' }}>
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-      </svg>
-      <div style={{ fontSize: '.85rem' }}>{isAr ? 'لا يوجد معلمون في النظام بعد.' : 'No teachers in the system yet.'}</div>
-    </div>
-  )
-
-  function TeacherRow({ teacher }) {
-    const busy = working === teacher.id
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 16px', borderRadius: 10, border: `1px solid ${teacher.isAssigned ? BLUE + '30' : border}`, background: teacher.isAssigned ? `${BLUE}06` : surf, marginBottom: 8, transition: 'all .15s' }}>
-        <div style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, background: teacher.isAssigned ? `${BLUE}18` : `${muted}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {teacher.avatar
-            ? <img src={teacher.avatar} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
-            : <svg viewBox="0 0 24 24" fill="none" stroke={teacher.isAssigned ? BLUE : muted} strokeWidth="2" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          }
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: '.87rem', fontWeight: 700, color: text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teacher.name}</div>
-          <div style={{ fontSize: '.74rem', color: muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teacher.email}</div>
-        </div>
-        {teacher.isAssigned && teacher.assignedAt && (
-          <span style={{ fontSize: '.65rem', color: BLUE, fontWeight: 600, flexShrink: 0 }}>
-            {new Date(teacher.assignedAt).toLocaleDateString('en', { month: 'short', day: 'numeric' })}
-          </span>
-        )}
-        <button
-          onClick={() => toggle(teacher)}
-          disabled={busy}
-          style={{
-            flexShrink: 0, padding: '6px 14px', borderRadius: 8, fontSize: '.78rem', fontWeight: 700, fontFamily: 'inherit',
-            cursor: busy ? 'wait' : 'pointer', transition: 'all .15s',
-            border: `1.5px solid ${teacher.isAssigned ? RED + '50' : BLUE + '50'}`,
-            background: teacher.isAssigned ? `${RED}0a` : `${BLUE}0a`,
-            color: teacher.isAssigned ? RED : BLUE,
-            opacity: busy ? .55 : 1,
-          }}
-        >
-          {busy ? '…' : teacher.isAssigned ? (isAr ? 'إزالة' : 'Remove') : (isAr ? 'تعيين' : 'Assign')}
-        </button>
-      </div>
-    )
-  }
 
   return (
-    <div>
-      {/* Search */}
-      <div style={{ position: 'relative', marginBottom: 20 }}>
-        <svg viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2" width="14" height="14" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder={isAr ? 'بحث عن معلم…' : 'Search teachers…'} style={inp} onFocus={e => e.target.style.borderColor = BLUE} onBlur={e => e.target.style.borderColor = border} />
+    <>
+      <style>{`
+        @keyframes atpFadeIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+        @keyframes atpSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+        @keyframes atpPop{0%{transform:scale(.7)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+        @keyframes atpShimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+      `}</style>
+
+      {/* ── Header: assigned count + Assign button ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 14px', borderRadius: 100, background: `${BLUE}0f`, border: `1px solid ${BLUE}28` }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth="2" width="12" height="12"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span style={{ fontSize: '.75rem', fontWeight: 700, color: BLUE }}>{assigned.length} {isAr ? 'معيّن' : 'assigned'}</span>
+          </div>
+          {courseLevel && levelInfo && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 100, background: `${levelInfo.color}0f`, border: `1px solid ${levelInfo.color}28` }}>
+              <span style={{ fontSize: '.7rem', fontWeight: 800, color: levelInfo.color }}>
+                {isAr ? 'يتطلب مستوى' : 'Requires'} {courseLevel}+
+              </span>
+            </div>
+          )}
+        </div>
+        <button
+          onClick={() => { setShowModal(true); setSelected(null); setModalSearch('') }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 11, background: `linear-gradient(135deg, ${GOLD}, #e8b455)`, border: 'none', color: '#fff', fontWeight: 800, fontSize: '.87rem', cursor: 'pointer', fontFamily: 'inherit', boxShadow: `0 4px 18px ${GOLD}40`, transition: 'all .15s' }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 6px 24px ${GOLD}55` }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 4px 18px ${GOLD}40` }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          {isAr ? 'تعيين معلم' : 'Assign Teacher'}
+        </button>
       </div>
 
-      {/* Assigned */}
-      {assigned.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: BLUE, marginBottom: 10 }}>
-            {isAr ? `المعيّنون (${assigned.length})` : `Assigned (${assigned.length})`}
-          </div>
-          {assigned.map(t => <TeacherRow key={t.id} teacher={t} />)}
+      {/* ── Assigned teachers list ── */}
+      {assigned.length === 0 ? (
+        <div style={{ padding: '36px 20px', textAlign: 'center', background: isDark ? 'rgba(255,255,255,.02)' : '#f9fafb', borderRadius: 14, border: `1.5px dashed ${border}` }}>
+          <img src="/images/assign-course.svg" alt="" width="110" style={{ opacity: .6, marginBottom: 12 }} />
+          <div style={{ fontSize: '.85rem', color: muted, fontWeight: 500 }}>{isAr ? 'لم يتم تعيين أي معلم لهذه الدورة بعد.' : 'No teachers assigned to this course yet.'}</div>
+          <div style={{ fontSize: '.78rem', color: muted, opacity: .7, marginTop: 4 }}>{isAr ? 'انقر على "تعيين معلم" لإضافة معلم.' : 'Click "Assign Teacher" to add one.'}</div>
         </div>
-      )}
-
-      {/* Unassigned */}
-      {unassigned.length > 0 && (
+      ) : (
         <div>
-          <div style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: muted, marginBottom: 10 }}>
-            {isAr ? `غير معيّنين (${unassigned.length})` : `Not assigned (${unassigned.length})`}
+          <div style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: BLUE, marginBottom: 12 }}>
+            {isAr ? `المعلمون المعيّنون (${assigned.length})` : `Assigned Teachers (${assigned.length})`}
           </div>
-          {unassigned.map(t => <TeacherRow key={t.id} teacher={t} />)}
+          {assigned.map(t => {
+            const busy = working === t.id
+            const tLevelInfo = LEVELS.find(l => t.englishLevel?.toUpperCase().startsWith(l.value))
+            return (
+              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 12, border: `1px solid ${BLUE}28`, background: isDark ? `${BLUE}08` : `${BLUE}04`, marginBottom: 8, transition: 'all .15s' }}>
+                <div style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, background: `${BLUE}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                  {t.avatar
+                    ? <img src={t.avatar} alt="" style={{ width: 40, height: 40, objectFit: 'cover' }} />
+                    : <svg viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth="2" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  }
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '.87rem', fontWeight: 700, color: text }}>{t.name}</span>
+                    {tLevelInfo && (
+                      <span style={{ fontSize: '.62rem', fontWeight: 800, padding: '1px 8px', borderRadius: 100, background: `${tLevelInfo.color}18`, border: `1px solid ${tLevelInfo.color}40`, color: tLevelInfo.color }}>
+                        {tLevelInfo.value}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '.74rem', color: muted }}>{t.email}</div>
+                </div>
+                {t.assignedAt && (
+                  <span style={{ fontSize: '.65rem', color: BLUE, fontWeight: 600, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                    {new Date(t.assignedAt).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                )}
+                <button
+                  onClick={() => removeTeacher(t)}
+                  disabled={busy}
+                  style={{ flexShrink: 0, padding: '6px 14px', borderRadius: 8, fontSize: '.78rem', fontWeight: 700, fontFamily: 'inherit', cursor: busy ? 'wait' : 'pointer', border: `1.5px solid ${RED}40`, background: `${RED}0a`, color: RED, opacity: busy ? .5 : 1, transition: 'all .15s' }}
+                  onMouseEnter={e => !busy && (e.currentTarget.style.background = `${RED}18`)}
+                  onMouseLeave={e => !busy && (e.currentTarget.style.background = `${RED}0a`)}
+                >
+                  {busy ? '…' : isAr ? 'إزالة' : 'Remove'}
+                </button>
+              </div>
+            )
+          })}
         </div>
       )}
 
-      {filtered.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '24px', color: muted, fontSize: '.84rem' }}>
-          {isAr ? 'لا توجد نتائج' : 'No results'}
+      {/* ── MODAL: Assign Teacher ── */}
+      {showModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.55)', backdropFilter: 'blur(4px)', zIndex: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          onClick={e => { if (e.target === e.currentTarget) { setShowModal(false); setSelected(null); setModalSearch('') } }}
+        >
+          <div style={{ background: surf, border: `1px solid ${border}`, borderRadius: 20, width: '100%', maxWidth: 500, maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,.35)', animation: 'atpFadeIn .2s ease', overflow: 'hidden' }}>
+
+            {/* Modal header */}
+            <div style={{ padding: '20px 24px 16px', borderBottom: `1px solid ${border}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexShrink: 0 }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 9, background: `${GOLD}16`, border: `1px solid ${GOLD}30`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" width="14" height="14"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                  </div>
+                  <span style={{ fontWeight: 800, fontSize: '.95rem', color: text }}>{isAr ? 'تعيين معلم' : 'Assign a Teacher'}</span>
+                </div>
+                {courseLevel && levelInfo && (
+                  <div style={{ fontSize: '.74rem', color: muted }}>
+                    {isAr
+                      ? `يعرض المعلمين بمستوى ${courseLevel} أو أعلى`
+                      : `Showing teachers with level ${courseLevel} or higher`}
+                  </div>
+                )}
+              </div>
+              <button onClick={() => { setShowModal(false); setSelected(null); setModalSearch('') }}
+                style={{ width: 30, height: 30, borderRadius: 8, background: 'none', border: `1px solid ${border}`, color: muted, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+
+            {/* Search */}
+            <div style={{ padding: '14px 24px 10px', flexShrink: 0 }}>
+              <div style={{ position: 'relative' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2" width="14" height="14" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input
+                  autoFocus
+                  value={modalSearch}
+                  onChange={e => setModalSearch(e.target.value)}
+                  placeholder={isAr ? 'بحث باسم أو بريد…' : 'Search by name or email…'}
+                  style={{ width: '100%', padding: '9px 12px 9px 34px', borderRadius: 9, border: `1px solid ${border}`, background: bg, color: text, fontSize: '.85rem', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
+                  onFocus={e => e.target.style.borderColor = GOLD}
+                  onBlur={e => e.target.style.borderColor = border}
+                />
+              </div>
+            </div>
+
+            {/* Teacher list */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '4px 24px 16px' }}>
+              {eligible.length === 0 ? (
+                <div style={{ padding: '28px 0', textAlign: 'center', color: muted }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="1.5" width="32" height="32" style={{ display: 'block', margin: '0 auto 10px' }}>
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                  <div style={{ fontSize: '.84rem' }}>
+                    {isAr ? 'لا يوجد معلمون مؤهلون غير معيّنين.' : 'No eligible unassigned teachers.'}
+                  </div>
+                  {courseLevel && (
+                    <div style={{ fontSize: '.75rem', opacity: .7, marginTop: 4 }}>
+                      {isAr ? `يحتاج هذا الكورس معلمين بمستوى ${courseLevel} أو أعلى.` : `This course requires level ${courseLevel} or higher.`}
+                    </div>
+                  )}
+                </div>
+              ) : modalFiltered.length === 0 ? (
+                <div style={{ padding: '20px 0', textAlign: 'center', color: muted, fontSize: '.84rem' }}>
+                  {isAr ? 'لا توجد نتائج' : 'No results'}
+                </div>
+              ) : modalFiltered.map(t => {
+                const isSel = selected?.id === t.id
+                const tLevelInfo = LEVELS.find(l => t.englishLevel?.toUpperCase().startsWith(l.value))
+                return (
+                  <div
+                    key={t.id}
+                    onClick={() => setSelected(isSel ? null : t)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderRadius: 12, border: `1.5px solid ${isSel ? GOLD + '60' : border}`, background: isSel ? `${GOLD}08` : (isDark ? 'rgba(255,255,255,.02)' : '#fafafa'), marginBottom: 8, cursor: 'pointer', transition: 'all .15s', position: 'relative' }}
+                    onMouseEnter={e => !isSel && (e.currentTarget.style.borderColor = GOLD + '30')}
+                    onMouseLeave={e => !isSel && (e.currentTarget.style.borderColor = border)}
+                  >
+                    {isSel && (
+                      <div style={{ position: 'absolute', top: -8, right: -8, width: 20, height: 20, borderRadius: '50%', background: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'atpPop .2s ease', zIndex: 1 }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" width="10" height="10"><polyline points="20 6 9 17 4 12"/></svg>
+                      </div>
+                    )}
+                    <div style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, background: isSel ? `${GOLD}20` : `${muted}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: isSel ? `2px solid ${GOLD}50` : '2px solid transparent' }}>
+                      {t.avatar
+                        ? <img src={t.avatar} alt="" style={{ width: 40, height: 40, objectFit: 'cover' }} />
+                        : <svg viewBox="0 0 24 24" fill="none" stroke={isSel ? GOLD : muted} strokeWidth="2" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                      }
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '.87rem', fontWeight: 700, color: isSel ? GOLD : text }}>{t.name}</span>
+                        {tLevelInfo && (
+                          <span style={{ fontSize: '.62rem', fontWeight: 800, padding: '1px 8px', borderRadius: 100, background: `${tLevelInfo.color}18`, border: `1px solid ${tLevelInfo.color}40`, color: tLevelInfo.color }}>
+                            {tLevelInfo.value}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '.74rem', color: muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.email}</div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Modal footer */}
+            <div style={{ padding: '14px 24px 20px', borderTop: `1px solid ${border}`, flexShrink: 0 }}>
+              {assignDone ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '12px', borderRadius: 12, background: `${GREEN}10`, border: `1px solid ${GREEN}30`, color: GREEN, fontWeight: 700, fontSize: '.88rem', animation: 'atpSlideUp .2s ease' }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+                  {isAr ? 'تم التعيين بنجاح!' : 'Teacher assigned successfully!'}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  {selected && (
+                    <div style={{ flex: 1, fontSize: '.8rem', color: muted }}>
+                      <span style={{ color: text, fontWeight: 600 }}>{selected.name}</span>
+                      {isAr ? ' محدد' : ' selected'}
+                    </div>
+                  )}
+                  <button
+                    onClick={doAssign}
+                    disabled={!selected || assigning}
+                    style={{ flex: selected ? 'none' : 1, padding: '11px 28px', borderRadius: 11, background: selected ? `linear-gradient(135deg, ${GOLD}, #e8b455)` : (isDark ? 'rgba(255,255,255,.06)' : '#f3f4f6'), border: 'none', color: selected ? '#fff' : muted, fontWeight: 800, fontSize: '.88rem', cursor: selected && !assigning ? 'pointer' : 'default', fontFamily: 'inherit', transition: 'all .2s', boxShadow: selected ? `0 4px 18px ${GOLD}35` : 'none', opacity: assigning ? .7 : 1 }}
+                  >
+                    {assigning
+                      ? (isAr ? 'جارٍ التعيين…' : 'Assigning…')
+                      : selected
+                        ? (isAr ? `تعيين ${selected.name}` : `Assign ${selected.name}`)
+                        : (isAr ? 'اختر معلماً' : 'Select a teacher')}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
 

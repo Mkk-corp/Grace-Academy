@@ -14,26 +14,43 @@ export async function GET(req) {
   const courseId = searchParams.get('courseId')
   if (!courseId) return NextResponse.json({ error: 'courseId required' }, { status: 400 })
 
-  const [teachers, assigned] = await Promise.all([
+  const [teachers, assigned, course] = await Promise.all([
     prisma.user.findMany({
       where: { role: { name: 'teacher' } },
-      select: { id: true, name: true, email: true, avatar: true, phone: true },
+      select: { id: true, name: true, email: true, avatar: true, phone: true, englishLevel: true },
       orderBy: { name: 'asc' },
     }),
     prisma.teacherCourse.findMany({
       where: { courseId },
       select: { userId: true, assignedAt: true },
     }),
+    prisma.course.findUnique({ where: { id: courseId }, select: { level: true } }),
   ])
+
+  const LEVEL_ORDER = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
+  const courseLevel = course?.level || null
+  const courseLevelIdx = LEVEL_ORDER.indexOf(courseLevel)
+
+  function extractLevel(str) {
+    if (!str) return null
+    const up = str.toUpperCase().trim()
+    return LEVEL_ORDER.find(l => up.startsWith(l)) || null
+  }
 
   const assignedSet = new Map(assigned.map(a => [a.userId, a.assignedAt]))
 
   return NextResponse.json({
-    teachers: teachers.map(t => ({
-      ...t,
-      isAssigned: assignedSet.has(t.id),
-      assignedAt: assignedSet.get(t.id) || null,
-    })),
+    courseLevel,
+    teachers: teachers.map(t => {
+      const tl = extractLevel(t.englishLevel)
+      const tlIdx = LEVEL_ORDER.indexOf(tl)
+      return {
+        ...t,
+        isAssigned: assignedSet.has(t.id),
+        assignedAt: assignedSet.get(t.id) || null,
+        isEligible: courseLevel === null || tlIdx === -1 || tlIdx >= courseLevelIdx,
+      }
+    }),
   })
 }
 
