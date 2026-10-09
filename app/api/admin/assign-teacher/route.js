@@ -75,6 +75,18 @@ export async function POST(req) {
     ip: hdrs.get('x-forwarded-for') || '',
   })
 
+  // In-app notification
+  await prisma.notification.create({
+    data: {
+      recipientType: 'user',
+      recipientId: userId,
+      type: 'course_assigned',
+      title: 'New Course Assigned',
+      body: `You have been assigned to teach "${course.nameEn}".`,
+      meta: { courseId, courseNameEn: course.nameEn, courseNameAr: course.nameAr, portalPath: '/teacher' },
+    },
+  })
+
   // Send assignment email (non-blocking)
   sendCourseAssignmentEmail({
     to: teacher.email,
@@ -98,10 +110,24 @@ export async function DELETE(req) {
   const { courseId, userId } = await req.json()
   if (!courseId || !userId) return NextResponse.json({ error: 'courseId and userId required' }, { status: 400 })
 
+  const course = await prisma.course.findUnique({ where: { id: courseId }, select: { nameEn: true, nameAr: true } })
+
   await prisma.teacherCourse.deleteMany({ where: { userId, courseId } })
 
   const count = await prisma.teacherCourse.count({ where: { courseId } })
   await prisma.course.update({ where: { id: courseId }, data: { teacherCount: count } })
+
+  // In-app notification
+  await prisma.notification.create({
+    data: {
+      recipientType: 'user',
+      recipientId: userId,
+      type: 'course_unassigned',
+      title: 'Course Removed',
+      body: `You have been removed from "${course?.nameEn || 'a course'}".`,
+      meta: { courseId, courseNameEn: course?.nameEn, courseNameAr: course?.nameAr, portalPath: '/teacher' },
+    },
+  })
 
   const hdrs = await headers()
   await logAudit({

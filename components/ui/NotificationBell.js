@@ -15,14 +15,19 @@ function timeAgo(iso) {
   return `${Math.floor(h / 24)}d ago`
 }
 
-function getNavTarget(notif) {
+function getNavTarget(notif, portalPath) {
   const t = notif?.type
+  const meta = notif?.meta || {}
   if (t === 'slot_request') return '/admin/requests'
-  if (t === 'slot_request_resolved') return '/assessor'
+  if (t === 'slot_request_resolved') return meta.portalPath || portalPath
+  if (t === 'course_assigned')           return meta.portalPath || portalPath
+  if (t === 'course_unassigned')         return meta.portalPath || portalPath
+  if (t === 'schedule_limits_updated')   return meta.portalPath || portalPath
+  if (t === 'schedule_compliance_required') return meta.portalPath || portalPath
   return null
 }
 
-export default function NotificationBell({ isDark, isAr, userId, notificationsHref = '/notifications' }) {
+export default function NotificationBell({ isDark, isAr, userId, notificationsHref = '/notifications', portalPath = '/assessor' }) {
   const router = useRouter()
   const [notifications, setNotifications] = useState([])
   const [unread, setUnread] = useState(0)
@@ -81,7 +86,7 @@ export default function NotificationBell({ isDark, isAr, userId, notificationsHr
 
   async function handleNotifClick(notif) {
     if (!notif.read) await markRead(notif.id)
-    const target = getNavTarget(notif)
+    const target = getNavTarget(notif, portalPath)
     if (target) router.push(target)
     setOpen(false)
   }
@@ -194,7 +199,7 @@ export default function NotificationBell({ isDark, isAr, userId, notificationsHr
                     style={{
                       display: 'flex', alignItems: 'flex-start', gap: 10,
                       padding: '12px 16px',
-                      cursor: getNavTarget(notif) ? 'pointer' : 'default',
+                      cursor: getNavTarget(notif, portalPath) ? 'pointer' : 'default',
                       background: !notif.read ? (isDark ? 'rgba(201,147,44,.05)' : 'rgba(201,147,44,.03)') : 'transparent',
                       borderBottom: `1px solid ${border}`,
                       transition: 'background .12s',

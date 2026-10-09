@@ -96,6 +96,8 @@ export async function PUT(req) {
       meta:  { ...limits, scheduleType: type },
     }]
 
+    const portalPath = type === 'teacher' ? '/teacher' : '/assessor'
+
     for (const u of users) {
       const dayMap = u.scheduleTemplates?.[0]?.schedule ?? null
       if (!dayMap) {
@@ -104,7 +106,7 @@ export async function PUT(req) {
           type: 'schedule_limits_updated',
           title: 'Schedule Limits Updated',
           body:  `The academy has updated schedule requirements: ${minSlots}–${maxSlots} slots across ${minDays}–${maxDays} days.`,
-          meta:  { ...limits, scheduleType: type, compliant: null },
+          meta:  { ...limits, scheduleType: type, compliant: null, portalPath },
         })
         continue
       }
@@ -118,13 +120,13 @@ export async function PUT(req) {
         type: 'schedule_limits_updated',
         title: "Schedule Limits Updated — You're Compliant",
         body:  `Slot limits changed. Your schedule (${totalSlots} slots, ${activeDays} days) already meets the new requirements.`,
-        meta:  { ...limits, scheduleType: type, totalSlots, activeDays, compliant: true },
+        meta:  { ...limits, scheduleType: type, totalSlots, activeDays, compliant: true, portalPath },
       } : {
         recipientType: 'user', recipientId: u.id,
         type: 'schedule_compliance_required',
         title: 'Schedule Update Required',
         body:  violationBody(totalSlots, activeDays, minSlots, maxSlots, minDays, maxDays),
-        meta:  { ...limits, scheduleType: type, totalSlots, activeDays, compliant: false },
+        meta:  { ...limits, scheduleType: type, totalSlots, activeDays, compliant: false, portalPath },
       })
     }
 

@@ -114,7 +114,11 @@ export async function PUT(req) {
       body: action === 'approve'
         ? 'Your schedule change request has been approved. Your new schedule is now active.'
         : `Your schedule change request has been rejected.${adminNote ? ` Reason: ${adminNote}` : ''}`,
-      meta: { requestId: id, action, adminNote: adminNote || null },
+      meta: {
+        requestId: id, action, adminNote: adminNote || null,
+        requestorType: rType,
+        portalPath: rType === 'teacher' ? '/teacher' : '/assessor',
+      },
     },
   })
 

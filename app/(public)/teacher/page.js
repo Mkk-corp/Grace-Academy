@@ -12,6 +12,7 @@ import CourseCatalog from '@/components/shared/CourseCatalog'
 import TeacherOnboardingOverlay from '@/components/teacher/TeacherOnboardingOverlay'
 import TeacherWeeklySchedule from '@/components/teacher/TeacherWeeklySchedule'
 import TeacherSlotRequests from '@/components/teacher/TeacherSlotRequests'
+import NotificationBell from '@/components/ui/NotificationBell'
 
 /* ─── Assigned Courses tab ──────────────────────────────────────── */
 function AssignedCoursesTab({ isAr }) {
@@ -476,6 +477,7 @@ export default function TeacherPage() {
             sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(o => !o)}
             search={search} onSearchChange={setSearch}
             onLogout={handleLogout}
+            notificationBell={<NotificationBell isDark={isDark} isAr={isAr} userId={user?.id} portalPath="/teacher" />}
           />
 
           {/* ── BREADCRUMB ── */}

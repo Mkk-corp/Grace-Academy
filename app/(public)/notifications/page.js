@@ -18,8 +18,14 @@ function timeAgo(iso, isAr) {
 }
 
 function getNavTarget(notif) {
-  if (notif?.type === 'slot_request') return '/admin/requests'
-  if (notif?.type === 'slot_request_resolved') return '/portal'
+  const t    = notif?.type
+  const meta = notif?.meta || {}
+  if (t === 'slot_request') return '/admin/requests'
+  if (t === 'slot_request_resolved')       return meta.portalPath || '/portal'
+  if (t === 'course_assigned')             return meta.portalPath || '/teacher'
+  if (t === 'course_unassigned')           return meta.portalPath || '/teacher'
+  if (t === 'schedule_limits_updated')     return meta.portalPath || '/portal'
+  if (t === 'schedule_compliance_required')return meta.portalPath || '/portal'
   return null
 }
 
@@ -56,7 +62,7 @@ const STRINGS = {
 
 function NotifIcon({ type, body }) {
   const isApproved = type === 'slot_request_resolved' && body?.includes('approved')
-  const isRejected = type === 'slot_request_resolved' && !body?.includes('approved')
+  const isRejected = type === 'slot_request_resolved' && body?.includes('rejected')
   if (isApproved) return (
     <div style={{ width: 42, height: 42, borderRadius: 12, flexShrink: 0, background: 'rgba(16,185,129,.12)', border: '1px solid rgba(16,185,129,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -67,9 +73,24 @@ function NotifIcon({ type, body }) {
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </div>
   )
+  if (type === 'course_assigned') return (
+    <div style={{ width: 42, height: 42, borderRadius: 12, flexShrink: 0, background: 'rgba(168,85,247,.1)', border: '1px solid rgba(168,85,247,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="1.8" strokeLinecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    </div>
+  )
+  if (type === 'course_unassigned') return (
+    <div style={{ width: 42, height: 42, borderRadius: 12, flexShrink: 0, background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.8" strokeLinecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    </div>
+  )
+  if (type === 'schedule_compliance_required') return (
+    <div style={{ width: 42, height: 42, borderRadius: 12, flexShrink: 0, background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="1.8" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </div>
+  )
   return (
     <div style={{ width: 42, height: 42, borderRadius: 12, flexShrink: 0, background: 'rgba(201,147,44,.1)', border: '1px solid rgba(201,147,44,.22)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c9932c" strokeWidth="1.8"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c9932c" strokeWidth="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
     </div>
   )
 }
