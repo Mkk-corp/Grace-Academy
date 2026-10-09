@@ -119,6 +119,7 @@ model ScheduleTemplate {
 model SlotRequest {
   id               String    @id @default(cuid())
   assessorId       String
+  requestorType    String    @default("assessor")
   assessor         User      @relation("AssessorSlotRequests", fields: [assessorId], references: [id], onDelete: Cascade)
   currentSchedule  Json?
   proposedSchedule Json

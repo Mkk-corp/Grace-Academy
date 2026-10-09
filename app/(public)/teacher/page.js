@@ -11,6 +11,7 @@ import Breadcrumb from '@/components/ui/Breadcrumb'
 import CourseCatalog from '@/components/shared/CourseCatalog'
 import TeacherOnboardingOverlay from '@/components/teacher/TeacherOnboardingOverlay'
 import TeacherWeeklySchedule from '@/components/teacher/TeacherWeeklySchedule'
+import TeacherSlotRequests from '@/components/teacher/TeacherSlotRequests'
 
 /* ─── Assigned Courses tab ──────────────────────────────────────── */
 function AssignedCoursesTab({ isAr }) {
@@ -441,6 +442,14 @@ export default function TeacherPage() {
               <Icon name="schedule" size={17} color={activeTab === 'schedule' ? 'var(--tc-gold)' : 'currentColor'} />
               <span className="tc-ni-lbl">{isAr ? 'جدولي الأسبوعي' : 'My Schedule'}</span>
             </button>
+            <button
+              className={`tc-ni${activeTab === 'requests' ? ' active' : ''}`}
+              onClick={() => setActiveTab('requests')}
+              title={sidebarOpen ? undefined : (isAr ? 'طلباتي' : 'My Requests')}
+            >
+              <Icon name="messages" size={17} color={activeTab === 'requests' ? 'var(--tc-gold)' : 'currentColor'} />
+              <span className="tc-ni-lbl">{isAr ? 'طلبات التغيير' : 'My Requests'}</span>
+            </button>
           </nav>
 
           <div className="tc-sb-bot">
@@ -479,6 +488,7 @@ export default function TeacherPage() {
                 label: activeTab === 'courses'  ? (isAr ? 'كتالوج الدورات' : 'Course Catalog')
                       : activeTab === 'assigned' ? (isAr ? 'الدورات المعيّنة' : 'Assigned Courses')
                       : activeTab === 'schedule' ? (isAr ? 'جدولي الأسبوعي' : 'My Schedule')
+                      : activeTab === 'requests' ? (isAr ? 'طلبات التغيير' : 'My Requests')
                       : (isAr ? 'الرئيسية' : 'Dashboard')
               },
             ]}
@@ -491,6 +501,8 @@ export default function TeacherPage() {
               ? <AssignedCoursesTab isAr={isAr} />
               : activeTab === 'schedule'
               ? <TeacherWeeklySchedule isAr={isAr} isDark={isDark} onScheduleSaved={() => setNeedsOnboarding(false)} />
+              : activeTab === 'requests'
+              ? <TeacherSlotRequests user={user} isAr={isAr} isDark={isDark} />
               : <DashboardTab user={user} isAr={isAr} />
             }
           </main>

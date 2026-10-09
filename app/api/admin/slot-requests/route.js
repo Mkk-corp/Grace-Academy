@@ -10,6 +10,7 @@ function mapRequest(r) {
   return {
     id: r.id,
     assessorId: r.assessorId,
+    requestorType: r.requestorType ?? 'assessor',
     assessorName: r.assessor?.name ?? '',
     assessorEmail: r.assessor?.email ?? '',
     currentSchedule: r.currentSchedule,
@@ -67,16 +68,21 @@ export async function PUT(req) {
   })
 
   if (action === 'approve') {
+    const rType = request.requestorType ?? 'assessor'
     await prisma.scheduleTemplate.upsert({
-      where: { userId_type: { userId: request.assessorId, type: 'assessor' } },
+      where: { userId_type: { userId: request.assessorId, type: rType } },
       update: { schedule: request.proposedSchedule },
-      create: { userId: request.assessorId, type: 'assessor', schedule: request.proposedSchedule },
+      create: { userId: request.assessorId, type: rType, schedule: request.proposedSchedule },
     })
 
     // Check if the approved schedule now complies with current limits
     try {
-      const cfg = await prisma.scheduleConfig.findUnique({ where: { id: 'default' } })
-      const lim = cfg || { minDays: 2, maxDays: 5, minSlots: 4, maxSlots: 32 }
+      const configRows = await prisma.scheduleConfig.findMany({ where: { id: { in: [rType, 'default'] } } })
+      const cfg = configRows.find(c => c.id === rType) ?? configRows.find(c => c.id === 'default')
+      const defaultLimits = rType === 'teacher'
+        ? { minDays: 2, maxDays: 7, minSlots: 8, maxSlots: 30 }
+        : { minDays: 2, maxDays: 5, minSlots: 4, maxSlots: 32 }
+      const lim = cfg || defaultLimits
       const dm  = request.proposedSchedule || {}
       const totalSlots = Object.values(dm).reduce((s, v) => s + (Array.isArray(v) ? v.length : 0), 0)
       const activeDays = Object.keys(dm).filter(k => Array.isArray(dm[k]) && dm[k].length > 0).length
@@ -90,7 +96,7 @@ export async function PUT(req) {
             type: 'schedule_compliance_ok',
             title: 'Schedule Now Compliant',
             body: `Your updated schedule (${totalSlots} slots, ${activeDays} days) meets all current requirements. No further action needed.`,
-            meta: { totalSlots, activeDays, ...lim },
+            meta: { totalSlots, activeDays, ...lim, requestorType: rType },
           },
         })
       }

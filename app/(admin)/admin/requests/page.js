@@ -183,7 +183,18 @@ function RequestModal({ req, onClose, onApprove, onReject, onDelete, actionLoadi
             <div style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '.12em', color: 'var(--gold)', marginBottom: 3 }}>
               {s.modalLabel}
             </div>
-            <div className="admin-modal__title">{req.assessorName}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <div className="admin-modal__title" style={{ margin: 0 }}>{req.assessorName}</div>
+              {req.requestorType === 'teacher' ? (
+                <span style={{ fontSize: '.68rem', fontWeight: 700, padding: '2px 9px', borderRadius: 100, background: 'rgba(168,85,247,.12)', border: '1px solid rgba(168,85,247,.28)', color: '#a855f7' }}>
+                  {isAr ? 'معلم' : 'Teacher'}
+                </span>
+              ) : (
+                <span style={{ fontSize: '.68rem', fontWeight: 700, padding: '2px 9px', borderRadius: 100, background: 'rgba(16,185,129,.1)', border: '1px solid rgba(16,185,129,.25)', color: '#10b981' }}>
+                  {isAr ? 'مستشار' : 'Consultant'}
+                </span>
+              )}
+            </div>
             <div style={{ fontSize: '.78rem', color: 'var(--text-40)', marginTop: 2 }}>{req.assessorEmail}</div>
           </div>
           <button className="admin-modal__close" onClick={onClose} aria-label="Close">
@@ -710,7 +721,18 @@ export default function AdminRequestsPage() {
                     onClick={() => setSelectedReq(req)}
                   >
                     <td>
-                      <div style={{ fontWeight: 600, color: 'var(--text)' }}>{req.assessorName}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                        <span style={{ fontWeight: 600, color: 'var(--text)' }}>{req.assessorName}</span>
+                        {req.requestorType === 'teacher' ? (
+                          <span style={{ fontSize: '.65rem', fontWeight: 700, padding: '1px 7px', borderRadius: 100, background: 'rgba(168,85,247,.12)', border: '1px solid rgba(168,85,247,.28)', color: '#a855f7' }}>
+                            {isAr ? 'معلم' : 'Teacher'}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: '.65rem', fontWeight: 700, padding: '1px 7px', borderRadius: 100, background: 'rgba(16,185,129,.1)', border: '1px solid rgba(16,185,129,.25)', color: '#10b981' }}>
+                            {isAr ? 'مستشار' : 'Consultant'}
+                          </span>
+                        )}
+                      </div>
                       <div style={{ fontSize: '.74rem', color: 'var(--text-40)' }}>{req.assessorEmail}</div>
                     </td>
                     <td>
