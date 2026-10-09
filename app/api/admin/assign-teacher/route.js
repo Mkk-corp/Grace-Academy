@@ -48,7 +48,7 @@ export async function GET(req) {
         ...t,
         isAssigned: assignedSet.has(t.id),
         assignedAt: assignedSet.get(t.id) || null,
-        isEligible: courseLevel === null || tlIdx === -1 || tlIdx >= courseLevelIdx,
+        isEligible: courseLevel === null || (tlIdx !== -1 && tlIdx >= courseLevelIdx),
       }
     }),
   })
