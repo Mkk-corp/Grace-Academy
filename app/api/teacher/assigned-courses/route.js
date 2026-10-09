@@ -6,7 +6,7 @@ export async function GET() {
   const payload = await requireTeacher()
   if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const userId = payload.sub
+  const userId = payload.userId
   const assignments = await prisma.teacherCourse.findMany({
     where: { userId },
     include: {

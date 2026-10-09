@@ -28,24 +28,31 @@ const IcCheck   = p => <Ic {...p}><polyline points="20 6 9 17 4 12"/></Ic>
 function groupIcon(iconId, color, size = 15) {
   const p = { size, color }
   switch (iconId) {
-    case 'door':      return <Ic size={size} color={color}><path d="M3 9v6a2 2 0 0 0 2 2h4"/><rect x="9" y="3" width="12" height="18" rx="2"/><line x1="15" y1="12" x2="15.01" y2="12"/></Ic>
-    case 'clipboard': return <Ic size={size} color={color}><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></Ic>
-    case 'book':      return <Ic size={size} color={color}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></Ic>
-    case 'users':     return <IcUsers {...p} />
-    case 'file':      return <Ic size={size} color={color}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></Ic>
-    case 'mail':      return <Ic size={size} color={color}><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></Ic>
-    case 'dollar':    return <Ic size={size} color={color}><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></Ic>
-    case 'globe':     return <Ic size={size} color={color}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></Ic>
-    case 'shield':    return <IcShield {...p} />
-    default:          return <IcShield {...p} />
+    case 'door':       return <Ic size={size} color={color}><path d="M3 9v6a2 2 0 0 0 2 2h4"/><rect x="9" y="3" width="12" height="18" rx="2"/><line x1="15" y1="12" x2="15.01" y2="12"/></Ic>
+    case 'clipboard':  return <Ic size={size} color={color}><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></Ic>
+    case 'book':       return <Ic size={size} color={color}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></Ic>
+    case 'users':      return <IcUsers {...p} />
+    case 'student':    return <Ic size={size} color={color}><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 6 3 6 3s6-1 6-3v-5"/></Ic>
+    case 'teacher':    return <Ic size={size} color={color}><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 8h10"/><path d="M7 12h6"/></Ic>
+    case 'consultant': return <Ic size={size} color={color}><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></Ic>
+    case 'key':        return <Ic size={size} color={color}><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></Ic>
+    case 'file':       return <Ic size={size} color={color}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></Ic>
+    case 'mail':       return <Ic size={size} color={color}><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></Ic>
+    case 'dollar':     return <Ic size={size} color={color}><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></Ic>
+    case 'globe':      return <Ic size={size} color={color}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></Ic>
+    case 'shield':     return <IcShield {...p} />
+    default:           return <IcShield {...p} />
   }
 }
 
 const GROUP_COLORS = {
   portal_access:   '#3b82f6',
   placement:       '#8b5cf6',
+  students:        '#0ea5e9',
+  teachers:        '#a855f7',
+  consultants:     '#10b981',
+  roles_access:    '#64748b',
   courses:         '#c9932c',
-  users:           '#10b981',
   blog:            '#f97316',
   website_content: '#06b6d4',
   communications:  '#f59e0b',
