@@ -595,15 +595,16 @@ export default function CoursesPage() {
   const isAr      = lang === 'ar'
   const isDark    = theme === 'dark'
 
-  const [courses,      setCourses]  = useState([])
-  const [loading,      setLoading]  = useState(true)
-  const [showImport,   setImport]   = useState(false)
-  const [deleteTarget, setDelete]   = useState(null)
-  const [deleteError,  setDelErr]   = useState('')
-  const [search,       setSearch]   = useState('')
-  const [page,         setPage]     = useState(1)
-  const [dateFrom,     setDateFrom] = useState('')
-  const [dateTo,       setDateTo]   = useState('')
+  const [courses,      setCourses]   = useState([])
+  const [loading,      setLoading]   = useState(true)
+  const [showImport,   setImport]    = useState(false)
+  const [deleteTarget, setDelete]    = useState(null)
+  const [deleteError,  setDelErr]    = useState('')
+  const [search,       setSearch]    = useState('')
+  const [page,         setPage]      = useState(1)
+  const [dateFrom,     setDateFrom]  = useState('')
+  const [dateTo,       setDateTo]    = useState('')
+  const [levelFilter,  setLevelFilter] = useState('')
 
   function load() {
     return fetch('/api/admin/courses').then(r => r.json()).then(d => {
@@ -633,6 +634,7 @@ export default function CoursesPage() {
       (c.nameAr || '').includes(search)
     const d = c.createdAt ? c.createdAt.substring(0, 10) : null
     return matchSearch &&
+      (!levelFilter || c.level === levelFilter) &&
       (!dateFrom || (d && d >= dateFrom)) &&
       (!dateTo   || (d && d <= dateTo))
   })
@@ -640,6 +642,7 @@ export default function CoursesPage() {
   const exportCols = [
     { header: 'Course (EN)',        value: r => r.nameEn || '' },
     { header: 'Course (AR)',        value: r => r.nameAr || '' },
+    { header: 'Level',             value: r => r.level || '' },
     { header: 'Sessions',           value: r => r.durationSessions ?? 0 },
     { header: 'Duration (months)',  value: r => r.durationMonths ?? '' },
     { header: 'Speaking',           value: r => r.needsSpeaking ? 'Yes' : 'No' },
@@ -736,6 +739,58 @@ export default function CoursesPage() {
           )}
         </div>
 
+        {/* Level filter pills */}
+        {!loading && courses.some(c => c.level) && (
+          <div style={{ padding: '10px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '.68rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--text-40)', flexShrink: 0, marginRight: 2 }}>
+              {isAr ? 'المستوى:' : 'LEVEL:'}
+            </span>
+            {[
+              { value: '', label: isAr ? 'الكل' : 'All', color: GOLD },
+              { value: 'A1', color: '#10b981' },
+              { value: 'A2', color: '#06b6d4' },
+              { value: 'B1', color: '#3b82f6' },
+              { value: 'B2', color: '#6366f1' },
+              { value: 'C1', color: '#8b5cf6' },
+              { value: 'C2', color: '#c9932c' },
+            ].map(({ value, label, color }) => {
+              const active = levelFilter === value
+              const count  = value ? courses.filter(c => c.level === value).length : null
+              if (value && count === 0) return null
+              return (
+                <button
+                  key={value}
+                  onClick={() => { setLevelFilter(value); setPage(1) }}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    padding: '4px 12px', borderRadius: 100, fontSize: '.74rem', fontWeight: 700,
+                    border: `1.5px solid ${active ? color : (isDark ? 'rgba(255,255,255,.1)' : '#e5e7eb')}`,
+                    background: active ? `${color}18` : 'transparent',
+                    color: active ? color : 'var(--text-60)',
+                    cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s',
+                  }}
+                  onMouseEnter={e => { if (!active) { e.currentTarget.style.borderColor = color; e.currentTarget.style.color = color } }}
+                  onMouseLeave={e => { if (!active) { e.currentTarget.style.borderColor = isDark ? 'rgba(255,255,255,.1)' : '#e5e7eb'; e.currentTarget.style.color = 'var(--text-60)' } }}
+                >
+                  {label || value}
+                  {count !== null && (
+                    <span style={{ fontSize: '.64rem', fontWeight: 800, opacity: active ? 1 : .6 }}>({count})</span>
+                  )}
+                </button>
+              )
+            })}
+            {levelFilter && (
+              <button
+                onClick={() => { setLevelFilter(''); setPage(1) }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 100, fontSize: '.72rem', fontWeight: 600, border: '1px solid rgba(239,68,68,.3)', background: 'rgba(239,68,68,.07)', color: RED, cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="10" height="10"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                {isAr ? 'مسح' : 'Clear'}
+              </button>
+            )}
+          </div>
+        )}
+
         {!loading && courses.length === 0 && (
           <div style={{ padding: 20 }}>
             <EmptyState title={s.emptyTitle} description={s.emptyDesc} actionLabel={s.emptyAction} onAction={() => router.push('/admin/courses/new')} />
@@ -771,7 +826,18 @@ export default function CoursesPage() {
                               </div>
                           }
                           <div>
-                            <div style={{ fontWeight: 600, fontSize: '.88rem', color: 'var(--text)' }}>{c.nameEn}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                              <span style={{ fontWeight: 600, fontSize: '.88rem', color: 'var(--text)' }}>{c.nameEn}</span>
+                              {c.level && (() => {
+                                const LC = { A1:'#10b981',A2:'#06b6d4',B1:'#3b82f6',B2:'#6366f1',C1:'#8b5cf6',C2:'#c9932c' }
+                                const col = LC[c.level] || GOLD
+                                return (
+                                  <span style={{ fontSize: '.62rem', fontWeight: 800, padding: '1px 7px', borderRadius: 100, background: `${col}18`, border: `1.5px solid ${col}40`, color: col, letterSpacing: '.05em', flexShrink: 0 }}>
+                                    {c.level}
+                                  </span>
+                                )
+                              })()}
+                            </div>
                             {c.nameAr && <div style={{ fontSize: '.75rem', color: 'var(--text-60)', direction: 'rtl', textAlign: 'right', marginTop: 2 }}>{c.nameAr}</div>}
                           </div>
                         </div>
