@@ -333,24 +333,35 @@ function RequestModal({ req, onClose, onApprove, onReject, onDelete, actionLoadi
 }
 
 /* ─── Schedule limits config card ───────────────────────────────────── */
+const SCHED_LIMIT_FIELDS = [
+  { key: 'minDays',  enLabel: 'Min Days',   arLabel: 'أيام (حد أدنى)'   },
+  { key: 'maxDays',  enLabel: 'Max Days',   arLabel: 'أيام (حد أقصى)'   },
+  { key: 'minSlots', enLabel: 'Min Slots',  arLabel: 'خانات (حد أدنى)'  },
+  { key: 'maxSlots', enLabel: 'Max Slots',  arLabel: 'خانات (حد أقصى)'  },
+]
+
 function ScheduleLimitsCard({ isAr }) {
-  const [limits, setLimits] = useState({ minDays: 2, maxDays: 5, minSlots: 4, maxSlots: 32 })
-  const [open, setOpen] = useState(false)
-  const [draft, setDraft] = useState(null)
-  const [saving, setSaving] = useState(false)
-  const [msg, setMsg] = useState(null)
+  const [assessor, setAssessor] = useState({ minDays: 2, maxDays: 5, minSlots: 4,  maxSlots: 32 })
+  const [teacher,  setTeacher]  = useState({ minDays: 2, maxDays: 7, minSlots: 8,  maxSlots: 30 })
+  const [editing,  setEditing]  = useState(null)   // 'assessor' | 'teacher' | null
+  const [draft,    setDraft]    = useState(null)
+  const [saving,   setSaving]   = useState(false)
+  const [msg,      setMsg]      = useState(null)
 
   useEffect(() => {
     fetch('/api/admin/schedule-limits')
       .then(r => r.json())
-      .then(d => { if (d.limits) setLimits(d.limits) })
+      .then(d => {
+        if (d.assessor) setAssessor(d.assessor)
+        if (d.teacher)  setTeacher(d.teacher)
+      })
       .catch(() => {})
   }, [])
 
-  function openEdit() {
-    setDraft({ ...limits })
+  function openEdit(type) {
+    setEditing(type)
+    setDraft(type === 'teacher' ? { ...teacher } : { ...assessor })
     setMsg(null)
-    setOpen(true)
   }
 
   async function save() {
@@ -359,12 +370,13 @@ function ScheduleLimitsCard({ isAr }) {
       const res = await fetch('/api/admin/schedule-limits', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(draft),
+        body: JSON.stringify({ type: editing, ...draft }),
       })
       const data = await res.json()
       if (!res.ok) { setMsg({ text: data.error || 'Save failed', ok: false }); return }
-      setLimits(data.limits)
-      setOpen(false)
+      if (editing === 'teacher') setTeacher(data.limits)
+      else setAssessor(data.limits)
+      setEditing(null)
       setMsg({ text: isAr ? 'تم الحفظ' : 'Saved', ok: true })
       setTimeout(() => setMsg(null), 3000)
     } catch {
@@ -374,65 +386,69 @@ function ScheduleLimitsCard({ isAr }) {
     }
   }
 
-  const labelStyle = { fontSize: '.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-40)', marginBottom: 4 }
-  const valStyle   = { fontSize: '.88rem', fontWeight: 700, color: 'var(--text)' }
+  const lbStyle = { fontSize: '.66rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-40)', marginBottom: 2 }
+  const vlStyle = { fontSize: '.88rem', fontWeight: 700, color: 'var(--text)' }
+
+  function Panel({ type, limits }) {
+    const isActive = editing === type
+    const title = type === 'teacher'
+      ? (isAr ? 'المعلمون' : 'TEACHERS')
+      : (isAr ? 'المستشارون الأكاديميون' : 'ACADEMIC CONSULTANTS')
+    return (
+      <div style={{ flex: 1, minWidth: 260, border: '1px solid var(--border)', borderRadius: 10, padding: '14px 18px', background: 'var(--surface)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <span style={{ fontSize: '.7rem', fontWeight: 700, letterSpacing: '.1em', color: 'var(--gold)' }}>{title}</span>
+          <button className="admin-btn" onClick={() => openEdit(type)}>
+            {isAr ? 'تعديل' : 'Edit'}
+          </button>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 20px' }}>
+          {SCHED_LIMIT_FIELDS.map(f => (
+            <div key={f.key}>
+              <div style={lbStyle}>{isAr ? f.arLabel : f.enLabel}</div>
+              <div style={vlStyle}>{limits[f.key]}</div>
+            </div>
+          ))}
+        </div>
+        {isActive && draft && (
+          <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--border)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(120px,1fr))', gap: 10 }}>
+              {SCHED_LIMIT_FIELDS.map(f => (
+                <div key={f.key} className="admin-field">
+                  <label>{isAr ? f.arLabel : f.enLabel}</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={draft[f.key]}
+                    onChange={e => setDraft(d => ({ ...d, [f.key]: parseInt(e.target.value, 10) || 1 }))}
+                  />
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+              <button className="admin-btn admin-btn--primary" disabled={saving} onClick={save}>
+                {saving ? '…' : (isAr ? 'حفظ' : 'Save')}
+              </button>
+              <button className="admin-btn" onClick={() => setEditing(null)}>{isAr ? 'إلغاء' : 'Cancel'}</button>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px', marginBottom: 20 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '.72rem', fontWeight: 700, letterSpacing: '.1em', color: 'var(--gold)' }}>
-            {isAr ? 'حدود الجدول' : 'SCHEDULE LIMITS'}
-          </span>
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-            {[
-              { l: isAr ? 'أيام (حد أدنى)' : 'Min Days',   v: limits.minDays  },
-              { l: isAr ? 'أيام (حد أقصى)' : 'Max Days',   v: limits.maxDays  },
-              { l: isAr ? 'خانات (حد أدنى)' : 'Min Slots', v: limits.minSlots },
-              { l: isAr ? 'خانات (حد أقصى)' : 'Max Slots', v: limits.maxSlots },
-            ].map(({ l, v }) => (
-              <div key={l} style={{ textAlign: 'center' }}>
-                <div style={labelStyle}>{l}</div>
-                <div style={valStyle}>{v}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <button className="admin-btn" onClick={openEdit}>
-          {isAr ? 'تعديل' : 'Edit'}
-        </button>
+      <div style={{ fontSize: '.72rem', fontWeight: 700, letterSpacing: '.1em', color: 'var(--gold)', marginBottom: 14 }}>
+        {isAr ? 'حدود الجدول' : 'SCHEDULE LIMITS'}
       </div>
-
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        <Panel type="assessor" limits={assessor} />
+        <Panel type="teacher"  limits={teacher}  />
+      </div>
       {msg && (
         <div style={{ marginTop: 10, fontSize: '.8rem', fontWeight: 600, color: msg.ok ? '#10b981' : '#ef4444' }}>
           {msg.text}
-        </div>
-      )}
-
-      {open && draft && (
-        <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(140px,1fr))', gap: 12 }}>
-          {[
-            { key: 'minDays',  label: isAr ? 'أيام (حد أدنى)' : 'Min Days'   },
-            { key: 'maxDays',  label: isAr ? 'أيام (حد أقصى)' : 'Max Days'   },
-            { key: 'minSlots', label: isAr ? 'خانات (حد أدنى)' : 'Min Slots' },
-            { key: 'maxSlots', label: isAr ? 'خانات (حد أقصى)' : 'Max Slots' },
-          ].map(({ key, label }) => (
-            <div key={key} className="admin-field">
-              <label>{label}</label>
-              <input
-                type="number"
-                min={1}
-                value={draft[key]}
-                onChange={e => setDraft(d => ({ ...d, [key]: parseInt(e.target.value, 10) || 1 }))}
-              />
-            </div>
-          ))}
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, gridColumn: '1 / -1' }}>
-            <button className="admin-btn admin-btn--primary" disabled={saving} onClick={save}>
-              {saving ? '…' : (isAr ? 'حفظ' : 'Save')}
-            </button>
-            <button className="admin-btn" onClick={() => setOpen(false)}>{isAr ? 'إلغاء' : 'Cancel'}</button>
-          </div>
         </div>
       )}
     </div>

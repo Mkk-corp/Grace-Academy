@@ -55,10 +55,11 @@ export async function GET() {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const [template, configRow] = await Promise.all([
+  const [template, configRows] = await Promise.all([
     prisma.scheduleTemplate.findUnique({ where: { userId_type: { userId: user.id, type: 'assessor' } } }),
-    prisma.scheduleConfig.findUnique({ where: { id: 'default' } }),
+    prisma.scheduleConfig.findMany({ where: { id: { in: ['assessor', 'default'] } } }),
   ])
+  const configRow = configRows.find(c => c.id === 'assessor') ?? configRows.find(c => c.id === 'default')
 
   const config = configRow
     ? { minDays: configRow.minDays, maxDays: configRow.maxDays, minSlots: configRow.minSlots, maxSlots: configRow.maxSlots }

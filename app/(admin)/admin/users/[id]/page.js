@@ -97,16 +97,16 @@ function minToLabel(m) {
   return `${h12}:${min.toString().padStart(2, '0')} ${p}`
 }
 
-function toRanges(slots) {
+function toRanges(slots, step = 30) {
   if (!slots?.length) return []
   const s = [...slots].sort((a, b) => a - b)
   const ranges = []
   let start = s[0], prev = s[0]
   for (let i = 1; i < s.length; i++) {
-    if (s[i] === prev + 30) { prev = s[i] }
-    else { ranges.push([start, prev + 30]); start = s[i]; prev = s[i] }
+    if (s[i] === prev + step) { prev = s[i] }
+    else { ranges.push([start, prev + step]); start = s[i]; prev = s[i] }
   }
-  ranges.push([start, prev + 30])
+  ranges.push([start, prev + step])
   return ranges
 }
 
@@ -159,7 +159,7 @@ function ScheduleSection({ template, isAr, isDark }) {
           </div>
         ) : activeDays.map(day => {
           const slots  = sched[day.key] || []
-          const ranges = toRanges(slots)
+          const ranges = toRanges(slots, template.type === 'teacher' ? 60 : 30)
           return (
             <div key={day.key} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap' }}>
               {/* Day label */}

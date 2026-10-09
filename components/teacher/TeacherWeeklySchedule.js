@@ -13,8 +13,8 @@ const DAYS = [
   { key: 'fri', en: 'Friday',    ar: 'الجمعة'   },
 ]
 
-const SLOTS = Array.from({ length: 30 }, (_, i) => 540 + i * 30)
-const REQUIRED = 16
+const SLOTS = Array.from({ length: 15 }, (_, i) => 540 + i * 60)
+const REQUIRED = 8
 
 function minutesToLabel(m) {
   const h = Math.floor(m / 60)
@@ -270,10 +270,10 @@ function ScheduleReadView({ scheduleData, isAr, isDark }) {
     const ranges = []
     let start = sorted[0], prev = sorted[0]
     for (let i = 1; i < sorted.length; i++) {
-      if (sorted[i] === prev + 30) { prev = sorted[i] }
-      else { ranges.push({ from: start, to: prev + 30 }); start = sorted[i]; prev = sorted[i] }
+      if (sorted[i] === prev + 60) { prev = sorted[i] }
+      else { ranges.push({ from: start, to: prev + 60 }); start = sorted[i]; prev = sorted[i] }
     }
-    ranges.push({ from: start, to: prev + 30 })
+    ranges.push({ from: start, to: prev + 60 })
     return ranges
   }
 
@@ -431,8 +431,8 @@ export default function TeacherWeeklySchedule({ isAr, isDark, onScheduleSaved })
           {!scheduleData && (
             <p style={{ fontSize: '.84rem', color: 'var(--tc-muted)', lineHeight: 1.6, maxWidth: 540 }}>
               {isAr
-                ? `اختر ${REQUIRED} خانة متاحة على الأقل (30 دقيقة لكل خانة) موزعة على أسبوعك. الخانات متاحة من 9:00 صباحاً حتى 11:30 مساءً. بعد الحفظ يصبح الجدول مقفلاً.`
-                : `Pick at least ${REQUIRED} available 30-min slots spread across your week. Slots run 9:00 AM – 11:30 PM. Once saved, the schedule is locked — contact admin to modify it.`}
+                ? `اختر ${REQUIRED} خانة متاحة على الأقل (60 دقيقة لكل خانة) موزعة على أسبوعك. الخانات متاحة من 9:00 صباحاً حتى 11:00 مساءً. بعد الحفظ يصبح الجدول مقفلاً.`
+                : `Pick at least ${REQUIRED} available 60-min slots spread across your week. Slots run 9:00 AM – 11:00 PM. Once saved, the schedule is locked — contact admin to modify it.`}
             </p>
           )}
         </div>
