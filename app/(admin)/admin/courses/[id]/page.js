@@ -126,7 +126,8 @@ function AssignTeachersPanel({ courseId, isAr, isDark, surf, border, text, muted
   const [modalSearch, setModalSearch] = useState('')
   const [selected,    setSelected]    = useState(null)
   const [assigning,   setAssigning]   = useState(false)
-  const [assignDone,  setAssignDone]  = useState(false) // success flash in modal
+  const [assignDone,  setAssignDone]  = useState(false)
+  const [assignErr,   setAssignErr]   = useState('')
 
   function load() {
     setLoading(true)
@@ -156,20 +157,33 @@ function AssignTeachersPanel({ courseId, isAr, isDark, surf, border, text, muted
   async function doAssign() {
     if (!selected) return
     setAssigning(true)
-    await fetch('/api/admin/assign-teacher', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ courseId, userId: selected.id }),
-    })
-    setAssignDone(true)
-    setTimeout(async () => {
-      await load()
+    setAssignErr('')
+    try {
+      const res  = await fetch('/api/admin/assign-teacher', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ courseId, userId: selected.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setAssignErr(data.error || (isAr ? 'فشل التعيين' : 'Assignment failed'))
+        setAssigning(false)
+        return
+      }
+      setAssignDone(true)
+      setTimeout(async () => {
+        await load()
+        setAssigning(false)
+        setAssignDone(false)
+        setShowModal(false)
+        setSelected(null)
+        setModalSearch('')
+        setAssignErr('')
+      }, 1400)
+    } catch {
+      setAssignErr(isAr ? 'خطأ في الشبكة' : 'Network error')
       setAssigning(false)
-      setAssignDone(false)
-      setShowModal(false)
-      setSelected(null)
-      setModalSearch('')
-    }, 1400)
+    }
   }
 
   const assigned   = teachers.filter(t => t.isAssigned)
@@ -391,6 +405,12 @@ function AssignTeachersPanel({ courseId, isAr, isDark, surf, border, text, muted
 
             {/* Modal footer */}
             <div style={{ padding: '14px 24px 20px', borderTop: `1px solid ${border}`, flexShrink: 0 }}>
+              {assignErr && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 10, background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.25)', color: RED, fontSize: '.82rem', marginBottom: 10 }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  {assignErr}
+                </div>
+              )}
               {assignDone ? (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '12px', borderRadius: 12, background: `${GREEN}10`, border: `1px solid ${GREEN}30`, color: GREEN, fontWeight: 700, fontSize: '.88rem', animation: 'atpSlideUp .2s ease' }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>

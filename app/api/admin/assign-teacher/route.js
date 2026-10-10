@@ -4,6 +4,7 @@ import { requireAdmin } from '@/lib/guard'
 import { logAudit } from '@/lib/audit'
 import { sendCourseAssignmentEmail } from '@/lib/mailer'
 import { headers } from 'next/headers'
+import { decryptId } from '@/lib/urlCrypto'
 
 // GET ?courseId=xxx — all teachers with assignment status for a course
 export async function GET(req) {
@@ -11,8 +12,9 @@ export async function GET(req) {
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { searchParams } = new URL(req.url)
-  const courseId = searchParams.get('courseId')
-  if (!courseId) return NextResponse.json({ error: 'courseId required' }, { status: 400 })
+  const rawCourseId = searchParams.get('courseId')
+  if (!rawCourseId) return NextResponse.json({ error: 'courseId required' }, { status: 400 })
+  const courseId = decryptId(rawCourseId) || rawCourseId
 
   const teacherRoles = await prisma.role.findMany({
     where: { permissions: { has: 'access_teacher_portal' } },
@@ -65,8 +67,9 @@ export async function POST(req) {
   const admin = await requireAdmin()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { courseId, userId } = await req.json()
-  if (!courseId || !userId) return NextResponse.json({ error: 'courseId and userId required' }, { status: 400 })
+  const { courseId: rawCourseId, userId } = await req.json()
+  if (!rawCourseId || !userId) return NextResponse.json({ error: 'courseId and userId required' }, { status: 400 })
+  const courseId = decryptId(rawCourseId) || rawCourseId
 
   const [course, teacher] = await Promise.all([
     prisma.course.findUnique({ where: { id: courseId }, include: { category: { select: { nameEn: true, nameAr: true } } } }),
@@ -130,8 +133,9 @@ export async function DELETE(req) {
   const admin = await requireAdmin()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { courseId, userId } = await req.json()
-  if (!courseId || !userId) return NextResponse.json({ error: 'courseId and userId required' }, { status: 400 })
+  const { courseId: rawCourseId, userId } = await req.json()
+  if (!rawCourseId || !userId) return NextResponse.json({ error: 'courseId and userId required' }, { status: 400 })
+  const courseId = decryptId(rawCourseId) || rawCourseId
 
   const course = await prisma.course.findUnique({ where: { id: courseId }, select: { nameEn: true, nameAr: true } })
 
